@@ -15,6 +15,8 @@ defmodule Infer do
   - The result assigns a value to each **predicate**, e.g. the value `true` to the predicate `:has_children?`.
   - It helps to differentiate **pure predicates** that are not stored anywhere, from **fields** that are stored and can also be predicates.
   - The `:when` part of a rule defines the **condition**.
+  - The current instance is the **subject**.
+  - An executed rule results in a (derived) **fact**: subject, predicate, value.
 
   ## Assigns
 
@@ -195,6 +197,29 @@ defmodule Infer do
   functions (such as `Infer.get/3`) in a map in this field, like a cache.
 
   ### Referencing values in condition (experimental)
+
+  `{:ref, [...]}` is a reference to a **path**, starting from the subject.
+
+  ```
+  infer ot_fields: %{editable: true},
+      when: %{
+        construction_bectu?: true,
+        roles: %{
+          user: {:ref, [:args, :user]},
+          type: ["project_manager", "admin"]
+        }
+      }
+  ```
+
+  ### Binding values in condition (experimental)
+
+  When a condition is evaluated on a list of values, the **first value** satisfying
+  the condition can be bound to a variable using `{:bind, variable}`.
+
+  `{:bind, variable}` creates a temporary predicate on the root (subject) level,
+  which can be referenced using `{:ref, [...]}`.
+
+  A path consisting of one element can have its brackets omitted.
 
   ```
   infer project_manager: {:ref, :person},
