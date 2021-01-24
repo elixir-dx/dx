@@ -2,7 +2,7 @@ defmodule Infer do
   @moduledoc """
   `use Infer.Ecto.Schema` enables a module to specify inferences, such as
 
-  ```
+  ```elixir
   use Infer.Ecto.Schema
 
   infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
@@ -48,7 +48,7 @@ defmodule Infer do
 
   For example:
 
-  ```
+  ```elixir
   infer :can_edit?, when: %{roles: ["project_manager", "admin"]}
 
   iex> %Person{roles: ["worker", "assistant"]} |> Infer.get(:can_edit?)
@@ -69,7 +69,7 @@ defmodule Infer do
 
   For example:
 
-  ```
+  ```elixir
   infer :can_edit?, when: %{roles: {:all?, ["project_manager", "admin"]}}
 
   iex> %Person{roles: ["worker", "assistant"]} |> Infer.get(:can_edit?)
@@ -85,7 +85,7 @@ defmodule Infer do
   When condition B must be satisfied by all list elements that satisfy condition A,
   `:all?` can be used as a key in the condition map.
 
-  ```
+  ```elixir
   infer :all_children_adults?,
     when: %{
       relatives: %{
@@ -139,7 +139,7 @@ defmodule Infer do
 
   Preloading means to explicitly load all data (nested fields) that required to infer a given list of predicates:
 
-  ```
+  ```elixir
   infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
 
   # Loads all relatives including their `relation` field, if not loaded yet:
@@ -167,7 +167,7 @@ defmodule Infer do
 
   This can be useful for generating forms and other scenarios, for example:
 
-  ```
+  ```elixir
   name: %{
     value: "Su",
     required: false,
@@ -181,7 +181,7 @@ defmodule Infer do
 
   Example combining predicate meta data, predicate groups, and preloading:
 
-  ```
+  ```elixir
   predicate_group form_fields: [:name, :roles]
 
   infer form_fields: %{ediable: true}, when: %{args: %{user: %{roles: "admin"}}}
@@ -200,7 +200,7 @@ defmodule Infer do
 
   `{:ref, [...]}` is a reference to a **path**, starting from the subject.
 
-  ```
+  ```elixir
   infer ot_fields: %{editable: true},
       when: %{
         construction_bectu?: true,
@@ -211,7 +211,7 @@ defmodule Infer do
       }
   ```
 
-  ### Binding values in condition (experimental)
+  ### Binding values in condition (highly experimental)
 
   When a condition is evaluated on a list of values, the **first value** satisfying
   the condition can be bound to a variable using `{:bind, variable}`.
@@ -221,9 +221,20 @@ defmodule Infer do
 
   A path consisting of one element can have its brackets omitted.
 
-  ```
+  ```elixir
   infer project_manager: {:ref, :person},
       when: %{roles: %{type: "project_manager", person: {:bind, :person}}}
+  ```
+
+  `{:bind_all, variable}` works in the same way, but binds a list of all matching
+  list values to the variable.
+
+  It can be used via `{:ref, variable}`, or also `{:count, variable}` which returns
+  the number of elements in the bound list.
+
+  ```elixir
+  infer project_managers: {:count, :person},
+      when: %{roles: %{type: "project_manager", person: {:bind_all, :person}}}
   ```
   """
 
