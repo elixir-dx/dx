@@ -8,6 +8,9 @@ defmodule Infer do
   infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
   ```
 
+  Unlike full-fledged inference engines (such as [calypte](https://github.com/liveforeverx/calypte) or [retex](https://github.com/lorenzosinisi/retex)),
+  all rules in Infer are bound to an individual record type as their subject. This, in turn, allows to utilize Ecto schemas and queries to their full extent.
+
   ## Terminology
 
   - `infer ...` defines a **rule** in a module. It applies to an instance of that module: A struct, Ecto record, Ash resource, ...
@@ -236,22 +239,78 @@ defmodule Infer do
   infer project_managers: {:count, :person},
       when: %{roles: %{type: "project_manager", person: {:bind_all, :person}}}
   ```
+
+  ## Rule checks at compile-time
+
+  Problems that can be detected at compile-time:
+
+  - Invalid rule: "Rule X uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
+  - Invalid function call: "`Infer.get(%Person{}, :has_child?)` uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
+  - Cycles in rule definitions: "Cycle detected: Rule X on Person references Rule Y on Role. Rule Y on Role references Rule X on Person."
+  - Unreachable rules: "Rule Y can never be reached, as Rule X always matches."
+
   """
 
-  def get(records, infers, opts \\ [])
+  @doc """
+  Evaluates one or multiple predicates for one or multiple records and returns the results.
 
-  def get(records, infers, opts) when is_list(records) do
-    Enum.map(records, &get(&1, infers, opts))
+  ## Options
+
+  - `:with_meta` (boolean) - whether or not to return a map for predicates with meta data.
+    When `false`, only the values are returned for all predicates. Default: `true`.
+  """
+  def get(records, predicates, opts \\ [])
+
+  def get(records, predicates, opts) when is_list(records) do
+    Enum.map(records, &get(&1, predicates, opts))
   end
 
-  def get(record, infers, opts) when is_list(infers) do
-    Map.new(infers, &{&1, get(record, &1, opts)})
+  def get(record, predicates, opts) when is_list(predicates) do
+    Map.new(predicates, &{&1, get(record, &1, opts)})
   end
 
-  def get(_record, _infer, _opts) do
+  def get(_record, _predicate, _opts) do
     # ...
   end
 
+  @doc """
+  Evaluates the given predicate(s) for the given record(s) and merges the
+  results into the [predicate cache](#module-predicate-cache) of the record(s).
+
+  ## Options
+
+  Same as for `get/3`.
+  """
+  def put(records, predicates, opts \\ [])
+
+  def put(records, predicates, opts) when is_list(records) do
+    Enum.map(records, &put(&1, predicates, opts))
+  end
+
+  def put(record, predicates, opts) do
+    %{record | inferred: get(record, predicates, opts)}
+  end
+
+  @doc """
+  Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).
+
+  ## Examples
+
+  Preload data required to infer the value of the predicate `:has_children?`:
+
+  ```
+  defmodule Person do
+    infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
+  end
+
+  iex> Infer.preload(%Person{}, :has_children?)
+  %Person{relatives: [%Relation{relation: "sibling"}, ...]}
+
+  iex> Infer.preload([%Person{}, ...], :has_children?)
+  [%Person{relatives: [%Relation{relation: "sibling"}, ...]}, ...]
+  ```
+
+  """
   def preload(records, preloads) when is_list(records) do
     Enum.map(records, &preload(&1, preloads))
   end
@@ -264,19 +323,36 @@ defmodule Infer do
     # ...
   end
 
-  def fields(_records, _fields_or_groups) do
-    # ...
-  end
-
+  @doc "Removes all elements not matching the given condition from the given list."
   def filter(records, condition) when is_list(records) do
     Enum.filter(records, &get(&1, condition))
   end
 
+  @doc "Removes all elements matching the given condition from the given list."
   def reject(records, condition) when is_list(records) do
     Enum.reject(records, &get(&1, condition))
   end
 
   @doc """
+  Returns all records matching the given condition.
+
+  ## Options
+
+  - `:base_query` (Ecto.Query) - query to use as a base for retrieving records.
+    Can be used for additional conditions, pagination, etc. Default: `Ecto.Query.from(x in ^type)`.
+  - `:put` (predicate list) - predicates to evaluate, which are not part of the condition (requires [predicate cache](#module-predicate-cache)).
+  - `:put_with_meta` (boolean) - whether or not the predicates listed in `:put` return a map when they have meta data.
+    When `false`, only the value is returned for each. Default: `true`.
+  - `:preload` (predicate list) - load all data required to evaluate the given predicate(s) on the results (also see `preload/2`).
+
+  ### Using `:put` and `:preload`
+
+  In general, as much work as possible is done in the database:
+
+  - If possible, the condition is completely translated to an `Ecto.Query` so the database only returns matching records.
+  - Even predicates given via `:put` are evaluated in the database and returned as a single value, whenever possible.
+  - Use `:preload` to ensure that data is loaded, which is required to evaluate the given predicate(s) in the application.
+
   ## Examples
 
       Entity.query(Offer, :construction_bectu?, preload: [:all_fields])
@@ -309,7 +385,18 @@ defmodule Infer do
       #    p.bectu_type IN ('BECTU_CUSTOM_OVERTIME', 'NONE'))
       {:ok, [%Offer{}, %Offer{}, ...], [%{rate_type: :flat_rate_ot}, %{rate_type: :flat_rate_ot}, ...]}
   """
-  def query(_type, _condition, _opts \\ []) do
+  def query_all(_type, _condition, _opts \\ []) do
+    # ...
+  end
+
+  @doc """
+  Returns the first record matching the given condition.
+
+  ## Options
+
+  Same as for `query_all/3`.
+  """
+  def query_one(_type, _condition, _opts \\ []) do
     # ...
   end
 end
