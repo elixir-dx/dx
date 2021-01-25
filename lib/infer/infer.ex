@@ -294,6 +294,10 @@ defmodule Infer do
   @doc """
   Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).
 
+  ## Options
+
+  - `:refresh` - whether or not to load data again that's already loaded. Default: `false`.
+
   ## Examples
 
   Preload data required to infer the value of the predicate `:has_children?`:
@@ -311,15 +315,17 @@ defmodule Infer do
   ```
 
   """
-  def preload(records, preloads) when is_list(records) do
-    Enum.map(records, &preload(&1, preloads))
+  def preload(records, preloads, opts \\ [])
+
+  def preload(records, preloads, opts) when is_list(records) do
+    Enum.map(records, &preload(&1, preloads, opts))
   end
 
-  def preload(record, preloads) when is_list(preloads) do
-    Enum.reduce(preloads, record, &preload(&2, &1))
+  def preload(record, preloads, opts) when is_list(preloads) do
+    Enum.reduce(preloads, record, &preload(&2, &1, opts))
   end
 
-  def preload(_record, _preload) do
+  def preload(_record, _preload, _opts) do
     # ...
   end
 
