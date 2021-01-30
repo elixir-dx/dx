@@ -65,7 +65,8 @@ defmodule Infer.Rule do
   typedstruct do
     field(:desc, String.t())
     field(:when, %{args: map(), record: map()} | nil)
-    field(:set, map() | (Infer.Context.t() -> Infer.Context.t()))
+    field(:key, atom())
+    field(:val, term())
   end
 end
 
