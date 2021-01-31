@@ -25,7 +25,7 @@ defmodule Infer.Parser do
   end
 
   def directive_to_rules({:infer, opts}, aliases) when is_list(opts) do
-    {assigns, opts} = split_assigns(%{}, opts |> IO.inspect())
+    {assigns, opts} = split_assigns(%{}, opts)
     to_aliased_rules(assigns, opts, aliases)
   end
 

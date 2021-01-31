@@ -262,15 +262,20 @@ defmodule Infer do
   def get(records, predicates, opts \\ [])
 
   def get(records, predicates, opts) when is_list(records) do
-    Enum.map(records, &get(&1, predicates, opts))
+    records
+    |> preload(predicates)
+    |> Enum.map(&get(&1, predicates, opts))
   end
 
   def get(record, predicates, opts) when is_list(predicates) do
+    record = preload(record, predicates)
     Map.new(predicates, &{&1, get(record, &1, opts)})
   end
 
-  def get(_record, _predicate, _opts) do
-    # ...
+  def get(record, predicate, _opts) when is_atom(predicate) do
+    record = preload(record, predicate)
+
+    Infer.Engine.resolve_predicate(predicate, record)
   end
 
   @doc """
@@ -325,8 +330,8 @@ defmodule Infer do
     Enum.reduce(preloads, record, &preload(&2, &1, opts))
   end
 
-  def preload(_record, _preload, _opts) do
-    # ...
+  def preload(record, _preload, _opts) do
+    record
   end
 
   @doc "Removes all elements not matching the given condition from the given list."
