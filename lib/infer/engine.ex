@@ -38,8 +38,14 @@ defmodule Infer.Engine do
     Enum.any?(conditions, &evaluate_condition(&1, subject, root_subject))
   end
 
-  def evaluate_condition(conditions, subject, root_subject) when is_map(conditions) do
-    Enum.all?(conditions, &evaluate_condition(&1, subject, root_subject))
+  def evaluate_condition({:not, condition}, subject, root_subject) do
+    not evaluate_condition(condition, subject, root_subject)
+  end
+
+  def evaluate_condition({:ref, path}, subject, root_subject) do
+    root_subject
+    |> get_in_path(path)
+    |> evaluate_condition(subject, root_subject)
   end
 
   def evaluate_condition({key, sub_condition}, subject = %type{}, root_subject) do
@@ -51,14 +57,12 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition({:not, condition}, subject, root_subject) do
-    not evaluate_condition(condition, subject, root_subject)
-  end
-
-  def evaluate_condition({:ref, path}, subject, root_subject) do
-    root_subject
-    |> get_in_path(path)
-    |> evaluate_condition(subject, root_subject)
+  def evaluate_condition(other = %type{}, subject = %type{}, _root_subject) do
+    if Util.Module.has_function?(type, :compare, 2) do
+      type.compare(subject, other) == :eq
+    else
+      subject == other
+    end
   end
 
   def evaluate_condition(predicate, subject = %type{}, _root_subject) when is_atom(predicate) do
@@ -70,12 +74,8 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition(other = %type{}, subject = %type{}, _root_subject) do
-    if Util.Module.has_function?(type, :compare, 2) do
-      type.compare(subject, other) == :eq
-    else
-      subject == other
-    end
+  def evaluate_condition(conditions, subject, root_subject) when is_map(conditions) do
+    Enum.all?(conditions, &evaluate_condition(&1, subject, root_subject))
   end
 
   def evaluate_condition(other, subject, _root_subject) do
