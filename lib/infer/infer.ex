@@ -322,16 +322,20 @@ defmodule Infer do
   """
   def preload(records, preloads, opts \\ [])
 
-  def preload(records, preloads, opts) when is_list(records) do
-    Enum.map(records, &preload(&1, preloads, opts))
+  def preload([], _preloads, _opts), do: []
+
+  def preload(records = [%type{} | _], preloads, _opts) do
+    do_preload(records, type, preloads)
   end
 
-  def preload(record, preloads, opts) when is_list(preloads) do
-    Enum.reduce(preloads, record, &preload(&2, &1, opts))
+  def preload(record = %type{}, preloads, _opts) do
+    do_preload(record, type, preloads)
   end
 
-  def preload(record, _preload, _opts) do
-    record
+  defp do_preload(record_or_records, type, preloads) do
+    preloads = Infer.Preloader.preload_for_predicates(type, List.wrap(preloads))
+
+    type.infer_preload(record_or_records, preloads)
   end
 
   @doc "Removes all elements not matching the given condition from the given list."

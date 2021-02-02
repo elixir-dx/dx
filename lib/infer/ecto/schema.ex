@@ -1,13 +1,18 @@
 defmodule Infer.Ecto.Schema do
   @moduledoc "See `Infer`."
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     quote do
       @before_compile unquote(__MODULE__)
       Module.register_attribute(__MODULE__, :infer_directives, accumulate: true)
       Module.register_attribute(__MODULE__, :infer_aliases, accumulate: true)
 
       import unquote(__MODULE__)
+
+      def infer_preload(record, preloads) do
+        repo = unquote(opts) |> Keyword.get(:repo)
+        repo.preload(record, preloads)
+      end
     end
   end
 
