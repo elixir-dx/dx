@@ -11,6 +11,10 @@ defmodule Infer.Parser do
     to_aliased_rules(%{key => true}, opts, aliases)
   end
 
+  def directive_to_rules({:infer, key}, aliases) when is_atom(key) do
+    to_aliased_rules(%{key => true}, [], aliases)
+  end
+
   def directive_to_rules({:infer, then, opts}, aliases) when is_list(then) do
     then
     |> Map.new(fn

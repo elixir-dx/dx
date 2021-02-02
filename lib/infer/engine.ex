@@ -70,6 +70,14 @@ defmodule Infer.Engine do
     end
   end
 
+  def evaluate_condition(other = %type{}, subject = %type{}, _root_subject) do
+    if Util.Module.has_function?(type, :compare, 2) do
+      type.compare(subject, other) == :eq
+    else
+      subject == other
+    end
+  end
+
   def evaluate_condition(other, subject, _root_subject) do
     subject == other
   end
