@@ -8,6 +8,7 @@ defmodule Infer.Preloader do
   def preload_for_predicates(type, predicates) do
     predicates
     |> expand_rules(type)
+    |> extract_refs()
     |> uniq_by_predicate()
     |> map_associations(type)
   end
@@ -73,6 +74,38 @@ defmodule Infer.Preloader do
         if key in associations, do: [key], else: []
     end)
   end
+
+  defp extract_refs(predicates) do
+    {predicates, ref_paths} = extract(predicates)
+
+    Enum.flat_map(ref_paths, &path_to_preloads/1) ++ predicates
+  end
+
+  defp path_to_preloads([]), do: []
+  defp path_to_preloads([elem]), do: [elem]
+  defp path_to_preloads([elem | path]), do: [{elem, path_to_preloads(path)}]
+
+  def extract({:ref, path}) do
+    {[], [path]}
+  end
+
+  def extract({:not, predicate}) do
+    extract(predicate)
+  end
+
+  def extract({key, val}) do
+    {val, extracted} = extract(val)
+    {{key, val}, extracted}
+  end
+
+  def extract(enum) when is_list(enum) do
+    Enum.map_reduce(enum, [], fn elem, extracted ->
+      {elem, add_extracted} = extract(elem)
+      {elem, add_extracted ++ extracted}
+    end)
+  end
+
+  def extract(other), do: {other, []}
 
   defp uniq_by_predicate(predicates) do
     Enum.reduce(predicates, %{}, fn {predicate, sub_predicates}, acc ->
