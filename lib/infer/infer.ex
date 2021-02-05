@@ -272,10 +272,10 @@ defmodule Infer do
     Map.new(predicates, &{&1, get(record, &1, opts)})
   end
 
-  def get(record, predicate, _opts) when is_atom(predicate) do
+  def get(record, predicate, opts) when is_atom(predicate) do
     record = preload(record, predicate)
 
-    Infer.Engine.resolve_predicate(predicate, record)
+    Infer.Engine.resolve_predicate(predicate, record, opts)
   end
 
   @doc """
