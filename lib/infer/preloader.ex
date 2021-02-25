@@ -13,20 +13,9 @@ defmodule Infer.Preloader do
     |> map_associations(type)
   end
 
-  defp map_associations(predicates, type) do
-    Enum.map(predicates, fn
-      {key, sub_predicates} ->
-        sub_type = Util.Ecto.association_type(type, key)
-        {key, preload_for_predicates(sub_type, sub_predicates)}
-
-      other ->
-        other
-    end)
-  end
-
   defp expand_rules(predicates, type) do
     predicates
-    |> flatttten()
+    |> deep_flatten()
     |> Enum.flat_map(fn predicate ->
       case predicate do
         {predicate, values} ->
@@ -41,25 +30,25 @@ defmodule Infer.Preloader do
         [] -> [predicate]
         rules -> rules
       end
-      |> flatttten()
+      |> deep_flatten()
       |> filter_associations(type)
     end)
   end
 
   # always returns a list
-  defp flatttten(enum) when is_list(enum) do
-    Enum.flat_map(enum, &flatttten/1)
+  defp deep_flatten(enum) when is_list(enum) do
+    Enum.flat_map(enum, &deep_flatten/1)
   end
 
-  defp flatttten(enum) when is_map(enum) do
-    Enum.flat_map(enum, &flatttten/1)
+  defp deep_flatten(enum) when is_map(enum) do
+    Enum.flat_map(enum, &deep_flatten/1)
   end
 
-  defp flatttten({key, val}) do
-    [{key, flatttten(val)}]
+  defp deep_flatten({key, val}) do
+    [{key, deep_flatten(val)}]
   end
 
-  defp flatttten(other) do
+  defp deep_flatten(other) do
     [other]
   end
 
@@ -85,32 +74,43 @@ defmodule Infer.Preloader do
   defp path_to_preloads([elem]), do: [elem]
   defp path_to_preloads([elem | path]), do: [{elem, path_to_preloads(path)}]
 
-  def extract({:ref, path}) do
+  defp extract({:ref, path}) do
     {[], [path]}
   end
 
-  def extract({:not, predicate}) do
+  defp extract({:not, predicate}) do
     extract(predicate)
   end
 
-  def extract({key, val}) do
+  defp extract({key, val}) do
     {val, extracted} = extract(val)
     {{key, val}, extracted}
   end
 
-  def extract(enum) when is_list(enum) do
+  defp extract(enum) when is_list(enum) do
     Enum.map_reduce(enum, [], fn elem, extracted ->
       {elem, add_extracted} = extract(elem)
       {elem, add_extracted ++ extracted}
     end)
   end
 
-  def extract(other), do: {other, []}
+  defp extract(other), do: {other, []}
 
   defp uniq_by_predicate(predicates) do
     Enum.reduce(predicates, %{}, fn {predicate, sub_predicates}, acc ->
       Map.update(acc, predicate, [sub_predicates], &[sub_predicates | &1])
     end)
     |> Map.to_list()
+  end
+
+  defp map_associations(predicates, type) do
+    Enum.map(predicates, fn
+      {key, sub_predicates} ->
+        sub_type = Util.Ecto.association_type(type, key)
+        {key, preload_for_predicates(sub_type, sub_predicates)}
+
+      other ->
+        other
+    end)
   end
 end

@@ -20,9 +20,9 @@ defmodule Infer.Engine do
     |> match_rules(subject, opts)
   end
 
-  def match_rules([], _record, _opts), do: nil
+  defp match_rules([], _record, _opts), do: nil
 
-  def match_rules([rule | rules], record, opts) do
+  defp match_rules([rule | rules], record, opts) do
     result = evaluate_condition(rule.when, record, record, opts)
 
     if opts[:debug] do
@@ -44,25 +44,25 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition(condition, subjects, root_subject, opts) when is_list(subjects) do
+  defp evaluate_condition(condition, subjects, root_subject, opts) when is_list(subjects) do
     Enum.any?(subjects, &evaluate_condition(condition, &1, root_subject, opts))
   end
 
-  def evaluate_condition(conditions, subject, root_subject, opts) when is_list(conditions) do
+  defp evaluate_condition(conditions, subject, root_subject, opts) when is_list(conditions) do
     Enum.any?(conditions, &evaluate_condition(&1, subject, root_subject, opts))
   end
 
-  def evaluate_condition({:not, condition}, subject, root_subject, opts) do
+  defp evaluate_condition({:not, condition}, subject, root_subject, opts) do
     not evaluate_condition(condition, subject, root_subject, opts)
   end
 
-  def evaluate_condition({:ref, path}, subject, root_subject, opts) do
+  defp evaluate_condition({:ref, path}, subject, root_subject, opts) do
     root_subject
     |> get_in_path(path)
     |> evaluate_condition(subject, root_subject, opts)
   end
 
-  def evaluate_condition({key, sub_condition}, subject = %type{}, root_subject, opts) do
+  defp evaluate_condition({key, sub_condition}, subject = %type{}, root_subject, opts) do
     key
     |> rules_for_predicate(type)
     |> case do
@@ -71,7 +71,7 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition(other = %type{}, subject = %type{}, _root_subject, _opts) do
+  defp evaluate_condition(other = %type{}, subject = %type{}, _root_subject, _opts) do
     if Util.Module.has_function?(type, :compare, 2) do
       type.compare(subject, other) == :eq
     else
@@ -79,7 +79,7 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition(predicate, subject = %type{}, _root_subject, opts)
+  defp evaluate_condition(predicate, subject = %type{}, _root_subject, opts)
       when is_atom(predicate) do
     predicate
     |> rules_for_predicate(type)
@@ -89,11 +89,11 @@ defmodule Infer.Engine do
     end
   end
 
-  def evaluate_condition(conditions, subject, root_subject, opts) when is_map(conditions) do
+  defp evaluate_condition(conditions, subject, root_subject, opts) when is_map(conditions) do
     Enum.all?(conditions, &evaluate_condition(&1, subject, root_subject, opts))
   end
 
-  def evaluate_condition(other, subject, _root_subject, _opts) do
+  defp evaluate_condition(other, subject, _root_subject, _opts) do
     subject == other
   end
 
