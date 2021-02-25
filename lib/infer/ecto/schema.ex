@@ -1,7 +1,7 @@
 defmodule Infer.Ecto.Schema do
   @moduledoc "See `Infer`."
 
-  defmacro __using__(opts) do
+  defmacro __using__(use_opts) do
     quote do
       @before_compile unquote(__MODULE__)
       Module.register_attribute(__MODULE__, :infer_directives, accumulate: true)
@@ -9,9 +9,13 @@ defmodule Infer.Ecto.Schema do
 
       import unquote(__MODULE__)
 
-      def infer_preload(record, preloads) do
-        repo = unquote(opts) |> Keyword.get(:repo)
-        repo.preload(record, preloads)
+      def infer_preload(record, preloads, opts \\ []) do
+        repo = unquote(use_opts) |> Keyword.get(:repo)
+        repo.preload(record, preloads, opts)
+      end
+
+      def infer_base_type() do
+        unquote(use_opts) |> Keyword.get(:for, __MODULE__)
       end
     end
   end
@@ -36,9 +40,10 @@ defmodule Infer.Ecto.Schema do
 
       def infer_rules do
         aliases = infer_aliases()
+        type = infer_base_type()
 
         unquote(directives)
-        |> Enum.flat_map(&Infer.Parser.directive_to_rules(&1, aliases))
+        |> Enum.flat_map(&Infer.Parser.directive_to_rules(&1, type, aliases))
       end
     end
   end

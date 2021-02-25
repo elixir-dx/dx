@@ -5,10 +5,21 @@ defmodule Infer.Engine do
 
   alias Infer.Util
 
-  def rules_for_predicate(predicate, type) do
+  def rules_for_predicate(predicate, type, opts) do
+    extra_rules =
+      opts
+      |> Keyword.get(:extra_rules)
+      |> List.wrap()
+      |> Enum.flat_map(&rules_from_module/1)
+      |> Enum.filter(&(&1.type in [nil, type]))
+
+    (extra_rules ++ rules_from_module(type))
+    |> Enum.filter(&(&1.key == predicate))
+  end
+
+  defp rules_from_module(type) do
     if Util.Module.has_function?(type, :infer_rules, 0) do
       type.infer_rules()
-      |> Enum.filter(&(&1.key == predicate))
     else
       []
     end
@@ -16,7 +27,7 @@ defmodule Infer.Engine do
 
   def resolve_predicate(predicate, subject = %type{}, opts \\ []) do
     predicate
-    |> rules_for_predicate(type)
+    |> rules_for_predicate(type, opts)
     |> match_rules(subject, opts)
   end
 
@@ -64,7 +75,7 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({key, sub_condition}, subject = %type{}, root_subject, opts) do
     key
-    |> rules_for_predicate(type)
+    |> rules_for_predicate(type, opts)
     |> case do
       [] -> evaluate_condition(sub_condition, Map.get(subject, key), root_subject, opts)
       rules -> match_rules(rules, subject, opts)
@@ -80,9 +91,9 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition(predicate, subject = %type{}, _root_subject, opts)
-      when is_atom(predicate) do
+       when is_atom(predicate) do
     predicate
-    |> rules_for_predicate(type)
+    |> rules_for_predicate(type, opts)
     |> case do
       [] -> Map.fetch!(subject, predicate) == true
       rules -> match_rules(rules, subject, opts) == true

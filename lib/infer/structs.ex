@@ -63,6 +63,7 @@ defmodule Infer.Rule do
   use TypedStruct
 
   typedstruct do
+    field(:type, module() | nil)
     field(:desc, String.t())
     field(:when, map(), default: %{})
     field(:key, atom())

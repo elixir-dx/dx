@@ -5,27 +5,27 @@ defmodule Infer.Preloader do
 
   alias Infer.{Engine, Util}
 
-  def preload_for_predicates(type, predicates) do
+  def preload_for_predicates(type, predicates, opts) do
     predicates
-    |> expand_rules(type)
+    |> expand_rules(type, opts)
     |> extract_refs()
     |> uniq_by_predicate()
-    |> map_associations(type)
+    |> map_associations(type, opts)
   end
 
-  defp expand_rules(predicates, type) do
+  defp expand_rules(predicates, type, opts) do
     predicates
     |> deep_flatten()
     |> Enum.flat_map(fn predicate ->
       case predicate do
         {predicate, values} ->
-          Engine.rules_for_predicate(predicate, type)
+          Engine.rules_for_predicate(predicate, type, opts)
           |> Enum.filter(&(&1.val in values))
 
         predicate ->
-          Engine.rules_for_predicate(predicate, type)
+          Engine.rules_for_predicate(predicate, type, opts)
       end
-      |> Enum.map(&expand_rules(&1.when, type))
+      |> Enum.map(&expand_rules(&1.when, type, opts))
       |> case do
         [] -> [predicate]
         rules -> rules
@@ -103,11 +103,11 @@ defmodule Infer.Preloader do
     |> Map.to_list()
   end
 
-  defp map_associations(predicates, type) do
+  defp map_associations(predicates, type, opts) do
     Enum.map(predicates, fn
       {key, sub_predicates} ->
         sub_type = Util.Ecto.association_type(type, key)
-        {key, preload_for_predicates(sub_type, sub_predicates)}
+        {key, preload_for_predicates(sub_type, sub_predicates, opts)}
 
       other ->
         other

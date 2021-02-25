@@ -263,17 +263,17 @@ defmodule Infer do
 
   def get(records, predicates, opts) when is_list(records) do
     records
-    |> preload(predicates)
+    |> preload(predicates, opts)
     |> Enum.map(&get(&1, predicates, opts))
   end
 
   def get(record, predicates, opts) when is_list(predicates) do
-    record = preload(record, predicates)
+    record = preload(record, predicates, opts)
     Map.new(predicates, &{&1, get(record, &1, opts)})
   end
 
   def get(record, predicate, opts) when is_atom(predicate) do
-    record = preload(record, predicate)
+    record = preload(record, predicate, opts)
 
     Infer.Engine.resolve_predicate(predicate, record, opts)
   end
@@ -324,28 +324,28 @@ defmodule Infer do
 
   def preload([], _preloads, _opts), do: []
 
-  def preload(records = [%type{} | _], preloads, _opts) do
-    do_preload(records, type, preloads)
+  def preload(records = [%type{} | _], preloads, opts) do
+    do_preload(records, type, preloads, opts)
   end
 
-  def preload(record = %type{}, preloads, _opts) do
-    do_preload(record, type, preloads)
+  def preload(record = %type{}, preloads, opts) do
+    do_preload(record, type, preloads, opts)
   end
 
-  defp do_preload(record_or_records, type, preloads) do
-    preloads = Infer.Preloader.preload_for_predicates(type, List.wrap(preloads))
+  defp do_preload(record_or_records, type, preloads, opts) do
+    preloads = Infer.Preloader.preload_for_predicates(type, List.wrap(preloads), opts)
 
-    type.infer_preload(record_or_records, preloads)
+    type.infer_preload(record_or_records, preloads, opts)
   end
 
   @doc "Removes all elements not matching the given condition from the given list."
-  def filter(records, condition) when is_list(records) do
-    Enum.filter(records, &get(&1, condition))
+  def filter(records, condition, opts \\ []) when is_list(records) do
+    Enum.filter(records, &get(&1, condition, opts))
   end
 
   @doc "Removes all elements matching the given condition from the given list."
-  def reject(records, condition) when is_list(records) do
-    Enum.reject(records, &get(&1, condition))
+  def reject(records, condition, opts \\ []) when is_list(records) do
+    Enum.reject(records, &get(&1, condition, opts))
   end
 
   @doc """
@@ -396,7 +396,7 @@ defmodule Infer do
       #   (p.type = 'Feature Film' AND
       #    p.bectu_type = 'NONE')
       #   OR
-      #   (p.type = 'Television Film' AND
+      #   (p.type = 'Television' AND
       #    p.bectu_type IN ('BECTU_CUSTOM_OVERTIME', 'NONE'))
       {:ok, [%Offer{}, %Offer{}, ...], [%{rate_type: :flat_rate_ot}, %{rate_type: :flat_rate_ot}, ...]}
   """
