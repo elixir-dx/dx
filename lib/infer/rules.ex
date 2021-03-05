@@ -10,7 +10,7 @@ defmodule Infer.Rules do
       import unquote(__MODULE__)
 
       def infer_base_type() do
-        unquote(use_opts) |> Keyword.get(:for, __MODULE__)
+        unquote(use_opts |> Keyword.get(:for, __MODULE__))
       end
     end
   end
