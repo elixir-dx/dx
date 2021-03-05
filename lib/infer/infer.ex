@@ -273,7 +273,12 @@ defmodule Infer do
   end
 
   def get(record, predicate, opts) when is_atom(predicate) do
-    record = preload(record, predicate, opts)
+    record =
+      if opts[:preload] == true do
+        preload(record, predicate, opts)
+      else
+        record
+      end
 
     Infer.Engine.resolve_predicate(predicate, record, opts)
   end
