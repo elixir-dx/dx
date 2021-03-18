@@ -55,6 +55,17 @@ defmodule Infer.Engine do
     end
   end
 
+  defp evaluate_condition(
+         condition,
+         %Ecto.Association.NotLoaded{} = not_loaded,
+         _root_subject,
+         _opts
+       ) do
+    raise "Association #{inspect(not_loaded.__field__)} is not loaded " <>
+            "on #{inspect(not_loaded.__owner__)}. Cannot compare to: " <>
+            inspect(condition)
+  end
+
   defp evaluate_condition(condition, subjects, root_subject, opts) when is_list(subjects) do
     Enum.any?(subjects, &evaluate_condition(condition, &1, root_subject, opts))
   end
@@ -91,7 +102,7 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition(predicate, subject = %type{}, _root_subject, opts)
-       when is_atom(predicate) do
+       when is_atom(predicate) and not is_nil(predicate) do
     predicate
     |> rules_for_predicate(type, opts)
     |> case do
