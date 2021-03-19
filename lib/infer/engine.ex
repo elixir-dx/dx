@@ -61,9 +61,11 @@ defmodule Infer.Engine do
          _root_subject,
          _opts
        ) do
-    raise "Association #{inspect(not_loaded.__field__)} is not loaded " <>
-            "on #{inspect(not_loaded.__owner__)}. Cannot compare to: " <>
-            inspect(condition)
+    raise Infer.Error.NotLoaded,
+      field: not_loaded.__field__,
+      type: not_loaded.__owner__,
+      cardinality: not_loaded.__cardinality__,
+      condition: condition
   end
 
   defp evaluate_condition(condition, subjects, root_subject, opts) when is_list(subjects) do
