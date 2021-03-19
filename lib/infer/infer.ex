@@ -260,33 +260,57 @@ defmodule Infer do
 
   - `:with_meta` (boolean) - whether or not to return a map for predicates with meta data.
     When `false`, only the values are returned for all predicates. Default: `true`.
+  - `:preload` (boolean) - whether or not to preload data if needed. Default: `false`.
   """
   def get(records, predicates, opts \\ [])
 
-  def get(records, predicates, opts) when is_list(records) do
-    records
-    |> preload(predicates, opts)
-    |> Enum.map(&get(&1, predicates, opts))
+  def get(records, predicates, opts) when is_list(records) and is_list(predicates) do
+    maybe_preload(records, predicates, opts, fn records ->
+      Enum.map(records, fn record ->
+        Map.new(predicates, &{&1, do_get(record, &1, opts)})
+      end)
+    end)
+  end
+
+  def get(records, predicate, opts) when is_list(records) do
+    maybe_preload(records, predicate, opts, fn records ->
+      Enum.map(records, &do_get(&1, predicate, opts))
+    end)
   end
 
   def get(record, predicates, opts) when is_list(predicates) do
-    record = preload(record, predicates, opts)
-    Map.new(predicates, &{&1, get(record, &1, opts)})
+    maybe_preload(record, predicates, opts, fn record ->
+      Map.new(predicates, &{&1, do_get(record, &1, opts)})
+    end)
   end
 
   def get(record, predicate, opts) when is_atom(predicate) do
+    maybe_preload(record, predicate, opts, fn record ->
+      do_get(record, predicate, opts)
+    end)
+  end
+
+  defp do_get(record, predicate, opts) do
+    Infer.Engine.resolve_predicate(predicate, record, opts)
+  end
+
+  defp maybe_preload(record_or_records, preloads, opts, fun) do
     if opts[:preload] == true do
       try do
-        Infer.Engine.resolve_predicate(predicate, record, opts)
+        fun.(record_or_records)
       rescue
         Infer.Error.NotLoaded ->
-          record = preload(record, predicate, opts)
-          Infer.Engine.resolve_predicate(predicate, record, opts)
+          record_or_records
+          |> do_preload(preloads, opts)
+          |> fun.()
       end
     else
-      Infer.Engine.resolve_predicate(predicate, record, opts)
+      fun.(record_or_records)
     end
   end
+
+  defp get_type(%type{}), do: type
+  defp get_type([%type{} | _]), do: type
 
   @doc """
   Evaluates the given predicate(s) for the given record(s) and merges the
@@ -334,15 +358,18 @@ defmodule Infer do
 
   def preload([], _preloads, _opts), do: []
 
-  def preload(records = [%type{} | _], preloads, opts) do
-    do_preload(records, type, preloads, opts)
+  def preload(record_or_records, preloads, opts) do
+    try do
+      get(record_or_records, preloads, opts)
+      record_or_records
+    rescue
+      Infer.Error.NotLoaded ->
+        do_preload(record_or_records, preloads, opts)
+    end
   end
 
-  def preload(record = %type{}, preloads, opts) do
-    do_preload(record, type, preloads, opts)
-  end
-
-  defp do_preload(record_or_records, type, preloads, opts) do
+  defp do_preload(record_or_records, preloads, opts) do
+    type = get_type(record_or_records)
     preloads = Infer.Preloader.preload_for_predicates(type, List.wrap(preloads), opts)
 
     type.infer_preload(record_or_records, preloads, opts)
