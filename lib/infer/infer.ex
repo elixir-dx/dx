@@ -369,13 +369,11 @@ defmodule Infer do
   def preload([], _preloads, _opts), do: []
 
   def preload(record_or_records, preloads, opts) do
-    try do
-      get(record_or_records, preloads, opts)
-      record_or_records
-    rescue
-      Infer.Error.NotLoaded ->
-        do_preload(record_or_records, preloads, opts)
-    end
+    get(record_or_records, preloads, opts)
+    record_or_records
+  rescue
+    Infer.Error.NotLoaded ->
+      do_preload(record_or_records, preloads, opts)
   end
 
   defp do_preload(record_or_records, preloads, opts) do
