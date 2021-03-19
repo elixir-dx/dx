@@ -296,17 +296,19 @@ defmodule Infer do
 
   defp maybe_preload(record_or_records, preloads, opts, fun) do
     if opts[:preload] == true do
-      try do
-        fun.(record_or_records)
-      rescue
-        Infer.Error.NotLoaded ->
-          record_or_records
-          |> do_preload(preloads, opts)
-          |> fun.()
-      end
+      preload_if_needed(record_or_records, preloads, opts, fun)
     else
       fun.(record_or_records)
     end
+  end
+
+  defp preload_if_needed(record_or_records, preloads, opts, fun) do
+    fun.(record_or_records)
+  rescue
+    Infer.Error.NotLoaded ->
+      record_or_records
+      |> do_preload(preloads, opts)
+      |> fun.()
   end
 
   defp get_type(%type{}), do: type
@@ -323,11 +325,19 @@ defmodule Infer do
   def put(records, predicates, opts \\ [])
 
   def put(records, predicates, opts) when is_list(records) do
-    Enum.map(records, &put(&1, predicates, opts))
+    preload_if_needed(records, predicates, opts, fn records ->
+      Enum.map(records, &do_put(&1, predicates, opts))
+    end)
   end
 
   def put(record, predicates, opts) do
-    %{record | inferred: get(record, predicates, opts)}
+    preload_if_needed(record, predicates, opts, fn record ->
+      do_put(record, predicates, opts)
+    end)
+  end
+
+  defp do_put(record, predicates, opts) do
+    %{record | inferred: do_get(record, predicates, opts)}
   end
 
   @doc """
