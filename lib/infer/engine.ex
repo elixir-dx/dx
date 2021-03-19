@@ -122,5 +122,15 @@ defmodule Infer.Engine do
   end
 
   defp get_in_path(val, []), do: val
+  defp get_in_path(nil, _path), do: nil
+
+  defp get_in_path(%Ecto.Association.NotLoaded{} = not_loaded, path) do
+    raise Infer.Error.NotLoaded,
+      field: not_loaded.__field__,
+      type: not_loaded.__owner__,
+      cardinality: not_loaded.__cardinality__,
+      path: path
+  end
+
   defp get_in_path(map, [key | path]), do: Map.get(map, key) |> get_in_path(path)
 end
