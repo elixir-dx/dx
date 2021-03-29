@@ -26,6 +26,8 @@ defmodule Infer.Engine do
   end
 
   def resolve_predicate(predicate, subject = %type{}, opts \\ []) do
+    subject = Map.put(subject, :args, Map.new(opts[:args] || []))
+
     predicate
     |> rules_for_predicate(type, opts)
     |> match_rules(subject, opts)
@@ -95,6 +97,11 @@ defmodule Infer.Engine do
     end
   end
 
+  defp evaluate_condition({key, conditions}, subject, root_subject, opts) when is_map(subject) do
+    subject = Map.fetch!(subject, key)
+    evaluate_condition(conditions, subject, root_subject, opts)
+  end
+
   defp evaluate_condition(other = %type{}, subject = %type{}, _root_subject, _opts) do
     if Util.Module.has_function?(type, :compare, 2) do
       type.compare(subject, other) == :eq
@@ -132,5 +139,5 @@ defmodule Infer.Engine do
       path: path
   end
 
-  defp get_in_path(map, [key | path]), do: Map.get(map, key) |> get_in_path(path)
+  defp get_in_path(map, [key | path]), do: Map.fetch!(map, key) |> get_in_path(path)
 end
