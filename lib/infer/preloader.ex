@@ -44,6 +44,10 @@ defmodule Infer.Preloader do
     Enum.flat_map(enum, &deep_flatten/1)
   end
 
+  defp deep_flatten({:not, rules}) do
+    deep_flatten(rules)
+  end
+
   defp deep_flatten({key, val}) do
     [{key, deep_flatten(val)}]
   end
