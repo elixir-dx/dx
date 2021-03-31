@@ -92,8 +92,12 @@ defmodule Infer.Engine do
     key
     |> rules_for_predicate(type, opts)
     |> case do
-      [] -> evaluate_condition(sub_condition, Map.get(subject, key), root_subject, opts)
-      rules -> match_rules(rules, subject, opts)
+      [] ->
+        evaluate_condition(sub_condition, Map.get(subject, key), root_subject, opts)
+
+      rules ->
+        result = match_rules(rules, subject, opts)
+        evaluate_condition(sub_condition, result, root_subject, opts)
     end
   end
 

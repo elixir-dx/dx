@@ -18,9 +18,8 @@ defmodule Infer.Preloader do
     |> deep_flatten()
     |> Enum.flat_map(fn predicate ->
       case predicate do
-        {predicate, values} ->
+        {predicate, _values} ->
           Engine.rules_for_predicate(predicate, type, opts)
-          |> Enum.filter(&(&1.val in values))
 
         predicate ->
           Engine.rules_for_predicate(predicate, type, opts)
