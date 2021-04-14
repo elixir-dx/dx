@@ -90,7 +90,7 @@ defmodule Infer.Runner do
   The record's schema must have a `rules/0` function defined.
   """
 
-  def run(_record = %_type{}, _args \\ []) do
+  def run(%_type{} = _record, _args \\ []) do
     # rules = type.rules()
     # context = %Infer.Context{record: record, args: Map.new(args)}
     # Enum.reduce(rules, context, ...)

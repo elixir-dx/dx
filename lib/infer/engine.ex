@@ -25,7 +25,7 @@ defmodule Infer.Engine do
     end
   end
 
-  def resolve_predicate(predicate, subject = %type{}, opts \\ []) do
+  def resolve_predicate(predicate, %type{} = subject, opts \\ []) do
     subject = Map.put(subject, :args, Map.new(opts[:args] || []))
 
     predicate
@@ -88,7 +88,7 @@ defmodule Infer.Engine do
     |> evaluate_condition(subject, root_subject, opts)
   end
 
-  defp evaluate_condition({key, sub_condition}, subject = %type{}, root_subject, opts) do
+  defp evaluate_condition({key, sub_condition}, %type{} = subject, root_subject, opts) do
     key
     |> rules_for_predicate(type, opts)
     |> case do
@@ -106,7 +106,7 @@ defmodule Infer.Engine do
     evaluate_condition(conditions, subject, root_subject, opts)
   end
 
-  defp evaluate_condition(other = %type{}, subject = %type{}, _root_subject, _opts) do
+  defp evaluate_condition(%type{} = other, %type{} = subject, _root_subject, _opts) do
     if Util.Module.has_function?(type, :compare, 2) do
       type.compare(subject, other) == :eq
     else
@@ -114,7 +114,7 @@ defmodule Infer.Engine do
     end
   end
 
-  defp evaluate_condition(predicate, subject = %type{}, _root_subject, opts)
+  defp evaluate_condition(predicate, %type{} = subject, _root_subject, opts)
        when is_atom(predicate) and not is_nil(predicate) do
     predicate
     |> rules_for_predicate(type, opts)
