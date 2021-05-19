@@ -44,7 +44,9 @@ defmodule Infer.Engine do
   defp match_rules([], _record, _eval), do: nil
 
   defp match_rules([rule | rules], record, %Eval{} = eval) do
-    result = evaluate_condition(rule.when, record, record, eval)
+    eval = %{eval | root_subject: record}
+
+    result = evaluate_condition(rule.when, record, eval)
 
     if eval.debug? do
       subject_info =
@@ -68,7 +70,6 @@ defmodule Infer.Engine do
   defp evaluate_condition(
          condition,
          %Ecto.Association.NotLoaded{} = not_loaded,
-         _root_subject,
          _eval
        ) do
     raise Infer.Error.NotLoaded,
@@ -78,43 +79,43 @@ defmodule Infer.Engine do
       condition: condition
   end
 
-  defp evaluate_condition(condition, subjects, root_subject, eval) when is_list(subjects) do
-    Enum.any?(subjects, &evaluate_condition(condition, &1, root_subject, eval))
+  defp evaluate_condition(condition, subjects, eval) when is_list(subjects) do
+    Enum.any?(subjects, &evaluate_condition(condition, &1, eval))
   end
 
-  defp evaluate_condition(conditions, subject, root_subject, eval) when is_list(conditions) do
-    Enum.any?(conditions, &evaluate_condition(&1, subject, root_subject, eval))
+  defp evaluate_condition(conditions, subject, eval) when is_list(conditions) do
+    Enum.any?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition({:not, condition}, subject, root_subject, %Eval{} = eval) do
-    not evaluate_condition(condition, subject, root_subject, eval)
+  defp evaluate_condition({:not, condition}, subject, %Eval{} = eval) do
+    not evaluate_condition(condition, subject, eval)
   end
 
-  defp evaluate_condition({:ref, path}, subject, root_subject, %Eval{} = eval) do
-    root_subject
+  defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
+    eval.root_subject
     |> get_in_path(path)
-    |> evaluate_condition(subject, root_subject, eval)
+    |> evaluate_condition(subject, eval)
   end
 
-  defp evaluate_condition({key, sub_condition}, %type{} = subject, root_subject, %Eval{} = eval) do
+  defp evaluate_condition({key, sub_condition}, %type{} = subject, %Eval{} = eval) do
     key
     |> rules_for_predicate(type, eval)
     |> case do
       [] ->
-        evaluate_condition(sub_condition, Map.get(subject, key), root_subject, eval)
+        evaluate_condition(sub_condition, Map.get(subject, key), eval)
 
       rules ->
         result = match_rules(rules, subject, eval)
-        evaluate_condition(sub_condition, result, root_subject, eval)
+        evaluate_condition(sub_condition, result, eval)
     end
   end
 
-  defp evaluate_condition({key, conditions}, subject, root_subject, eval) when is_map(subject) do
+  defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
     subject = Map.fetch!(subject, key)
-    evaluate_condition(conditions, subject, root_subject, eval)
+    evaluate_condition(conditions, subject, eval)
   end
 
-  defp evaluate_condition(%type{} = other, %type{} = subject, _root_subject, _eval) do
+  defp evaluate_condition(%type{} = other, %type{} = subject, _eval) do
     if Util.Module.has_function?(type, :compare, 2) do
       type.compare(subject, other) == :eq
     else
@@ -122,7 +123,7 @@ defmodule Infer.Engine do
     end
   end
 
-  defp evaluate_condition(predicate, %type{} = subject, _root_subject, eval)
+  defp evaluate_condition(predicate, %type{} = subject, eval)
        when is_atom(predicate) and not is_nil(predicate) do
     predicate
     |> rules_for_predicate(type, eval)
@@ -132,11 +133,11 @@ defmodule Infer.Engine do
     end
   end
 
-  defp evaluate_condition(conditions, subject, root_subject, eval) when is_map(conditions) do
-    Enum.all?(conditions, &evaluate_condition(&1, subject, root_subject, eval))
+  defp evaluate_condition(conditions, subject, eval) when is_map(conditions) do
+    Enum.all?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition(other, subject, _root_subject, _eval) do
+  defp evaluate_condition(other, subject, _eval) do
     subject == other
   end
 

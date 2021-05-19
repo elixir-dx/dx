@@ -7,6 +7,8 @@ defmodule Infer.Evaluation do
   use TypedStruct
 
   typedstruct do
+    field(:root_subject, map())
+
     # Options
     field(:debug?, boolean(), default: false)
     field(:preload, boolean(), default: false)
