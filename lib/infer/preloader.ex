@@ -3,8 +3,20 @@ defmodule Infer.Preloader do
   Determines preloads based on predicates to be inferred.
   """
 
-  alias Infer.{Engine, Util}
+  alias Infer.Util
   alias Infer.Evaluation, as: Eval
+
+  @doc """
+  This is the entry point for this module.
+  """
+  def preload_for_predicates(type, predicates, opts) when is_list(opts) do
+    # see `Infer.Engine.resolve_predicate/3` for explanation
+    opts = Keyword.delete(opts, :args)
+
+    eval = Eval.from_options(opts)
+
+    preload_for_predicates(type, predicates, eval)
+  end
 
   def preload_for_predicates(type, predicates, %Eval{} = eval) do
     predicates
@@ -14,25 +26,16 @@ defmodule Infer.Preloader do
     |> map_associations(type, eval)
   end
 
-  def preload_for_predicates(type, predicates, opts) do
-    # see `Infer.Engine.resolve_predicate/3` for explanation
-    opts = Keyword.delete(opts, :args)
-
-    eval = Eval.from_options(opts)
-
-    preload_for_predicates(type, predicates, eval)
-  end
-
   defp expand_rules(predicates, type, %Eval{} = eval) do
     predicates
     |> deep_flatten()
     |> Enum.flat_map(fn predicate ->
       case predicate do
         {predicate, _values} ->
-          Engine.rules_for_predicate(predicate, type, eval)
+          Util.rules_for_predicate(predicate, type, eval)
 
         predicate ->
-          Engine.rules_for_predicate(predicate, type, eval)
+          Util.rules_for_predicate(predicate, type, eval)
       end
       |> Enum.map(&expand_rules(&1.when, type, eval))
       |> case do

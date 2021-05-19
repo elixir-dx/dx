@@ -6,24 +6,6 @@ defmodule Infer.Engine do
   alias Infer.Util
   alias Infer.Evaluation, as: Eval
 
-  def rules_for_predicate(predicate, type, %Eval{} = eval) do
-    extra_rules =
-      eval.extra_rules
-      |> Enum.flat_map(&rules_from_module/1)
-      |> Enum.filter(&(&1.type in [nil, type]))
-
-    (extra_rules ++ rules_from_module(type))
-    |> Enum.filter(&(&1.key == predicate))
-  end
-
-  defp rules_from_module(type) do
-    if Util.Module.has_function?(type, :infer_rules, 0) do
-      type.infer_rules()
-    else
-      []
-    end
-  end
-
   @doc """
   Entry point for this module
   """
@@ -37,7 +19,7 @@ defmodule Infer.Engine do
     eval = Eval.from_options(opts)
 
     predicate
-    |> rules_for_predicate(type, eval)
+    |> Util.rules_for_predicate(type, eval)
     |> match_rules(subject, eval)
   end
 
@@ -99,7 +81,7 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({key, sub_condition}, %type{} = subject, %Eval{} = eval) do
     key
-    |> rules_for_predicate(type, eval)
+    |> Util.rules_for_predicate(type, eval)
     |> case do
       [] ->
         evaluate_condition(sub_condition, Map.get(subject, key), eval)
@@ -126,7 +108,7 @@ defmodule Infer.Engine do
   defp evaluate_condition(predicate, %type{} = subject, eval)
        when is_atom(predicate) and not is_nil(predicate) do
     predicate
-    |> rules_for_predicate(type, eval)
+    |> Util.rules_for_predicate(type, eval)
     |> case do
       [] -> Map.fetch!(subject, predicate) == true
       rules -> match_rules(rules, subject, eval) == true
