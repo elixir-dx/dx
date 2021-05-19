@@ -36,9 +36,10 @@ defmodule Infer.Rules do
       def infer_rules do
         aliases = infer_aliases()
         type = infer_base_type()
+        token = %Infer.Parser.Token{type: type, aliases: aliases}
 
         unquote(directives)
-        |> Enum.flat_map(&Infer.Parser.directive_to_rules(&1, type, aliases))
+        |> Enum.flat_map(&Infer.Parser.directive_to_rules(&1, token))
       end
     end
   end
