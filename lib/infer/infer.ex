@@ -291,7 +291,11 @@ defmodule Infer do
   end
 
   defp do_get(record, predicate, opts) do
-    Infer.Engine.resolve_predicate(predicate, record, opts)
+    case Infer.Engine.resolve_predicate(predicate, record, opts) do
+      {:ok, result} -> result
+      {:not_loaded, _} -> raise Infer.Error.NotLoaded
+      {:error, e} -> raise e
+    end
   end
 
   defp maybe_preload(record_or_records, preloads, opts, fun) do
