@@ -3,7 +3,7 @@ defmodule Infer.Engine do
   Encapsulates the main functionality of working with rules.
   """
 
-  alias Infer.{Rule, Util}
+  alias Infer.{Result, Util}
   alias Infer.Evaluation, as: Eval
 
   @loader Infer.Loaders.Dataloader
@@ -39,15 +39,10 @@ defmodule Infer.Engine do
   defp match_rules(rules, record, %Eval{} = eval) do
     eval = %{eval | root_subject: record}
 
-    Enum.reduce_while(rules, {:ok, false}, &match_next(&2, &1, record, eval))
-    |> case do
-      {:ok, false} -> {:ok, nil}
-      {:ok, %Rule{} = rule} -> {:ok, rule.val}
-      other -> other
-    end
+    Result.first(rules, &match_next(&1, record, eval), & &1.val)
   end
 
-  defp match_next(acc, rule, record, eval) do
+  defp match_next(rule, record, eval) do
     result = evaluate_condition(rule.when, record, eval)
 
     if eval.debug? do
@@ -69,71 +64,15 @@ defmodule Infer.Engine do
       )
     end
 
-    case combine(acc, result, :first) do
-      {:halt, {:ok, true}} -> {:halt, {:ok, rule}}
-      other -> other
-    end
+    result
   end
 
-  # Passed to `Enum.reduce_while/3` to combine 2 results on each call
-  #
-  # Result is either
-  #   - `{:error, e}`
-  #   - `{:not_loaded, data_reqs}` if the result could not be determined without loading more data
-  #   - `{:ok, result}` depending on third arg (see below)
-  #
-  # Third arg can be either
-  #   - `:any?` (logical `OR`)
-  #   - `:all?` (logical `AND`)
-  #   - `:first` to return `{:ok, result}` on first match
-  #
-  # `{:not_loaded, all_reqs}` is only returned if the data is really needed.
-  #
-  # For example, using `:all?` with 3 conditions A, B and C, where
-  #   - A is `{:ok, true}`
-  #   - B is `{:not_loaded, data_reqs}`
-  #   - C is `{:ok, false}`
-  #
-  # The overall result is `{:ok, false}`.
-  # While B would need more data to be loaded, C can already determind and is `false`,
-  # so and any additional data loaded will not change that.
-  #
-  # Another example, using `:first` with 5 conditions A, B, C, D and E, where
-  #   - A is `{:ok, false}`
-  #   - B is `{:not_loaded, data_reqs1}`
-  #   - C is `{:not_loaded, data_reqs2}`
-  #   - D is `{:ok, true}`
-  #   - E is `{:not_loaded, data_reqs3}`
-  #
-  # The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
-  # While D can already be determined and is `{:ok, true}`, B and C come first and need more data
-  # to be loaded, so they can be determined and returned if either is `{:ok, true}` first.
-  # All data requirements that might be needed are returned together in the result (those of B and C),
-  # while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
-  defp combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
-  defp combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
-  defp combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
-  defp combine({:not_loaded, reqs}, _, :first), do: {:cont, {:not_loaded, reqs}}
-
-  defp combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
-  defp combine(_acc, {:ok, true}, :first), do: {:halt, {:ok, true}}
-  defp combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
-  defp combine(acc, {:ok, false}, :any?), do: {:cont, acc}
-  defp combine(acc, {:ok, false}, :first), do: {:cont, acc}
-  defp combine(acc, {:ok, true}, :all?), do: {:cont, acc}
-
   defp evaluate_condition(condition, subjects, eval) when is_list(subjects) do
-    Enum.reduce_while(subjects, {:ok, false}, fn subject, acc ->
-      result = evaluate_condition(condition, subject, eval)
-      combine(acc, result, :any?)
-    end)
+    Result.any?(subjects, &evaluate_condition(condition, &1, eval))
   end
 
   defp evaluate_condition(conditions, subject, eval) when is_list(conditions) do
-    Enum.reduce_while(conditions, {:ok, false}, fn condition, acc ->
-      result = evaluate_condition(condition, subject, eval)
-      combine(acc, result, :any?)
-    end)
+    Result.any?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
   defp evaluate_condition({:not, condition}, subject, %Eval{} = eval) do
@@ -206,10 +145,7 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition(conditions, subject, eval) when is_map(conditions) do
-    Enum.reduce_while(conditions, {:ok, true}, fn condition, acc ->
-      result = evaluate_condition(condition, subject, eval)
-      combine(acc, result, :all?)
-    end)
+    Result.all?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
   defp evaluate_condition(other, subject, _eval) do
