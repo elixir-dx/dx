@@ -54,7 +54,8 @@ defmodule Infer.Engine do
         end
 
       IO.puts(
-        "[infer] #{inspect(subject_info)} is #{result_info} for #{inspect(rule.when, pretty: true)}"
+        "[infer] #{inspect(subject_info)} is #{result_info} for " <>
+          inspect(rule.when, pretty: true)
       )
     end
 
