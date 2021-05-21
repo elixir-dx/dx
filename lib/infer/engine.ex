@@ -81,7 +81,10 @@ defmodule Infer.Engine do
   defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
     eval.args
     |> get_in_path(path)
-    |> evaluate_condition(subject, eval)
+    |> case do
+      {:ok, result} -> result |> evaluate_condition(subject, eval)
+      other -> other
+    end
   end
 
   defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do

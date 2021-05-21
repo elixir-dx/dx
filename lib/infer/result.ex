@@ -115,6 +115,13 @@ defmodule Infer.Result do
       ...> ]
       ...> |> Infer.Result.first()
       {:ok, nil}
+
+      iex> [
+      ...>   false,
+      ...>   false,
+      ...> ]
+      ...> |> Infer.Result.first(&{:ok, not &1})
+      {:ok, false}
   """
   def first(enum, mapper \\ nil, result_mapper \\ nil, default \\ nil) do
     mapper = mapper || (& &1)
@@ -123,11 +130,12 @@ defmodule Infer.Result do
     Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
       combine(acc, mapper.(elem), :first)
       |> case do
-        {:halt, {:ok, true}} -> {:halt, {:ok, result_mapper.(elem)}}
+        {:halt, {:ok, true}} -> {:halt, {:result, elem}}
         other -> other
       end
     end)
     |> case do
+      {:result, elem} -> {:ok, result_mapper.(elem)}
       {:ok, false} -> {:ok, default}
       other -> other
     end
