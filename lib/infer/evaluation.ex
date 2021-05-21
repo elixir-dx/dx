@@ -10,6 +10,7 @@ defmodule Infer.Evaluation do
     field(:root_subject, map())
 
     # Options
+    field(:args, map(), default: %{})
     field(:debug?, boolean(), default: false)
     field(:preload, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
@@ -23,6 +24,7 @@ defmodule Infer.Evaluation do
     Enum.reduce(opts, eval, fn
       {:extra_rules, mods}, eval -> %{eval | extra_rules: List.wrap(mods)}
       {:debug, debug}, eval -> %{eval | debug?: debug}
+      {:args, args}, eval -> %{eval | args: Map.new(args)}
       {key, val}, eval -> Map.replace!(eval, key, val)
     end)
   end

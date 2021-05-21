@@ -12,12 +12,6 @@ defmodule Infer.Engine do
   Entry point for this module
   """
   def resolve_predicate(predicate, %type{} = subject, opts \\ []) do
-    # Hacky but effective way to make `:args` available on the subject level:
-    # Remove `:args` from the options and put it directly into the subject
-    # (circumventing Elixir struct field checks)
-    {args, opts} = Keyword.pop(opts, :args, [])
-    subject = Map.put(subject, :args, Map.new(args))
-
     eval = Eval.from_options(opts)
 
     predicate
@@ -84,6 +78,12 @@ defmodule Infer.Engine do
     end
   end
 
+  defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
+    eval.args
+    |> get_in_path(path)
+    |> evaluate_condition(subject, eval)
+  end
+
   defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
     eval.root_subject
     |> get_in_path(path)
@@ -91,6 +91,10 @@ defmodule Infer.Engine do
       {:ok, result} -> result |> evaluate_condition(subject, eval)
       other -> other
     end
+  end
+
+  defp evaluate_condition({:args, sub_condition}, subject, %Eval{root_subject: subject} = eval) do
+    evaluate_condition(sub_condition, eval.args, eval)
   end
 
   defp evaluate_condition({key, sub_condition}, %type{} = subject, %Eval{} = eval) do

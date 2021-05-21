@@ -10,9 +10,6 @@ defmodule Infer.Preloader do
   This is the entry point for this module.
   """
   def preload_for_predicates(type, predicates, opts) when is_list(opts) do
-    # see `Infer.Engine.resolve_predicate/3` for explanation
-    opts = Keyword.delete(opts, :args)
-
     eval = Eval.from_options(opts)
 
     preload_for_predicates(type, predicates, eval)
