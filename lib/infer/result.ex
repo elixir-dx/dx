@@ -6,7 +6,14 @@ defmodule Infer.Result do
   @typedoc """
   Possible return values from resolving predicates.
   """
-  @type t() :: {:ok, any()} | {:not_loaded, any()} | {:error, any()}
+  @type v() :: {:ok, any()} | {:not_loaded, any()} | {:error, any()}
+
+  @typedoc """
+  Possible return values from conditions.
+  """
+  @type b() :: {:ok, boolean()} | {:not_loaded, any()} | {:error, any()}
+
+  defp identity(term), do: term
 
   @doc """
   Returns `{:ok, true}` if `fun` evaluates to `{:ok, true}` for all elements in `enum`.
@@ -38,9 +45,8 @@ defmodule Infer.Result do
       ...> |> Infer.Result.all?()
       {:ok, true}
   """
-  def all?(enum, mapper \\ nil) do
-    mapper = mapper || (& &1)
-
+  @spec all?(Enum.t(), (any() -> b())) :: b()
+  def all?(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, {:ok, true}, fn elem, acc ->
       combine(acc, mapper.(elem), :all?)
     end)
@@ -76,9 +82,8 @@ defmodule Infer.Result do
       ...> |> Infer.Result.any?()
       {:ok, false}
   """
-  def any?(enum, mapper \\ nil) do
-    mapper = mapper || (& &1)
-
+  @spec any?(Enum.t(), (any() -> b())) :: b()
+  def any?(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
       combine(acc, mapper.(elem), :any?)
     end)
@@ -123,6 +128,7 @@ defmodule Infer.Result do
       ...> |> Infer.Result.first(&{:ok, not &1})
       {:ok, false}
   """
+  @spec first(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
   def first(enum, mapper \\ nil, result_mapper \\ nil, default \\ nil) do
     mapper = mapper || (& &1)
     result_mapper = result_mapper || (& &1)
@@ -190,6 +196,7 @@ defmodule Infer.Result do
   All data requirements that might be needed are returned together in the result (those of B and C),
   while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
+  @spec combine(b(), b(), :any? | :all? | :first) :: b()
   def combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
   def combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
   def combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
