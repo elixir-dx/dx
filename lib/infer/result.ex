@@ -129,10 +129,7 @@ defmodule Infer.Result do
       {:ok, false}
   """
   @spec first(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
-  def first(enum, mapper \\ nil, result_mapper \\ nil, default \\ nil) do
-    mapper = mapper || (& &1)
-    result_mapper = result_mapper || (& &1)
-
+  def first(enum, mapper \\ &identity/1, result_mapper \\ &identity/1, default \\ nil) do
     Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
       combine(acc, mapper.(elem), :first)
       |> case do
@@ -143,6 +140,49 @@ defmodule Infer.Result do
     |> case do
       {:result, elem} -> {:ok, result_mapper.(elem)}
       {:ok, false} -> {:ok, default}
+      other -> other
+    end
+  end
+
+  @doc """
+  Returns `{:ok, mapped_results}` if all elements map to `{:ok, result}`.
+  Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
+
+  ## Examples
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:ok, 2},
+      ...>   {:ok, 3},
+      ...> ]
+      ...> |> Infer.Result.map()
+      {:ok, [1, 2, 3]}
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:not_loaded, [:x]},
+      ...>   {:ok, 3},
+      ...>   {:not_loaded, [:y]},
+      ...> ]
+      ...> |> Infer.Result.map()
+      {:not_loaded, [:x, :y]}
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:error, :x},
+      ...>   {:ok, 3},
+      ...>   {:not_loaded, [:y]},
+      ...> ]
+      ...> |> Infer.Result.map()
+      {:error, :x}
+  """
+  @spec map(Enum.t(), (any() -> v())) :: v()
+  def map(enum, mapper \\ &identity/1) do
+    Enum.reduce_while(enum, {:ok, []}, fn elem, acc ->
+      combine(acc, mapper.(elem), :all)
+    end)
+    |> case do
+      {:ok, results} -> {:ok, Enum.reverse(results)}
       other -> other
     end
   end
@@ -196,7 +236,8 @@ defmodule Infer.Result do
   All data requirements that might be needed are returned together in the result (those of B and C),
   while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
-  @spec combine(b(), b(), :any? | :all? | :first) :: b()
+  @spec combine(b(), b(), :any? | :all? | :first) :: {:cont | :halt, b()}
+  @spec combine(v(), v(), :all) :: {:cont, v()}
   def combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
   def combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
   def combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
@@ -205,6 +246,9 @@ defmodule Infer.Result do
   def combine({:not_loaded, reqs}, {:ok, false}, :first), do: {:cont, {:not_loaded, reqs}}
   def combine({:ok, false}, {:ok, true}, :first), do: {:halt, {:ok, true}}
   def combine(acc, {:ok, false}, :first), do: {:cont, acc}
+
+  def combine({:not_loaded, reqs}, {:ok, _}, :all), do: {:cont, {:not_loaded, reqs}}
+  def combine({:ok, results}, {:ok, result}, :all), do: {:cont, {:ok, [result | results]}}
 
   def combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
   def combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}

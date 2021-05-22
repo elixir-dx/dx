@@ -8,8 +8,10 @@ defmodule Infer.Evaluation do
 
   typedstruct do
     field(:root_subject, map())
+    field(:cache, any())
 
     # Options
+    field(:loader, module(), default: Infer.Loaders.Dataloader)
     field(:args, map(), default: %{})
     field(:debug?, boolean(), default: false)
     field(:preload, boolean(), default: false)
@@ -17,7 +19,12 @@ defmodule Infer.Evaluation do
   end
 
   def from_options(opts) do
-    %__MODULE__{} |> add_options(opts)
+    %__MODULE__{}
+    |> add_options(opts)
+    |> case do
+      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init())
+      other -> other
+    end
   end
 
   def add_options(eval, opts) do

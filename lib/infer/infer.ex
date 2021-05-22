@@ -251,7 +251,8 @@ defmodule Infer do
 
   """
 
-  alias Infer.Util
+  alias Infer.{Result, Util}
+  alias Infer.Evaluation, as: Eval
 
   @doc """
   Evaluates one or multiple predicates for one or multiple records and returns the results.
@@ -262,57 +263,46 @@ defmodule Infer do
     When `false`, only the values are returned for all predicates. Default: `true`.
   - `:preload` (boolean) - whether or not to preload data if needed. Default: `false`.
   """
-  def get(records, predicates, opts \\ [])
+  def get(records, predicates, opts \\ []) do
+    eval = Eval.from_options(opts)
 
-  def get(records, predicates, opts) when is_list(records) and is_list(predicates) do
-    maybe_preload(records, predicates, opts, fn records ->
-      Enum.map(records, fn record ->
-        Map.new(predicates, &{&1, do_get(record, &1, opts)})
-      end)
-    end)
+    maybe_load(eval, &do_get(records, predicates, &1))
+    |> to_result!()
   end
 
-  def get(records, predicate, opts) when is_list(records) do
-    maybe_preload(records, predicate, opts, fn records ->
-      Enum.map(records, &do_get(&1, predicate, opts))
-    end)
+  defp do_get(records, predicates, eval) when is_list(records) do
+    Result.map(records, &do_get(&1, predicates, eval))
   end
 
-  def get(record, predicates, opts) when is_list(predicates) do
-    maybe_preload(record, predicates, opts, fn record ->
-      Map.new(predicates, &{&1, do_get(record, &1, opts)})
-    end)
-  end
-
-  def get(record, predicate, opts) when is_atom(predicate) do
-    maybe_preload(record, predicate, opts, fn record ->
-      do_get(record, predicate, opts)
-    end)
-  end
-
-  defp do_get(record, predicate, opts) do
-    case Infer.Engine.resolve_predicate(predicate, record, opts) do
-      {:ok, result} -> result
-      {:not_loaded, _} -> raise Infer.Error.NotLoaded
-      {:error, e} -> raise e
+  defp do_get(record, predicates, eval) when is_list(predicates) do
+    case Result.map(predicates, &do_get(record, &1, eval)) do
+      {:ok, results} -> {:ok, Enum.zip(predicates, results) |> Map.new()}
+      other -> other
     end
   end
 
-  defp maybe_preload(record_or_records, preloads, opts, fun) do
-    if opts[:preload] == true do
-      preload_if_needed(record_or_records, preloads, opts, fun)
-    else
-      fun.(record_or_records)
-    end
+  defp do_get(record, predicate, eval) do
+    Infer.Engine.resolve_predicate(predicate, record, eval)
   end
 
-  defp preload_if_needed(record_or_records, preloads, opts, fun) do
-    fun.(record_or_records)
-  rescue
-    Infer.Error.NotLoaded ->
-      record_or_records
-      |> do_preload(preloads, opts)
-      |> fun.()
+  defp to_result!({:ok, result}), do: result
+  defp to_result!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
+  defp to_result!({:error, e}), do: raise(e)
+
+  defp maybe_load(%Eval{preload: false} = eval, fun) do
+    fun.(eval)
+  end
+
+  defp maybe_load(%Eval{preload: true} = eval, fun) do
+    case fun.(eval) do
+      {:not_loaded, data_reqs} ->
+        eval
+        |> Map.update!(:cache, &eval.loader.load(&1, data_reqs))
+        |> maybe_load(fun)
+
+      result ->
+        result
+    end
   end
 
   defp get_type(%type{}), do: type
@@ -326,22 +316,22 @@ defmodule Infer do
 
   Same as for `get/3`.
   """
-  def put(records, predicates, opts \\ [])
+  def put(records, predicates, opts \\ []) do
+    eval = Eval.from_options(opts) |> Map.replace!(:preload, true)
 
-  def put(records, predicates, opts) when is_list(records) do
-    preload_if_needed(records, predicates, opts, fn records ->
-      Enum.map(records, &do_put(&1, predicates, opts))
-    end)
+    maybe_load(eval, &do_put(records, predicates, &1))
+    |> to_result!()
   end
 
-  def put(record, predicates, opts) do
-    preload_if_needed(record, predicates, opts, fn record ->
-      do_put(record, predicates, opts)
-    end)
+  defp do_put(records, predicates, eval) when is_list(records) do
+    Result.map(records, &do_put(&1, predicates, eval))
   end
 
-  defp do_put(record, predicates, opts) do
-    %{record | inferred: do_get(record, predicates, opts)}
+  defp do_put(record, predicate_or_predicates, eval) do
+    case do_get(record, List.wrap(predicate_or_predicates), eval) do
+      {:ok, results} -> {:ok, %{record | inferred: results}}
+      other -> other
+    end
   end
 
   @doc """

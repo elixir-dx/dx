@@ -6,14 +6,10 @@ defmodule Infer.Engine do
   alias Infer.{Result, Util}
   alias Infer.Evaluation, as: Eval
 
-  @loader Infer.Loaders.Dataloader
-
   @doc """
   Entry point for this module
   """
-  def resolve_predicate(predicate, %type{} = subject, opts \\ []) do
-    eval = Eval.from_options(opts)
-
+  def resolve_predicate(predicate, %type{} = subject, %Eval{} = eval) do
     predicate
     |> Util.rules_for_predicate(type, eval)
     |> match_rules(subject, eval)
@@ -81,7 +77,7 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
     eval.args
-    |> get_in_path(path)
+    |> get_in_path(path, eval)
     |> case do
       {:ok, result} -> result |> evaluate_condition(subject, eval)
       other -> other
@@ -90,7 +86,7 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
     eval.root_subject
-    |> get_in_path(path)
+    |> get_in_path(path, eval)
     |> case do
       {:ok, result} -> result |> evaluate_condition(subject, eval)
       other -> other
@@ -108,8 +104,10 @@ defmodule Infer.Engine do
       [] ->
         case Map.get(subject, key) do
           %Ecto.Association.NotLoaded{} ->
-            data_reqs = @loader.condition_data_requirements(:assoc, subject, key)
-            {:not_loaded, data_reqs}
+            case eval.loader.lookup(eval.cache, :assoc, subject, key) do
+              {:ok, value} -> evaluate_condition(sub_condition, value, eval)
+              other -> other
+            end
 
           value ->
             evaluate_condition(sub_condition, value, eval)
@@ -124,7 +122,7 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
-    case fetch(subject, key) do
+    case fetch(subject, key, eval) do
       {:ok, subject} -> evaluate_condition(conditions, subject, eval)
       other -> other
     end
@@ -143,7 +141,7 @@ defmodule Infer.Engine do
     predicate
     |> Util.rules_for_predicate(type, eval)
     |> case do
-      [] -> fetch(subject, predicate)
+      [] -> fetch(subject, predicate, eval)
       rules -> match_rules(rules, subject, eval)
     end
     |> case do
@@ -160,11 +158,10 @@ defmodule Infer.Engine do
     {:ok, subject == other}
   end
 
-  defp fetch(map, key) do
+  defp fetch(map, key, eval) do
     case Map.fetch!(map, key) do
       %Ecto.Association.NotLoaded{} ->
-        data_reqs = @loader.path_data_requirements(:assoc, map, key)
-        {:not_loaded, data_reqs}
+        eval.loader.lookup(eval.cache, :assoc, map, key)
 
       other ->
         {:ok, other}
@@ -173,12 +170,12 @@ defmodule Infer.Engine do
     e in KeyError -> {:error, e}
   end
 
-  defp get_in_path(val, []), do: {:ok, val}
-  defp get_in_path(nil, _path), do: {:ok, nil}
+  defp get_in_path(val, [], _eval), do: {:ok, val}
+  defp get_in_path(nil, _path, _eval), do: {:ok, nil}
 
-  defp get_in_path(map, [key | path]) do
-    case fetch(map, key) do
-      {:ok, val} -> val |> get_in_path(path)
+  defp get_in_path(map, [key | path], eval) do
+    case fetch(map, key, eval) do
+      {:ok, val} -> val |> get_in_path(path, eval)
       other -> other
     end
   end
