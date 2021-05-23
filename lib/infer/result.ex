@@ -92,8 +92,8 @@ defmodule Infer.Result do
   end
 
   @doc """
-  Returns `{:ok, elem}` with the first `elem` for which `fun` evaluates to `{:ok, true}`.
-  Returns `{:not_loaded, data_reqs}` combining all `elem`s before that yield `{:not_loaded, data_reqs}`.
+  Returns `{:ok, elem}` for the first `elem` for which `fun` evaluates to `{:ok, true}`.
+  If any elements before that return `{:not_loaded, data_reqs}`, returns all of them combined as `{:not_loaded, ...}`.
   Otherwise, returns `{:ok, default}`.
 
   ## Examples
@@ -103,7 +103,7 @@ defmodule Infer.Result do
       ...>   {:not_loaded, []},
       ...>   {:ok, false},
       ...> ]
-      ...> |> Infer.Result.first()
+      ...> |> Infer.Result.find()
       {:ok, {:ok, true}}
 
       iex> [
@@ -113,27 +113,27 @@ defmodule Infer.Result do
       ...>   {:ok, true},
       ...>   {:not_loaded, [3]},
       ...> ]
-      ...> |> Infer.Result.first()
+      ...> |> Infer.Result.find()
       {:not_loaded, [1, 2]}
 
       iex> [
       ...>   {:ok, false},
       ...>   {:ok, false},
       ...> ]
-      ...> |> Infer.Result.first()
+      ...> |> Infer.Result.find()
       {:ok, nil}
 
       iex> [
       ...>   false,
       ...>   false,
       ...> ]
-      ...> |> Infer.Result.first(&{:ok, not &1})
+      ...> |> Infer.Result.find(&{:ok, not &1})
       {:ok, false}
   """
-  @spec first(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
-  def first(enum, mapper \\ &identity/1, result_mapper \\ &identity/1, default \\ nil) do
+  @spec find(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
+  def find(enum, fun \\ &identity/1, result_mapper \\ &identity/1, default \\ {:ok, nil}) do
     Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
-      combine(acc, mapper.(elem), :first)
+      combine(acc, fun.(elem), :find)
       |> case do
         {:halt, {:ok, true}} -> {:halt, {:result, elem}}
         other -> other
@@ -141,7 +141,7 @@ defmodule Infer.Result do
     end)
     |> case do
       {:result, elem} -> {:ok, result_mapper.(elem)}
-      {:ok, false} -> {:ok, default}
+      {:ok, false} -> default
       other -> other
     end
   end
@@ -187,7 +187,7 @@ defmodule Infer.Result do
   end
 
   @doc """
-  The convenience functions `all?/2`, `any?/2` and `first/2` use this under the hood.
+  The convenience functions `all?/2`, `any?/2`, `find/2`, and `map/2` use this under the hood.
 
   Passed to `Enum.reduce_while/3` to combine 2 results on each call.
 
@@ -199,7 +199,8 @@ defmodule Infer.Result do
   Third arg can be either
     - `:any?` (logical `OR`)
     - `:all?` (logical `AND`)
-    - `:first` to return `{:ok, result}` on first match
+    - `:find` to return `{:ok, result}` on first match
+    - `:all` to return all `{:ok, result}` combined as `{:ok, [result1, result2, ...]}`
 
   `{:not_loaded, all_reqs}` is only returned if the data is really needed.
 
@@ -217,7 +218,7 @@ defmodule Infer.Result do
   While B would need more data to be loaded, C can already determind and is `false`,
   so and any additional data loaded will not change that.
 
-  Another example, using `:first` with 5 conditions A, B, C, D and E, where
+  Another example, using `:find` with 5 conditions A, B, C, D and E, where
 
       iex> [
       ...>   {:ok, false},       # A
@@ -226,7 +227,7 @@ defmodule Infer.Result do
       ...>   {:ok, true},        # D
       ...>   {:not_loaded, [3]}, # E
       ...> ]
-      ...> |> Enum.reduce_while({:ok, false}, &Infer.Result.combine(&2, &1, :first))
+      ...> |> Enum.reduce_while({:ok, false}, &Infer.Result.combine(&2, &1, :find))
       {:not_loaded, [1, 2]}
 
   The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
@@ -236,22 +237,27 @@ defmodule Infer.Result do
   while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
   @spec combine(b(), b(), :any? | :all?) :: {:cont | :halt, b()}
-  @spec combine(b(), b(), :first) :: {:cont | :halt, v()}
+  @spec combine(b(), b(), :find) :: {:cont | :halt, v()}
   @spec combine(v(), v(), :all) :: {:cont | :halt, v()}
   def combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
   def combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
   def combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
 
-  def combine({:not_loaded, reqs}, {:ok, true}, :first), do: {:halt, {:not_loaded, reqs}}
-  def combine({:not_loaded, reqs}, {:ok, false}, :first), do: {:cont, {:not_loaded, reqs}}
-  def combine({:ok, false}, {:ok, true}, :first), do: {:halt, {:ok, true}}
-  def combine(acc, {:ok, false}, :first), do: {:cont, acc}
+  # :find
+  def combine({:not_loaded, reqs}, {:ok, true}, :find), do: {:halt, {:not_loaded, reqs}}
+  def combine({:not_loaded, reqs}, {:ok, false}, :find), do: {:cont, {:not_loaded, reqs}}
+  def combine({:ok, false}, {:ok, true}, :find), do: {:halt, {:ok, true}}
+  def combine(acc, {:ok, false}, :find), do: {:cont, acc}
 
+  # :all
   def combine({:not_loaded, reqs}, {:ok, _}, :all), do: {:cont, {:not_loaded, reqs}}
   def combine({:ok, results}, {:ok, result}, :all), do: {:cont, {:ok, [result | results]}}
 
+  # :any?
   def combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
-  def combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
   def combine(acc, {:ok, false}, :any?), do: {:cont, acc}
+
+  # :all?
+  def combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
   def combine(acc, {:ok, true}, :all?), do: {:cont, acc}
 end

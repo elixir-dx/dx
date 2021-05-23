@@ -29,7 +29,7 @@ defmodule Infer.Engine do
   defp match_rules(rules, record, %Eval{} = eval) do
     eval = %{eval | root_subject: record}
 
-    Result.first(rules, &match_next(&1, record, eval), & &1.val)
+    Result.find(rules, &match_next(&1, record, eval), & &1.val)
   end
 
   defp match_next(rule, record, eval) do
