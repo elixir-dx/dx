@@ -23,4 +23,18 @@ defmodule Infer.Util do
       []
     end
   end
+
+  @doc """
+  When given `{:ok, result}`, applies the given function to `result` and returns `{:ok, new_result}`.
+  Otherwise, returns first argument as is.
+  """
+  def map_ok_result({:ok, result}, mapper), do: {:ok, mapper.(result)}
+  def map_ok_result(other, _mapper), do: other
+
+  @doc """
+  When given `{:ok, result}`, applies the given function to `result` and returns the result of the call.
+  Otherwise, returns first argument as is.
+  """
+  def if_ok({:ok, result}, fun), do: fun.(result)
+  def if_ok(other, _fun), do: other
 end

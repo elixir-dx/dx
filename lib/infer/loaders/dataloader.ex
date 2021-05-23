@@ -5,7 +5,7 @@ defmodule Infer.Loaders.Dataloader do
 
   def lookup(cache, :assoc, subject, key) do
     case Dataloader.get(cache, :assoc, key, subject) do
-      {:error, "Unable to find batch " <> _} -> {:not_loaded, [{:assoc, subject, key}]}
+      {:error, "Unable to find " <> _} -> {:not_loaded, [{:assoc, subject, key}]}
       other -> other
     end
   end

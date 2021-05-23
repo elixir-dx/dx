@@ -67,30 +67,20 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition({:not, condition}, subject, %Eval{} = eval) do
-    case evaluate_condition(condition, subject, eval) do
-      {:ok, true} -> {:ok, false}
-      {:ok, false} -> {:ok, true}
-      {:ok, other} -> raise ArgumentError, "Boolean expected, got #{inspect(other)}"
-      other -> other
-    end
+    evaluate_condition(condition, subject, eval)
+    |> Util.map_ok_result(&not/1)
   end
 
   defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
     eval.args
     |> get_in_path(path, eval)
-    |> case do
-      {:ok, result} -> result |> evaluate_condition(subject, eval)
-      other -> other
-    end
+    |> Util.if_ok(&evaluate_condition(&1, subject, eval))
   end
 
   defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
     eval.root_subject
     |> get_in_path(path, eval)
-    |> case do
-      {:ok, result} -> result |> evaluate_condition(subject, eval)
-      other -> other
-    end
+    |> Util.if_ok(&evaluate_condition(&1, subject, eval))
   end
 
   defp evaluate_condition({:args, sub_condition}, subject, %Eval{root_subject: subject} = eval) do
@@ -104,28 +94,22 @@ defmodule Infer.Engine do
       [] ->
         case Map.get(subject, key) do
           %Ecto.Association.NotLoaded{} ->
-            case eval.loader.lookup(eval.cache, :assoc, subject, key) do
-              {:ok, value} -> evaluate_condition(sub_condition, value, eval)
-              other -> other
-            end
+            eval.loader.lookup(eval.cache, :assoc, subject, key)
+            |> Util.if_ok(&evaluate_condition(sub_condition, &1, eval))
 
           value ->
             evaluate_condition(sub_condition, value, eval)
         end
 
       rules ->
-        case match_rules(rules, subject, eval) do
-          {:ok, result} -> evaluate_condition(sub_condition, result, eval)
-          other -> other
-        end
+        match_rules(rules, subject, eval)
+        |> Util.if_ok(&evaluate_condition(sub_condition, &1, eval))
     end
   end
 
   defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
-    case fetch(subject, key, eval) do
-      {:ok, subject} -> evaluate_condition(conditions, subject, eval)
-      other -> other
-    end
+    fetch(subject, key, eval)
+    |> Util.if_ok(&evaluate_condition(conditions, &1, eval))
   end
 
   defp evaluate_condition(%type{} = other, %type{} = subject, _eval) do
@@ -144,10 +128,7 @@ defmodule Infer.Engine do
       [] -> fetch(subject, predicate, eval)
       rules -> match_rules(rules, subject, eval)
     end
-    |> case do
-      {:ok, result} -> {:ok, result == true}
-      other -> other
-    end
+    |> Util.map_ok_result(&(&1 == true))
   end
 
   defp evaluate_condition(conditions, subject, eval) when is_map(conditions) do
@@ -174,9 +155,7 @@ defmodule Infer.Engine do
   defp get_in_path(nil, _path, _eval), do: {:ok, nil}
 
   defp get_in_path(map, [key | path], eval) do
-    case fetch(map, key, eval) do
-      {:ok, val} -> val |> get_in_path(path, eval)
-      other -> other
-    end
+    fetch(map, key, eval)
+    |> Util.if_ok(&get_in_path(&1, path, eval))
   end
 end

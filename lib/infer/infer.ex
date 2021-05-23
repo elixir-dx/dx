@@ -275,10 +275,8 @@ defmodule Infer do
   end
 
   defp do_get(record, predicates, eval) when is_list(predicates) do
-    case Result.map(predicates, &do_get(record, &1, eval)) do
-      {:ok, results} -> {:ok, Enum.zip(predicates, results) |> Map.new()}
-      other -> other
-    end
+    Result.map(predicates, &do_get(record, &1, eval))
+    |> Util.map_ok_result(&Map.new(Enum.zip(predicates, &1)))
   end
 
   defp do_get(record, predicate, eval) do
@@ -328,10 +326,8 @@ defmodule Infer do
   end
 
   defp do_put(record, predicate_or_predicates, eval) do
-    case do_get(record, List.wrap(predicate_or_predicates), eval) do
-      {:ok, results} -> {:ok, %{record | inferred: results}}
-      other -> other
-    end
+    do_get(record, List.wrap(predicate_or_predicates), eval)
+    |> Util.map_ok_result(&%{record | inferred: &1})
   end
 
   @doc """

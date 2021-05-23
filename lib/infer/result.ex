@@ -13,6 +13,8 @@ defmodule Infer.Result do
   """
   @type b() :: {:ok, boolean()} | {:not_loaded, any()} | {:error, any()}
 
+  alias Infer.Util
+
   defp identity(term), do: term
 
   @doc """
@@ -181,10 +183,7 @@ defmodule Infer.Result do
     Enum.reduce_while(enum, {:ok, []}, fn elem, acc ->
       combine(acc, mapper.(elem), :all)
     end)
-    |> case do
-      {:ok, results} -> {:ok, Enum.reverse(results)}
-      other -> other
-    end
+    |> Util.map_ok_result(&Enum.reverse/1)
   end
 
   @doc """
@@ -236,8 +235,9 @@ defmodule Infer.Result do
   All data requirements that might be needed are returned together in the result (those of B and C),
   while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
-  @spec combine(b(), b(), :any? | :all? | :first) :: {:cont | :halt, b()}
-  @spec combine(v(), v(), :all) :: {:cont, v()}
+  @spec combine(b(), b(), :any? | :all?) :: {:cont | :halt, b()}
+  @spec combine(b(), b(), :first) :: {:cont | :halt, v()}
+  @spec combine(v(), v(), :all) :: {:cont | :halt, v()}
   def combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
   def combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
   def combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
