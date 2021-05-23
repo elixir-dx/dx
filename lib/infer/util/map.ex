@@ -24,4 +24,25 @@ defmodule Infer.Util.Map do
   def do_put_in(map, field, val) when is_map(map) do
     Map.replace!(map, field, val)
   end
+
+  @doc """
+  Returns a `Map` with given keys and values zipped together
+
+  ## Examples
+
+      iex> [:d, :e, :b]
+      ...> |> Infer.Util.Map.zip([8, 2, 3])
+      %{d: 8, e: 2, b: 3}
+  """
+  def zip(keys, values) do
+    do_zip(%{}, keys, values)
+  end
+
+  def do_zip(map, [key | keys], [value | values]) do
+    map |> Map.put(key, value) |> do_zip(keys, values)
+  end
+
+  def do_zip(map, [], []) do
+    map
+  end
 end

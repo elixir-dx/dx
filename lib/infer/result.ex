@@ -1,6 +1,6 @@
 defmodule Infer.Result do
   @moduledoc """
-  Result type definition `t:t()` and helpers to work with it.
+  Result types and helpers to work with them.
   """
 
   @typedoc """
@@ -13,9 +13,30 @@ defmodule Infer.Result do
   """
   @type b() :: {:ok, boolean()} | {:not_loaded, any()} | {:error, any()}
 
-  alias Infer.Util
-
+  # Shorthand to conveniently declare optional functions as `fun \\ &identity/1`.
   defp identity(term), do: term
+
+  @doc """
+  When given `{:ok, value}`, runs `fun` on `value` and returns the result.
+  Otherwise, returns first argument as is.
+  """
+  def then({:ok, result}, fun), do: fun.(result)
+  def then(other, _fun), do: other
+
+  @doc """
+  When given `{:ok, value}`, runs `fun` on `value` and returns `{:ok, new_value}`.
+  Otherwise, returns first argument as is.
+  """
+  def transform({:ok, result}, fun), do: {:ok, fun.(result)}
+  def transform(other, _fun), do: other
+
+  @doc """
+  When given `{:ok, value}`, returns `value`.
+  Otherwise, raises an exception.
+  """
+  def unwrap!({:ok, result}), do: result
+  def unwrap!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
+  def unwrap!({:error, e}), do: raise(e)
 
   @doc """
   Returns `{:ok, true}` if `fun` evaluates to `{:ok, true}` for all elements in `enum`.
@@ -183,7 +204,7 @@ defmodule Infer.Result do
     Enum.reduce_while(enum, {:ok, []}, fn elem, acc ->
       combine(acc, mapper.(elem), :all)
     end)
-    |> Util.map_ok_result(&Enum.reverse/1)
+    |> transform(&Enum.reverse/1)
   end
 
   @doc """

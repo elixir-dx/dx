@@ -267,7 +267,7 @@ defmodule Infer do
     eval = Eval.from_options(opts)
 
     maybe_load(eval, &do_get(records, predicates, &1))
-    |> to_result!()
+    |> Result.unwrap!()
   end
 
   defp do_get(records, predicates, eval) when is_list(records) do
@@ -276,16 +276,12 @@ defmodule Infer do
 
   defp do_get(record, predicates, eval) when is_list(predicates) do
     Result.map(predicates, &do_get(record, &1, eval))
-    |> Util.map_ok_result(&Map.new(Enum.zip(predicates, &1)))
+    |> Result.transform(&Util.Map.zip(predicates, &1))
   end
 
   defp do_get(record, predicate, eval) do
     Infer.Engine.resolve_predicate(predicate, record, eval)
   end
-
-  defp to_result!({:ok, result}), do: result
-  defp to_result!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
-  defp to_result!({:error, e}), do: raise(e)
 
   defp maybe_load(%Eval{preload: false} = eval, fun) do
     fun.(eval)
@@ -318,7 +314,7 @@ defmodule Infer do
     eval = Eval.from_options(opts) |> Map.replace!(:preload, true)
 
     maybe_load(eval, &do_put(records, predicates, &1))
-    |> to_result!()
+    |> Result.unwrap!()
   end
 
   defp do_put(records, predicates, eval) when is_list(records) do
@@ -327,7 +323,7 @@ defmodule Infer do
 
   defp do_put(record, predicate_or_predicates, eval) do
     do_get(record, List.wrap(predicate_or_predicates), eval)
-    |> Util.map_ok_result(&%{record | inferred: &1})
+    |> Result.transform(&%{record | inferred: &1})
   end
 
   @doc """
