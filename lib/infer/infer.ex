@@ -54,13 +54,13 @@ defmodule Infer do
   ```elixir
   infer :can_edit?, when: %{roles: ["project_manager", "admin"]}
 
-  iex> %Person{roles: ["worker", "assistant"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["worker", "assistant"]} |> Infer.get!(:can_edit?)
   nil
 
-  iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get!(:can_edit?)
   true
 
-  iex> %Person{roles: ["admin"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["admin"]} |> Infer.get!(:can_edit?)
   true
   ```
 
@@ -75,13 +75,13 @@ defmodule Infer do
   ```elixir
   infer :can_edit?, when: %{roles: {:all?, ["project_manager", "admin"]}}
 
-  iex> %Person{roles: ["worker", "assistant"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["worker", "assistant"]} |> Infer.get!(:can_edit?)
   nil
 
-  iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get!(:can_edit?)
   nil
 
-  iex> %Person{roles: ["admin"]} |> Infer.get(:can_edit?)
+  iex> %Person{roles: ["admin"]} |> Infer.get!(:can_edit?)
   true
   ```
 
@@ -103,7 +103,7 @@ defmodule Infer do
   ...>     %Relation{relation: "parent_of", other_person: %Person{adult?: true}}
   ...>   ]
   ...> }
-  ...> |> Infer.get(:all_children_adults?)
+  ...> |> Infer.get!(:all_children_adults?)
   true
 
   iex> %Person{
@@ -113,7 +113,7 @@ defmodule Infer do
   ...>     %Relation{relation: "parent_of", other_person: %Person{adult?: false}},
   ...>   ]
   ...> }
-  ...> |> Infer.get(:all_children_adults?)
+  ...> |> Infer.get!(:all_children_adults?)
   nil
 
   # no match when there is no element with `relation: "parent_of"`
@@ -122,7 +122,7 @@ defmodule Infer do
   ...>     %Relation{relation: "sibling", other_person: %Person{adult?: true}}
   ...>   ]
   ...> }
-  ...> |> Infer.get(:all_children_adults?)
+  ...> |> Infer.get!(:all_children_adults?)
   nil
   ```
 
@@ -134,7 +134,7 @@ defmodule Infer do
   - Fields defined in an ecto schema (see [below](#module-ecto-schema-fields))
   - Attributes defined in `infer` statements
   - Groups defined in `predicate_group` statements
-  - `:args` for accessing arguments passed to executing functions, e.g. `args: %{user: nil}` from `Infer.get(Offer, :film?, args: [user: user])`
+  - `:args` for accessing arguments passed to executing functions, e.g. `args: %{user: nil}` from `Infer.get!(Offer, :film?, args: [user: user])`
 
   ### Preloading
 
@@ -245,7 +245,7 @@ defmodule Infer do
   Problems that can be detected at compile-time:
 
   - Invalid rule: "Rule X uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
-  - Invalid function call: "`Infer.get(%Person{}, :has_child?)` uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
+  - Invalid function call: "`Infer.get!(%Person{}, :has_child?)` uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
   - Cycles in rule definitions: "Cycle detected: Rule X on Person references Rule Y on Role. Rule Y on Role references Rule X on Person."
   - Unreachable rules: "Rule Y can never be reached, as Rule X always matches."
 
