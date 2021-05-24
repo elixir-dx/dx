@@ -341,8 +341,8 @@ defmodule Infer do
   (instead of `{:ok, updated_record}`) or raises an error.
   """
   def put!(records, predicates, opts \\ []) do
-    opts = opts |> Keyword.put_new(:preload, true)
-    results = get(records, List.wrap(predicates), opts)
+    opts = opts |> Keyword.put_new(:load_data, true)
+    results = get!(records, List.wrap(predicates), opts)
     do_put!(records, results)
   end
 
