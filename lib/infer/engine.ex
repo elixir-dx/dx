@@ -3,29 +3,27 @@ defmodule Infer.Engine do
   Encapsulates the main functionality of working with rules.
   """
 
-  alias Infer.{Result, Util}
+  alias Infer.{Result, Rule, Util}
   alias Infer.Evaluation, as: Eval
 
   @doc """
   Entry point for this module
   """
+  @spec resolve_predicate(atom(), struct(), Eval.t()) :: Result.v()
   def resolve_predicate(predicate, %type{} = subject, %Eval{} = eval) do
     predicate
     |> Util.rules_for_predicate(type, eval)
     |> match_rules(subject, eval)
   end
 
-  # receives a list of rules for a predicate,
-  # returns one of
-  #   - {:ok, result}
-  #   - {:not_loaded, data_reqs}
-  #   - {:error, e}
+  # receives a list of rules for a predicate, returns a value result (`t:Result.v()`).
   #
-  # goes through rules, evaluate condition for each, which can yield one of
+  # goes through the rules, evaluating the condition of each, which can yield one of
   #   - {:ok, false} -> skip to next rule
   #   - {:ok, true} -> stop here and return rule assigns
   #   - {:not_loaded, data_reqs} -> collect and move on, return {:not_loaded, all_data_reqs} at the end
   #   - {:error, e} -> return right away
+  @spec match_rules(list(Rule.t()), any(), Eval.t()) :: Result.v()
   defp match_rules(rules, record, %Eval{} = eval) do
     eval = %{eval | root_subject: record}
 
@@ -58,6 +56,7 @@ defmodule Infer.Engine do
     result
   end
 
+  @spec evaluate_condition(any(), any(), Eval.t()) :: Result.b()
   defp evaluate_condition(condition, subjects, eval) when is_list(subjects) do
     Result.any?(subjects, &evaluate_condition(condition, &1, eval))
   end

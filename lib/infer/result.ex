@@ -1,6 +1,53 @@
 defmodule Infer.Result do
   @moduledoc """
   Result types and helpers to work with them.
+
+  A result is either:
+
+    - `{:error, e}` if an error occurred
+    - `{:not_loaded, data_reqs}` if the result could not be determined without loading more data
+    - `{:ok, boolean}` otherwise, in contexts where a boolean is expected (type `t:b()`)
+    - `{:ok, result}` otherwise, where `result` can be any value (type `t:v()`)
+
+  ## Data loading
+
+  In general, `{:not_loaded, all_reqs}` only ever returns data requirements that are really needed.
+
+  ### Example using `all`
+
+  For example, using `all?/1` with 3 conditions A, B and C, where
+
+      iex> [
+      ...>   {:ok, true},        # A
+      ...>   {:not_loaded, [1]}, # B
+      ...>   {:ok, false},       # C
+      ...> ]
+      ...> |> Infer.Result.all?()
+      {:ok, false}
+
+  The overall result is `{:ok, false}`.
+  While B would need more data to be loaded, C can already determind and is `false`,
+  so and any additional data loaded will not change that.
+
+  ### Example using `find`
+
+  Another example, using `find/1` with 5 conditions A, B, C, D and E, where
+
+      iex> [
+      ...>   {:ok, false},       # A
+      ...>   {:not_loaded, [1]}, # B
+      ...>   {:not_loaded, [2]}, # C
+      ...>   {:ok, true},        # D
+      ...>   {:not_loaded, [3]}, # E
+      ...> ]
+      ...> |> Infer.Result.find()
+      {:not_loaded, [1, 2]}
+
+  The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
+  While D can already be determined and is `{:ok, true}`, B and C come first and need more data
+  to be loaded, so they can be determined and returned if either is `{:ok, true}` first.
+  All data requirements that might be needed are returned together in the result (those of B and C),
+  while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
 
   @typedoc """
@@ -207,78 +254,39 @@ defmodule Infer.Result do
     |> transform(&Enum.reverse/1)
   end
 
-  @doc """
-  The convenience functions `all?/2`, `any?/2`, `find/2`, and `map/2` use this under the hood.
+  # The convenience functions `all?/2`, `any?/2`, `find/2`, and `map/2` use this under the hood.
+  #
+  # Passed to `Enum.reduce_while/3` to combine 2 results on each call.
+  #
+  # Third arg can be either
+  #   - `:any?` (logical `OR`)
+  #   - `:all?` (logical `AND`)
+  #   - `:find` to return `{:ok, result}` on first match
+  #   - `:all` to return all `{:ok, result}` combined as `{:ok, [result1, result2, ...]}`
 
-  Passed to `Enum.reduce_while/3` to combine 2 results on each call.
-
-  Result is either
-    - `{:error, e}`
-    - `{:not_loaded, data_reqs}` if the result could not be determined without loading more data
-    - `{:ok, result}` depending on third arg (see below)
-
-  Third arg can be either
-    - `:any?` (logical `OR`)
-    - `:all?` (logical `AND`)
-    - `:find` to return `{:ok, result}` on first match
-    - `:all` to return all `{:ok, result}` combined as `{:ok, [result1, result2, ...]}`
-
-  `{:not_loaded, all_reqs}` is only returned if the data is really needed.
-
-  For example, using `:all?` with 3 conditions A, B and C, where
-
-      iex> [
-      ...>   {:ok, true},       # A
-      ...>   {:not_loaded, []}, # B
-      ...>   {:ok, false},      # C
-      ...> ]
-      ...> |> Enum.reduce_while({:ok, true}, &Infer.Result.combine(&2, &1, :all?))
-      {:ok, false}
-
-  The overall result is `{:ok, false}`.
-  While B would need more data to be loaded, C can already determind and is `false`,
-  so and any additional data loaded will not change that.
-
-  Another example, using `:find` with 5 conditions A, B, C, D and E, where
-
-      iex> [
-      ...>   {:ok, false},       # A
-      ...>   {:not_loaded, [1]}, # B
-      ...>   {:not_loaded, [2]}, # C
-      ...>   {:ok, true},        # D
-      ...>   {:not_loaded, [3]}, # E
-      ...> ]
-      ...> |> Enum.reduce_while({:ok, false}, &Infer.Result.combine(&2, &1, :find))
-      {:not_loaded, [1, 2]}
-
-  The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
-  While D can already be determined and is `{:ok, true}`, B and C come first and need more data
-  to be loaded, so they can be determined and returned if either is `{:ok, true}` first.
-  All data requirements that might be needed are returned together in the result (those of B and C),
-  while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
-  """
   @spec combine(b(), b(), :any? | :all?) :: {:cont | :halt, b()}
   @spec combine(b(), b(), :find) :: {:cont | :halt, v()}
   @spec combine(v(), v(), :all) :: {:cont | :halt, v()}
-  def combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
-  def combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
-  def combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
+
+  defp combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
+  defp combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
+  defp combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
 
   # :find
-  def combine({:not_loaded, reqs}, {:ok, true}, :find), do: {:halt, {:not_loaded, reqs}}
-  def combine({:not_loaded, reqs}, {:ok, false}, :find), do: {:cont, {:not_loaded, reqs}}
-  def combine({:ok, false}, {:ok, true}, :find), do: {:halt, {:ok, true}}
-  def combine(acc, {:ok, false}, :find), do: {:cont, acc}
+  defp combine({:not_loaded, reqs}, {:ok, true}, :find), do: {:halt, {:not_loaded, reqs}}
+  defp combine({:not_loaded, reqs}, {:ok, false}, :find), do: {:cont, {:not_loaded, reqs}}
+  defp combine({:ok, false}, {:ok, true}, :find), do: {:halt, {:ok, true}}
+  defp combine(acc, {:ok, false}, :find), do: {:cont, acc}
 
   # :all
-  def combine({:not_loaded, reqs}, {:ok, _}, :all), do: {:cont, {:not_loaded, reqs}}
-  def combine({:ok, results}, {:ok, result}, :all), do: {:cont, {:ok, [result | results]}}
+  defp combine({:not_loaded, reqs}, {:ok, _}, :all), do: {:cont, {:not_loaded, reqs}}
+  defp combine({:ok, results}, {:ok, result}, :all), do: {:cont, {:ok, [result | results]}}
 
   # :any?
-  def combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
-  def combine(acc, {:ok, false}, :any?), do: {:cont, acc}
+  defp combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
+  defp combine(acc, {:ok, false}, :any?), do: {:cont, acc}
 
   # :all?
-  def combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
-  def combine(acc, {:ok, true}, :all?), do: {:cont, acc}
+  defp combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
+  defp combine(acc, {:ok, true}, :all?), do: {:cont, acc}
 end
