@@ -303,6 +303,16 @@ defmodule Infer do
   defp get_type([%type{} | _]), do: type
 
   @doc """
+  Like `get/3`, but returns the result directly (instead of `{:ok, result}`)
+  or raises an error.
+  """
+  def get!(records, predicates, opts) do
+    load_data = Keyword.get(opts, :load_data)
+    opts = Keyword.put_new(opts, :preload, load_data)
+    get(records, predicates, opts)
+  end
+
+  @doc """
   Evaluates the given predicate(s) for the given record(s) and merges the
   results into the [predicate cache](#module-predicate-cache) of the record(s).
 
@@ -324,6 +334,24 @@ defmodule Infer do
   defp do_put(record, predicate_or_predicates, eval) do
     do_get(record, List.wrap(predicate_or_predicates), eval)
     |> Result.transform(&%{record | inferred: &1})
+  end
+
+  @doc """
+  Like `put/3`, but returns the updated record directly
+  (instead of `{:ok, updated_record}`) or raises an error.
+  """
+  def put!(records, predicates, opts \\ []) do
+    opts = opts |> Keyword.put_new(:preload, true)
+    results = get(records, List.wrap(predicates), opts)
+    do_put!(records, results)
+  end
+
+  defp do_put!(records, results) when is_list(records) do
+    Enum.zip(records, results) |> Enum.map(fn {record, result} -> do_put!(record, result) end)
+  end
+
+  defp do_put!(record, results) do
+    %{record | inferred: results}
   end
 
   @doc """
