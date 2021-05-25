@@ -42,8 +42,8 @@ defmodule Infer.Engine do
 
       result_info =
         case result do
-          {:ok, true} -> "#{inspect(rule.key)} => #{inspect(rule.val)}"
-          {:ok, other} -> inspect(other, pretty: true)
+          {:ok, true, _} -> "#{inspect(rule.key)} => #{inspect(rule.val)}"
+          {:ok, other, _} -> inspect(other, pretty: true)
           other -> inspect(other, pretty: true)
         end
 
@@ -113,9 +113,9 @@ defmodule Infer.Engine do
 
   defp evaluate_condition(%type{} = other, %type{} = subject, _eval) do
     if Util.Module.has_function?(type, :compare, 2) do
-      {:ok, type.compare(subject, other) == :eq}
+      Result.ok(type.compare(subject, other) == :eq)
     else
-      {:ok, subject == other}
+      Result.ok(subject == other)
     end
   end
 
@@ -135,7 +135,7 @@ defmodule Infer.Engine do
   end
 
   defp evaluate_condition(other, subject, _eval) do
-    {:ok, subject == other}
+    Result.ok(subject == other)
   end
 
   defp fetch(map, key, eval) do
@@ -144,14 +144,14 @@ defmodule Infer.Engine do
         eval.loader.lookup(eval.cache, :assoc, map, key)
 
       other ->
-        {:ok, other}
+        Result.ok(other)
     end
   rescue
     e in KeyError -> {:error, e}
   end
 
-  defp get_in_path(val, [], _eval), do: {:ok, val}
-  defp get_in_path(nil, _path, _eval), do: {:ok, nil}
+  defp get_in_path(val, [], _eval), do: Result.ok(val)
+  defp get_in_path(nil, _path, _eval), do: Result.ok(nil)
 
   defp get_in_path(map, [key | path], eval) do
     fetch(map, key, eval)

@@ -3,9 +3,12 @@ defmodule Infer.Loaders.Dataloader do
   Uses `Dataloader` to load missing data incrementally.
   """
 
+  alias Infer.Result
+
   def lookup(cache, :assoc, subject, key) do
     case Dataloader.get(cache, :assoc, key, subject) do
       {:error, "Unable to find " <> _} -> {:not_loaded, MapSet.new([{:assoc, subject, key}])}
+      {:ok, result} -> Result.ok(result)
       other -> other
     end
   end

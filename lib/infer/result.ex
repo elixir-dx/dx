@@ -6,8 +6,8 @@ defmodule Infer.Result do
 
     - `{:error, e}` if an error occurred
     - `{:not_loaded, data_reqs}` if the result could not be determined without loading more data
-    - `{:ok, boolean}` otherwise, in contexts where a boolean is expected (type `t:b()`)
-    - `{:ok, result}` otherwise, where `result` can be any value (type `t:v()`)
+    - `{:ok, boolean, binds}` otherwise, in contexts where a boolean is expected (type `t:b()`)
+    - `{:ok, result, binds}` otherwise, where `result` can be any value (type `t:v()`)
 
   ## Data loading
 
@@ -18,14 +18,14 @@ defmodule Infer.Result do
   For example, using `all?/1` with 3 conditions A, B and C, where
 
       iex> [
-      ...>   {:ok, true},        # A
+      ...>   {:ok, true, %{}},        # A
       ...>   {:not_loaded, [1]}, # B
-      ...>   {:ok, false},       # C
+      ...>   {:ok, false, %{}},       # C
       ...> ]
       ...> |> Infer.Result.all?()
-      {:ok, false}
+      {:ok, false, %{}}
 
-  The overall result is `{:ok, false}`.
+  The overall result is `{:ok, false, %{}}`.
   While B would need more data to be loaded, C can already determind and is `false`,
   so and any additional data loaded will not change that.
 
@@ -34,20 +34,20 @@ defmodule Infer.Result do
   Another example, using `find/1` with 5 conditions A, B, C, D and E, where
 
       iex> [
-      ...>   {:ok, false},       # A
+      ...>   {:ok, false, %{}},       # A
       ...>   {:not_loaded, [1]}, # B
       ...>   {:not_loaded, [2]}, # C
-      ...>   {:ok, true},        # D
+      ...>   {:ok, true, %{}},        # D
       ...>   {:not_loaded, [3]}, # E
       ...> ]
       ...> |> Infer.Result.find()
       {:not_loaded, [1, 2]}
 
   The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
-  While D can already be determined and is `{:ok, true}`, B and C come first and need more data
-  to be loaded, so they can be determined and returned if either is `{:ok, true}` first.
+  While D can already be determined and is `{:ok, true, %{}}`, B and C come first and need more data
+  to be loaded, so they can be determined and returned if either is `{:ok, true, %{}}` first.
   All data requirements that might be needed are returned together in the result (those of B and C),
-  while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
+  while those of E can be ruled out, as D already returns `{:ok, true, %{}}` and comes first.
   """
 
   alias Infer.Util
@@ -55,35 +55,55 @@ defmodule Infer.Result do
   @typedoc """
   Possible return values from resolving predicates.
   """
-  @type v() :: {:ok, any()} | {:not_loaded, any()} | {:error, any()}
+  @type v() :: {:ok, any(), binds()} | {:not_loaded, any()} | {:error, any()}
 
   @typedoc """
   Possible return values from conditions.
   """
-  @type b() :: {:ok, boolean()} | {:not_loaded, any()} | {:error, any()}
+  @type b() :: {:ok, boolean(), binds()} | {:not_loaded, any()} | {:error, any()}
+
+  @type binds() :: %{atom() => any()}
 
   # Shorthand to conveniently declare optional functions as `fun \\ &identity/1`.
   defp identity(term), do: term
 
   @doc """
-  When given `{:ok, value}`, runs `fun` on `value` and returns the result.
+  Wraps a value in an `:ok` result.
+  """
+  def ok(value, binds \\ %{}), do: {:ok, value, binds}
+
+  @doc """
+  If ok, binds the result to the given key and returns the updated tuple.
   Otherwise, returns first argument as is.
   """
-  def then({:ok, result}, fun), do: fun.(result)
+  def bind_as({:ok, result, binds}, key), do: {:ok, result, Map.put(binds, key, result)}
+  def bind_as(other, _key), do: other
+
+  @doc """
+  When given `{:ok, value, binds}`, runs `fun` on `value` and returns the result.
+  Otherwise, returns first argument as is.
+  """
+  def then({:ok, result, binds}, fun) do
+    case fun.(result) do
+      {:ok, result, new_binds} -> {:ok, result, Map.merge(new_binds, binds)}
+      other -> other
+    end
+  end
+
   def then(other, _fun), do: other
 
   @doc """
-  When given `{:ok, value}`, runs `fun` on `value` and returns `{:ok, new_value}`.
+  When given `{:ok, value, binds}`, runs `fun` on `value` and returns `{:ok, new_value, binds}`.
   Otherwise, returns first argument as is.
   """
-  def transform({:ok, result}, fun), do: {:ok, fun.(result)}
+  def transform({:ok, result, binds}, fun), do: {:ok, fun.(result), binds}
   def transform(other, _fun), do: other
 
   @doc """
-  When given `{:ok, value}`, returns `value`.
+  When given `{:ok, value, binds}`, returns `value`.
   Otherwise, raises an exception.
   """
-  def unwrap!({:ok, result}), do: result
+  def unwrap!({:ok, result, _binds}), do: result
   def unwrap!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
   def unwrap!({:error, e}), do: raise(e)
 
@@ -95,68 +115,68 @@ defmodule Infer.Result do
   ## Examples
 
       iex> [
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
       ...>   {:not_loaded, []},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.all?()
-      {:ok, false}
+      {:ok, false, %{}}
 
       iex> [
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
       ...>   {:not_loaded, []},
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
       ...> ]
       ...> |> Infer.Result.all?()
       {:not_loaded, []}
 
       iex> [
-      ...>   {:ok, true},
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
+      ...>   {:ok, true, %{}},
       ...> ]
       ...> |> Infer.Result.all?()
-      {:ok, true}
+      {:ok, true, %{}}
   """
   @spec all?(Enum.t(), (any() -> b())) :: b()
   def all?(enum, mapper \\ &identity/1) do
-    Enum.reduce_while(enum, {:ok, true}, fn elem, acc ->
+    Enum.reduce_while(enum, ok(true), fn elem, acc ->
       combine(acc, mapper.(elem), :all?)
     end)
   end
 
   @doc """
-  Returns `{:ok, true}` if `fun` evaluates to `{:ok, true}` for any element in `enum`.
+  Returns `{:ok, true, binds}` if `fun` evaluates to `{:ok, true, binds}` for any element in `enum`.
   Otherwise, returns `{:not_loaded, data_reqs}` if any yields that.
-  Otherwise, returns `{:ok, false}`.
+  Otherwise, returns `{:ok, false, %{}}`.
 
   ## Examples
 
       iex> [
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{a: 1}},
       ...>   {:not_loaded, []},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.any?()
-      {:ok, true}
+      {:ok, true, %{a: 1}}
 
       iex> [
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...>   {:not_loaded, []},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.any?()
       {:not_loaded, []}
 
       iex> [
-      ...>   {:ok, false},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.any?()
-      {:ok, false}
+      {:ok, false, %{}}
   """
   @spec any?(Enum.t(), (any() -> b())) :: b()
   def any?(enum, mapper \\ &identity/1) do
-    Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
+    Enum.reduce_while(enum, ok(false), fn elem, acc ->
       combine(acc, mapper.(elem), :any?)
     end)
   end
@@ -169,80 +189,80 @@ defmodule Infer.Result do
   ## Examples
 
       iex> [
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
       ...>   {:not_loaded, []},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.find()
-      {:ok, {:ok, true}}
+      {:ok, {:ok, true, %{}}, %{}}
 
       iex> [
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
       ...>   {:not_loaded, [1]},
       ...>   {:not_loaded, [2]},
-      ...>   {:ok, true},
+      ...>   {:ok, true, %{}},
       ...>   {:not_loaded, [3]},
       ...> ]
       ...> |> Infer.Result.find()
       {:not_loaded, [1, 2]}
 
       iex> [
-      ...>   {:ok, false},
-      ...>   {:ok, false},
+      ...>   {:ok, false, %{}},
+      ...>   {:ok, false, %{}},
       ...> ]
       ...> |> Infer.Result.find()
-      {:ok, nil}
+      {:ok, nil, %{}}
 
       iex> [
       ...>   false,
       ...>   false,
       ...> ]
-      ...> |> Infer.Result.find(&{:ok, not &1})
-      {:ok, false}
+      ...> |> Infer.Result.find(&{:ok, not &1, %{}})
+      {:ok, false, %{}}
   """
   @spec find(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
-  def find(enum, fun \\ &identity/1, result_mapper \\ &identity/1, default \\ {:ok, nil}) do
-    Enum.reduce_while(enum, {:ok, false}, fn elem, acc ->
+  def find(enum, fun \\ &identity/1, result_mapper \\ &identity/1, default \\ ok(nil)) do
+    Enum.reduce_while(enum, ok(false), fn elem, acc ->
       combine(acc, fun.(elem), :find)
       |> case do
-        {:halt, {:ok, true}} -> {:halt, {:result, elem}}
+        {:halt, {:ok, true, binds}} -> {:halt, {:result, elem, binds}}
         other -> other
       end
     end)
     |> case do
-      {:result, elem} -> {:ok, result_mapper.(elem)}
-      {:ok, false} -> default
+      {:result, elem, binds} -> ok(result_mapper.(elem), binds)
+      {:ok, false, _binds} -> default
       other -> other
     end
   end
 
   @doc """
-  Returns `{:ok, mapped_results}` if all elements map to `{:ok, result}`.
+  Returns `{:ok, mapped_results, binds}` if all elements map to `{:ok, result, binds}`.
   Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
 
   ## Examples
 
       iex> [
-      ...>   {:ok, 1},
-      ...>   {:ok, 2},
-      ...>   {:ok, 3},
+      ...>   {:ok, 1, %{}},
+      ...>   {:ok, 2, %{}},
+      ...>   {:ok, 3, %{}},
       ...> ]
       ...> |> Infer.Result.map()
-      {:ok, [1, 2, 3]}
+      {:ok, [1, 2, 3], %{}}
 
       iex> [
-      ...>   {:ok, 1},
+      ...>   {:ok, 1, %{}},
       ...>   {:not_loaded, [:x]},
-      ...>   {:ok, 3},
+      ...>   {:ok, 3, %{}},
       ...>   {:not_loaded, [:y]},
       ...> ]
       ...> |> Infer.Result.map()
       {:not_loaded, [:x, :y]}
 
       iex> [
-      ...>   {:ok, 1},
+      ...>   {:ok, 1, %{}},
       ...>   {:error, :x},
-      ...>   {:ok, 3},
+      ...>   {:ok, 3, %{}},
       ...>   {:not_loaded, [:y]},
       ...> ]
       ...> |> Infer.Result.map()
@@ -250,7 +270,7 @@ defmodule Infer.Result do
   """
   @spec map(Enum.t(), (any() -> v())) :: v()
   def map(enum, mapper \\ &identity/1) do
-    Enum.reduce_while(enum, {:ok, []}, fn elem, acc ->
+    Enum.reduce_while(enum, ok([]), fn elem, acc ->
       combine(acc, mapper.(elem), :all)
     end)
     |> transform(&Enum.reverse/1)
@@ -278,20 +298,25 @@ defmodule Infer.Result do
   defp combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
 
   # :find
-  defp combine({:not_loaded, reqs}, {:ok, true}, :find), do: {:halt, {:not_loaded, reqs}}
-  defp combine({:not_loaded, reqs}, {:ok, false}, :find), do: {:cont, {:not_loaded, reqs}}
-  defp combine({:ok, false}, {:ok, true}, :find), do: {:halt, {:ok, true}}
-  defp combine(acc, {:ok, false}, :find), do: {:cont, acc}
+  defp combine({:not_loaded, reqs}, {:ok, true, _}, :find), do: {:halt, {:not_loaded, reqs}}
+  defp combine({:not_loaded, reqs}, {:ok, false, _}, :find), do: {:cont, {:not_loaded, reqs}}
+  defp combine({:ok, false, _}, {:ok, true, binds}, :find), do: {:halt, {:ok, true, binds}}
+  defp combine(acc, {:ok, false, _}, :find), do: {:cont, acc}
 
   # :all
-  defp combine({:not_loaded, reqs}, {:ok, _}, :all), do: {:cont, {:not_loaded, reqs}}
-  defp combine({:ok, results}, {:ok, result}, :all), do: {:cont, {:ok, [result | results]}}
+  defp combine({:not_loaded, reqs}, {:ok, _, _}, :all), do: {:cont, {:not_loaded, reqs}}
+
+  defp combine({:ok, results, binds}, {:ok, result, new_binds}, :all),
+    do: {:cont, {:ok, [result | results], Map.merge(new_binds, binds)}}
 
   # :any?
-  defp combine(_acc, {:ok, true}, :any?), do: {:halt, {:ok, true}}
-  defp combine(acc, {:ok, false}, :any?), do: {:cont, acc}
+  defp combine(_acc, {:ok, true, binds}, :any?), do: {:halt, {:ok, true, binds}}
+  defp combine(acc, {:ok, false, _}, :any?), do: {:cont, acc}
 
   # :all?
-  defp combine(_acc, {:ok, false}, :all?), do: {:halt, {:ok, false}}
-  defp combine(acc, {:ok, true}, :all?), do: {:cont, acc}
+  defp combine(_acc, {:ok, false, _}, :all?), do: {:halt, {:ok, false, %{}}}
+  defp combine({:not_loaded, reqs}, {:ok, true, _binds}, :all?), do: {:cont, {:not_loaded, reqs}}
+
+  defp combine({:ok, true, binds}, {:ok, true, new_binds}, :all?),
+    do: {:cont, {:ok, true, Map.merge(new_binds, binds)}}
 end
