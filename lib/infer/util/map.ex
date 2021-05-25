@@ -45,4 +45,11 @@ defmodule Infer.Util.Map do
   def do_zip(map, [], []) do
     map
   end
+
+  @doc """
+  When given two maps, merges the second map into the first.
+  When the first argument is `nil`, returns the second argument.
+  """
+  def maybe_merge(nil, other), do: other
+  def maybe_merge(map, other), do: Map.merge(map, other)
 end

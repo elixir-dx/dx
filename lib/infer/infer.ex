@@ -338,7 +338,7 @@ defmodule Infer do
   end
 
   defp do_put(record, results) do
-    %{record | inferred: results}
+    Map.update!(record, :inferred, &Util.Map.maybe_merge(&1, results))
   end
 
   def put!(records, predicates, opts \\ []) do
