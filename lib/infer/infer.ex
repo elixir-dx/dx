@@ -257,17 +257,17 @@ defmodule Infer do
   @doc """
   Evaluates one or multiple predicates for one or multiple records and returns the results.
 
+  Does not load any additional data.
+
   ## Options
 
   - `:with_meta` (boolean) - whether or not to return a map for predicates with meta data.
     When `false`, only the values are returned for all predicates. Default: `true`.
-  - `:preload` (boolean) - whether or not to preload data if needed. Default: `false`.
   """
   def get(records, predicates, opts \\ []) do
     eval = Eval.from_options(opts)
 
-    maybe_load(eval, &do_get(records, predicates, &1))
-    |> Result.unwrap!()
+    do_get(records, predicates, eval)
   end
 
   defp do_get(records, predicates, eval) when is_list(records) do
@@ -283,75 +283,67 @@ defmodule Infer do
     Infer.Engine.resolve_predicate(predicate, record, eval)
   end
 
-  defp maybe_load(%Eval{preload: false} = eval, fun) do
-    fun.(eval)
+  @doc """
+  Like `get/3` but returns the result value, or raises an error.
+  """
+  def get!(records, predicates, opts \\ []) do
+    get(records, predicates, opts)
+    |> Result.unwrap!()
   end
 
-  defp maybe_load(%Eval{preload: true} = eval, fun) do
+  @doc """
+  Like `get/3`, but loads additional data if needed.
+  """
+  def load(records, predicates, opts \\ []) do
+    eval = Eval.from_options(opts)
+
+    do_load(eval, &do_get(records, predicates, &1))
+  end
+
+  defp do_load(eval, fun) do
     case fun.(eval) do
       {:not_loaded, data_reqs} ->
         eval
         |> Map.update!(:cache, &eval.loader.load(&1, data_reqs))
-        |> maybe_load(fun)
+        |> do_load(fun)
 
       result ->
         result
     end
   end
 
-  defp get_type(%type{}), do: type
-  defp get_type([%type{} | _]), do: type
-
   @doc """
-  Like `get/3`, but returns the result directly (instead of `{:ok, result}`)
-  or raises an error.
+  Like `get!/3`, but loads additional data if needed.
   """
-  def get!(records, predicates, opts) do
-    load_data = Keyword.get(opts, :load_data)
-    opts = Keyword.put_new(opts, :preload, load_data)
-    get(records, predicates, opts)
+  def load!(records, predicates, opts \\ []) do
+    load(records, predicates, opts)
+    |> Result.unwrap!()
   end
 
   @doc """
-  Evaluates the given predicate(s) for the given record(s) and merges the
-  results into the [predicate cache](#module-predicate-cache) of the record(s).
+  Loads the given predicate(s) for the given record(s) and merges the
+  results into the `inferred` map field of the record(s), returning them.
 
   ## Options
 
   Same as for `get/3`.
   """
   def put(records, predicates, opts \\ []) do
-    eval = Eval.from_options(opts) |> Map.replace!(:preload, true)
-
-    maybe_load(eval, &do_put(records, predicates, &1))
-    |> Result.unwrap!()
+    load(records, List.wrap(predicates), opts)
+    |> Result.transform(&do_put(records, &1))
   end
 
-  defp do_put(records, predicates, eval) when is_list(records) do
-    Result.map(records, &do_put(&1, predicates, eval))
+  defp do_put(records, results) when is_list(records) do
+    Util.Enum.zip(records, results, &do_put/2)
   end
 
-  defp do_put(record, predicate_or_predicates, eval) do
-    do_get(record, List.wrap(predicate_or_predicates), eval)
-    |> Result.transform(&%{record | inferred: &1})
-  end
-
-  @doc """
-  Like `put/3`, but returns the updated record directly
-  (instead of `{:ok, updated_record}`) or raises an error.
-  """
-  def put!(records, predicates, opts \\ []) do
-    opts = opts |> Keyword.put_new(:load_data, true)
-    results = get!(records, List.wrap(predicates), opts)
-    do_put!(records, results)
-  end
-
-  defp do_put!(records, results) when is_list(records) do
-    Enum.zip(records, results) |> Enum.map(fn {record, result} -> do_put!(record, result) end)
-  end
-
-  defp do_put!(record, results) do
+  defp do_put(record, results) do
     %{record | inferred: results}
+  end
+
+  def put!(records, predicates, opts \\ []) do
+    put(records, predicates, opts)
+    |> Result.unwrap!()
   end
 
   @doc """
@@ -383,11 +375,10 @@ defmodule Infer do
   def preload([], _preloads, _opts), do: []
 
   def preload(record_or_records, preloads, opts) do
-    get(record_or_records, preloads, opts)
-    record_or_records
-  rescue
-    Infer.Error.NotLoaded ->
-      do_preload(record_or_records, preloads, opts)
+    case get(record_or_records, preloads, opts) do
+      {:not_loaded, _data_reqs} -> do_preload(record_or_records, preloads, opts)
+      _else -> record_or_records
+    end
   end
 
   defp do_preload(record_or_records, preloads, opts) do
@@ -396,6 +387,9 @@ defmodule Infer do
 
     type.infer_preload(record_or_records, preloads, opts)
   end
+
+  defp get_type(%type{}), do: type
+  defp get_type([%type{} | _]), do: type
 
   @doc """
   Preloads data for a record nested under the given field or path (list of fields)
@@ -421,12 +415,12 @@ defmodule Infer do
 
   @doc "Removes all elements not matching the given condition from the given list."
   def filter(records, condition, opts \\ []) when is_list(records) do
-    Enum.filter(records, &get(&1, condition, opts))
+    Enum.filter(records, &load!(&1, condition, opts))
   end
 
   @doc "Removes all elements matching the given condition from the given list."
   def reject(records, condition, opts \\ []) when is_list(records) do
-    Enum.reject(records, &get(&1, condition, opts))
+    Enum.reject(records, &load!(&1, condition, opts))
   end
 
   @doc """
