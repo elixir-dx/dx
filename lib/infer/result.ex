@@ -50,6 +50,8 @@ defmodule Infer.Result do
   while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
   """
 
+  alias Infer.Util
+
   @typedoc """
   Possible return values from resolving predicates.
   """
@@ -269,7 +271,10 @@ defmodule Infer.Result do
   @spec combine(v(), v(), :all) :: {:cont | :halt, v()}
 
   defp combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
-  defp combine({:not_loaded, r1}, {:not_loaded, r2}, _), do: {:cont, {:not_loaded, r1 ++ r2}}
+
+  defp combine({:not_loaded, r1}, {:not_loaded, r2}, _),
+    do: {:cont, {:not_loaded, Util.deep_merge(r1, r2)}}
+
   defp combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
 
   # :find

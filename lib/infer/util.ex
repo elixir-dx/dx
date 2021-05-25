@@ -25,16 +25,15 @@ defmodule Infer.Util do
   end
 
   @doc """
-  When given `{:ok, result}`, applies the given function to `result` and returns `{:ok, new_result}`.
-  Otherwise, returns first argument as is.
+  Merges two nested maps recursively.
   """
-  def map_ok_result({:ok, result}, mapper), do: {:ok, mapper.(result)}
-  def map_ok_result(other, _mapper), do: other
+  def deep_merge(%{} = left, %{} = right) do
+    Map.merge(left, right, fn _key, left, right -> deep_merge(left, right) end)
+  end
 
-  @doc """
-  When given `{:ok, result}`, applies the given function to `result` and returns the result of the call.
-  Otherwise, returns first argument as is.
-  """
-  def if_ok({:ok, result}, fun), do: fun.(result)
-  def if_ok(other, _fun), do: other
+  def deep_merge(left, right) when is_list(left) and is_list(right) do
+    left ++ right
+  end
+
+  def deep_merge(_left, right), do: right
 end
