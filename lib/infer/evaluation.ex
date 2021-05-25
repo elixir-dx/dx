@@ -9,6 +9,7 @@ defmodule Infer.Evaluation do
   typedstruct do
     field(:root_subject, map())
     field(:cache, any())
+    field(:binds, map())
 
     # Options
     field(:loader, module(), default: Infer.Loaders.Dataloader)

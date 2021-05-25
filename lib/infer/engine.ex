@@ -27,7 +27,7 @@ defmodule Infer.Engine do
   defp match_rules(rules, record, %Eval{} = eval) do
     eval = %{eval | root_subject: record}
 
-    Result.find(rules, &match_next(&1, record, eval), & &1.val)
+    Result.find(rules, &match_next(&1, record, eval), &rule_result(&1, &2, record, eval))
   end
 
   defp match_next(rule, record, eval) do
@@ -56,6 +56,51 @@ defmodule Infer.Engine do
     result
   end
 
+  # Traverses the assigns of a rule, replacing special tuples
+  #   - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
+  #   - `{:bound, :var, default}` - same with default
+  defp rule_result(rule, binds, subject, eval) do
+    eval = %{eval | root_subject: subject, binds: binds}
+
+    rule.val
+    |> map_result(eval)
+  end
+
+  defp map_result(%type{} = struct, eval) do
+    struct
+    |> Map.from_struct()
+    |> map_result(eval)
+    |> Result.transform(&struct(type, &1))
+  end
+
+  defp map_result(map, eval) when is_map(map) do
+    Result.map_values(map, &map_result(&1, eval))
+  end
+
+  defp map_result(list, eval) when is_list(list) do
+    Result.map(list, &map_result(&1, eval))
+  end
+
+  defp map_result({:bound, key, default}, eval) do
+    case Map.fetch(eval.binds, key) do
+      {:ok, value} -> Result.ok(value)
+      :error -> Result.ok(default)
+    end
+  end
+
+  defp map_result({:bound, key}, eval) do
+    case Map.fetch(eval.binds, key) do
+      {:ok, value} ->
+        Result.ok(value)
+
+      :error ->
+        {:error,
+         %KeyError{message: "{:bound, #{inspect(key)}} used in value but not bound in condition."}}
+    end
+  end
+
+  defp map_result(other, _eval), do: Result.ok(other)
+
   @spec evaluate_condition(any(), any(), Eval.t()) :: Result.b()
   defp evaluate_condition(condition, subjects, eval) when is_list(subjects) do
     Result.any?(subjects, &evaluate_condition(condition, &1, eval))
@@ -80,6 +125,11 @@ defmodule Infer.Engine do
     eval.root_subject
     |> get_in_path(path, eval)
     |> Result.then(&evaluate_condition(&1, subject, eval))
+  end
+
+  defp evaluate_condition({:bind, key, condition}, subject, eval) do
+    evaluate_condition(condition, subject, eval)
+    |> Result.bind(key, subject)
   end
 
   defp evaluate_condition({:args, sub_condition}, subject, %Eval{root_subject: subject} = eval) do

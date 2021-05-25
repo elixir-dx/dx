@@ -18,9 +18,9 @@ defmodule Infer.Result do
   For example, using `all?/1` with 3 conditions A, B and C, where
 
       iex> [
-      ...>   {:ok, true, %{}},        # A
+      ...>   {:ok, true, %{}},   # A
       ...>   {:not_loaded, [1]}, # B
-      ...>   {:ok, false, %{}},       # C
+      ...>   {:ok, false, %{}},  # C
       ...> ]
       ...> |> Infer.Result.all?()
       {:ok, false, %{}}
@@ -34,10 +34,10 @@ defmodule Infer.Result do
   Another example, using `find/1` with 5 conditions A, B, C, D and E, where
 
       iex> [
-      ...>   {:ok, false, %{}},       # A
+      ...>   {:ok, false, %{}},  # A
       ...>   {:not_loaded, [1]}, # B
       ...>   {:not_loaded, [2]}, # C
-      ...>   {:ok, true, %{}},        # D
+      ...>   {:ok, true, %{}},   # D
       ...>   {:not_loaded, [3]}, # E
       ...> ]
       ...> |> Infer.Result.find()
@@ -76,8 +76,8 @@ defmodule Infer.Result do
   If ok, binds the result to the given key and returns the updated tuple.
   Otherwise, returns first argument as is.
   """
-  def bind_as({:ok, result, binds}, key), do: {:ok, result, Map.put(binds, key, result)}
-  def bind_as(other, _key), do: other
+  def bind({:ok, result, binds}, key, val), do: {:ok, result, Map.put(binds, key, val)}
+  def bind(other, _key, _val), do: other
 
   @doc """
   When given `{:ok, value, binds}`, runs `fun` on `value` and returns the result.
@@ -221,7 +221,7 @@ defmodule Infer.Result do
       {:ok, false, %{}}
   """
   @spec find(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
-  def find(enum, fun \\ &identity/1, result_mapper \\ &identity/1, default \\ ok(nil)) do
+  def find(enum, fun \\ &identity/1, result_mapper \\ &ok/2, default \\ ok(nil)) do
     Enum.reduce_while(enum, ok(false), fn elem, acc ->
       combine(acc, fun.(elem), :find)
       |> case do
@@ -230,7 +230,7 @@ defmodule Infer.Result do
       end
     end)
     |> case do
-      {:result, elem, binds} -> ok(result_mapper.(elem), binds)
+      {:result, elem, binds} -> result_mapper.(elem, binds)
       {:ok, false, _binds} -> default
       other -> other
     end
@@ -274,6 +274,45 @@ defmodule Infer.Result do
       combine(acc, mapper.(elem), :all)
     end)
     |> transform(&Enum.reverse/1)
+  end
+
+  @doc """
+  Returns `{:ok, new_map, binds}` with new values if all values map to `{:ok, new_value, binds}`.
+  Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
+
+  ## Examples
+
+      iex> %{
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:ok, 2, %{}},
+      ...>   c: {:ok, 3, %{}},
+      ...> }
+      ...> |> Infer.Result.map_values()
+      {:ok, %{a: 1, b: 2, c: 3}, %{}}
+
+      iex> %{
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:not_loaded, MapSet.new([:x])},
+      ...>   c: {:ok, 3, %{}},
+      ...>   d: {:not_loaded, MapSet.new([:y])},
+      ...> }
+      ...> |> Infer.Result.map_values()
+      {:not_loaded, MapSet.new([:x, :y])}
+
+      iex> %{
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:error, :x},
+      ...>   c: {:ok, 3, %{}},
+      ...>   d: {:not_loaded, [:y]},
+      ...> }
+      ...> |> Infer.Result.map_values()
+      {:error, :x}
+  """
+  def map_values(enum, mapper \\ &identity/1) do
+    Enum.reduce_while(enum, ok([]), fn {key, elem}, acc ->
+      combine(acc, mapper.(elem) |> transform(&{key, &1}), :all)
+    end)
+    |> transform(&Map.new/1)
   end
 
   # The convenience functions `all?/2`, `any?/2`, `find/2`, and `map/2` use this under the hood.
