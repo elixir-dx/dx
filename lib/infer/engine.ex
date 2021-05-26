@@ -7,13 +7,30 @@ defmodule Infer.Engine do
   alias Infer.Evaluation, as: Eval
 
   @doc """
-  Entry point for this module
+  Returns the result of evaluating a predicate.
   """
   @spec resolve_predicate(atom(), struct(), Eval.t()) :: Result.v()
   def resolve_predicate(predicate, %type{} = subject, %Eval{} = eval) do
     predicate
     |> Util.rules_for_predicate(type, eval)
     |> match_rules(subject, eval)
+  end
+
+  @doc """
+  Returns the result of evaluating a field or predicate.
+  """
+  @spec resolve(atom(), map(), Eval.t()) :: Result.v()
+  def resolve(field_or_predicate, %type{} = subject, %Eval{} = eval) do
+    field_or_predicate
+    |> Util.rules_for_predicate(type, eval)
+    |> case do
+      [] -> fetch(subject, field_or_predicate, eval)
+      rules -> match_rules(rules, subject, eval)
+    end
+  end
+
+  def resolve(field, map, %Eval{} = eval) do
+    fetch(map, field, eval)
   end
 
   # receives a list of rules for a predicate, returns a value result (`t:Result.v()`).
@@ -136,28 +153,8 @@ defmodule Infer.Engine do
     evaluate_condition(sub_condition, eval.args, eval)
   end
 
-  defp evaluate_condition({key, sub_condition}, %type{} = subject, %Eval{} = eval) do
-    key
-    |> Util.rules_for_predicate(type, eval)
-    |> case do
-      [] ->
-        case Map.get(subject, key) do
-          %Ecto.Association.NotLoaded{} ->
-            eval.loader.lookup(eval.cache, :assoc, subject, key)
-            |> Result.then(&evaluate_condition(sub_condition, &1, eval))
-
-          value ->
-            evaluate_condition(sub_condition, value, eval)
-        end
-
-      rules ->
-        match_rules(rules, subject, eval)
-        |> Result.then(&evaluate_condition(sub_condition, &1, eval))
-    end
-  end
-
   defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
-    fetch(subject, key, eval)
+    resolve(key, subject, eval)
     |> Result.then(&evaluate_condition(conditions, &1, eval))
   end
 
@@ -169,14 +166,9 @@ defmodule Infer.Engine do
     end
   end
 
-  defp evaluate_condition(predicate, %type{} = subject, eval)
-       when is_atom(predicate) and not is_nil(predicate) do
-    predicate
-    |> Util.rules_for_predicate(type, eval)
-    |> case do
-      [] -> fetch(subject, predicate, eval)
-      rules -> match_rules(rules, subject, eval)
-    end
+  defp evaluate_condition(predicate, %_type{} = subject, eval)
+       when is_atom(predicate) and predicate not in [nil, true, false] do
+    resolve(predicate, subject, eval)
     |> Result.transform(&(&1 == true))
   end
 
