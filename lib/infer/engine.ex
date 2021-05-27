@@ -98,6 +98,11 @@ defmodule Infer.Engine do
     Result.map(list, &map_result(&1, eval))
   end
 
+  defp map_result({:ref, path}, eval) do
+    eval.root_subject
+    |> resolve_path(List.wrap(path), eval)
+  end
+
   defp map_result({:bound, key, default}, eval) do
     case Map.fetch(eval.binds, key) do
       {:ok, value} -> Result.ok(value)
@@ -134,13 +139,13 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
     eval.args
-    |> get_in_path(path, eval)
+    |> resolve_path(path, eval)
     |> Result.then(&evaluate_condition(&1, subject, eval))
   end
 
   defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
     eval.root_subject
-    |> get_in_path(path, eval)
+    |> resolve_path(List.wrap(path), eval)
     |> Result.then(&evaluate_condition(&1, subject, eval))
   end
 
@@ -192,11 +197,11 @@ defmodule Infer.Engine do
     e in KeyError -> {:error, e}
   end
 
-  defp get_in_path(val, [], _eval), do: Result.ok(val)
-  defp get_in_path(nil, _path, _eval), do: Result.ok(nil)
+  defp resolve_path(val, [], _eval), do: Result.ok(val)
+  defp resolve_path(nil, _path, _eval), do: Result.ok(nil)
 
-  defp get_in_path(map, [key | path], eval) do
-    fetch(map, key, eval)
-    |> Result.then(&get_in_path(&1, path, eval))
+  defp resolve_path(map, [key | path], eval) do
+    resolve(key, map, eval)
+    |> Result.then(&resolve_path(&1, path, eval))
   end
 end
