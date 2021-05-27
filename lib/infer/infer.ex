@@ -302,13 +302,8 @@ defmodule Infer do
 
   defp do_load(eval, fun) do
     case fun.(eval) do
-      {:not_loaded, data_reqs} ->
-        eval
-        |> Map.update!(:cache, &eval.loader.load(&1, data_reqs))
-        |> do_load(fun)
-
-      result ->
-        result
+      {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> do_load(fun)
+      result -> result
     end
   end
 

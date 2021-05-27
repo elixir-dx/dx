@@ -36,4 +36,11 @@ defmodule Infer.Evaluation do
       {key, val}, eval -> Map.replace!(eval, key, val)
     end)
   end
+
+  @doc """
+  Loads the given data requirements in an evaluation, and returns it updated.
+  """
+  def load_data_reqs(eval, data_reqs) do
+    Map.update!(eval, :cache, &eval.loader.load(&1, data_reqs))
+  end
 end
