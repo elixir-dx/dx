@@ -43,4 +43,23 @@ defmodule Infer.Evaluation do
   def load_data_reqs(eval, data_reqs) do
     Map.update!(eval, :cache, &eval.loader.load(&1, data_reqs))
   end
+
+  @doc """
+  Calls `fun` repeatedly as long as it returns `{:not_loaded, data_reqs}`, loading the
+  `data_reqs` between each call. Finally returns the result of the last call.
+
+  `fun` must take a single argument, the `Infer.Evaluation`.
+  """
+  def load_while_data_reqs(opts, fun) when is_list(opts) do
+    eval = from_options(opts)
+
+    load_while_data_reqs(eval, fun)
+  end
+
+  def load_while_data_reqs(eval, fun) do
+    case fun.(eval) do
+      {:not_loaded, data_reqs} -> load_data_reqs(eval, data_reqs) |> load_while_data_reqs(fun)
+      result -> result
+    end
+  end
 end

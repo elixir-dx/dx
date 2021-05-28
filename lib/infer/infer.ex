@@ -295,16 +295,9 @@ defmodule Infer do
   Like `get/3`, but loads additional data if needed.
   """
   def load(records, predicates, opts \\ []) do
-    eval = Eval.from_options(opts)
-
-    do_load(eval, &do_get(records, predicates, &1))
-  end
-
-  defp do_load(eval, fun) do
-    case fun.(eval) do
-      {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> do_load(fun)
-      result -> result
-    end
+    Eval.load_while_data_reqs(opts, fn eval ->
+      do_get(records, predicates, eval)
+    end)
   end
 
   @doc """
