@@ -100,9 +100,42 @@ defmodule Infer.Result do
   def transform(other, _fun), do: other
 
   @doc """
-  When given `{:ok, value, binds}`, returns `value`.
+  Converts the internal 3-tuple result format (type `t:v()` or `t:b()`) to a 2-tuple format.
+
+  ## Examples
+
+      iex> {:ok, 5, %{}}
+      ...> |>Infer.Result.to_simple()
+      {:ok, 5}
+
+      iex> {:error, :err}
+      ...> |>Infer.Result.to_simple()
+      {:error, :err}
+  """
+  def to_simple({:ok, result, _binds}), do: {:ok, result}
+  def to_simple(other), do: other
+
+  @doc """
+  Converts 2-tuples to the internal 3-tuple result format (type `t:v()` or `t:b()`).
+
+  ## Examples
+
+      iex> {:ok, 5}
+      ...> |>Infer.Result.from_simple()
+      {:ok, 5, %{}}
+
+      iex> {:error, :err}
+      ...> |>Infer.Result.from_simple()
+      {:error, :err}
+  """
+  def from_simple({:ok, result}), do: ok(result)
+  def from_simple(other), do: other
+
+  @doc """
+  When given `{:ok, value, binds}` or `{:ok, value}`, returns `value`.
   Otherwise, raises an exception.
   """
+  def unwrap!({:ok, result}), do: result
   def unwrap!({:ok, result, _binds}), do: result
   def unwrap!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
   def unwrap!({:error, e}), do: raise(e)

@@ -268,6 +268,7 @@ defmodule Infer do
     eval = Eval.from_options(opts)
 
     do_get(records, predicates, eval)
+    |> Result.to_simple()
   end
 
   defp do_get(records, predicates, eval) when is_list(records) do
@@ -295,14 +296,21 @@ defmodule Infer do
   Like `get/3`, but loads additional data if needed.
   """
   def load(records, predicates, opts \\ []) do
-    eval = Eval.from_options(opts)
-
-    do_load(eval, &do_get(records, predicates, &1))
+    do_load(records, predicates, opts)
+    |> Result.to_simple()
   end
 
-  defp do_load(eval, fun) do
+  defp do_load(records, predicates, opts) when is_list(opts) do
+    eval = Eval.from_options(opts)
+
+    load_all_data_reqs(eval, fn eval ->
+      do_get(records, predicates, eval)
+    end)
+  end
+
+  defp load_all_data_reqs(eval, fun) do
     case fun.(eval) do
-      {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> do_load(fun)
+      {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
       result -> result
     end
   end
@@ -324,8 +332,9 @@ defmodule Infer do
   Same as for `get/3`.
   """
   def put(records, predicates, opts \\ []) do
-    load(records, List.wrap(predicates), opts)
+    do_load(records, List.wrap(predicates), opts)
     |> Result.transform(&do_put(records, &1))
+    |> Result.to_simple()
   end
 
   defp do_put(records, results) when is_list(records) do
