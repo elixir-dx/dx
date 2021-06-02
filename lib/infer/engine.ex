@@ -74,6 +74,9 @@ defmodule Infer.Engine do
   end
 
   # Traverses the assigns of a rule, replacing special tuples
+  #   - `{:ref, path}` with the predicate or field value found at the given path
+  #   - `{fun/n, arg_1, ..., arg_n}` with the result of calling the given function
+  #       with the given arguments (which in turn can be special tuples)
   #   - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
   #   - `{:bound, :var, default}` - same with default
   defp rule_result(rule, binds, subject, eval) do
@@ -98,9 +101,22 @@ defmodule Infer.Engine do
     Result.map(list, &map_result(&1, eval))
   end
 
+  defp map_result({:ref, [:args | path]}, eval) do
+    eval.args
+    |> resolve_path(path, eval)
+  end
+
   defp map_result({:ref, path}, eval) do
     eval.root_subject
     |> resolve_path(List.wrap(path), eval)
+  end
+
+  defp map_result(fun_tuple, eval) when is_tuple(fun_tuple) and is_function(elem(fun_tuple, 0)) do
+    [fun | args] = Tuple.to_list(fun_tuple)
+
+    args
+    |> Result.map(&map_result(&1, eval))
+    |> Result.transform(&apply(fun, &1))
   end
 
   defp map_result({:bound, key, default}, eval) do
