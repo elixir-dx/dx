@@ -119,6 +119,19 @@ defmodule Infer.Engine do
     |> Result.transform(&apply(fun, &1))
   end
 
+  defp map_result({:query_one, type, main_key, main_value, conditions}, eval) do
+    {:query_one, type, main_key, main_value, conditions, []}
+    |> map_result(eval)
+  end
+
+  defp map_result({:query_one, type, main_key, main_value, conditions, options}, eval) do
+    [main_value, conditions]
+    |> map_result(eval)
+    |> Result.then(fn [main_value, conditions] ->
+      eval.loader.lookup(eval.cache, :query_one, type, main_key, main_value, conditions, options)
+    end)
+  end
+
   defp map_result({:bound, key, default}, eval) do
     case Map.fetch(eval.binds, key) do
       {:ok, value} -> Result.ok(value)
