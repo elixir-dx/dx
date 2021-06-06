@@ -5,7 +5,7 @@ defmodule Infer.Ecto.Query do
 
   import Ecto.Query, only: [from: 2]
 
-  def to_condition(queryable, conditions) do
+  def filter_by(queryable, conditions) do
     Enum.reduce(conditions, queryable, fn {key, val}, queryable ->
       from(q in queryable, where: field(q, ^key) == ^val)
     end)

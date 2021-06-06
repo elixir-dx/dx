@@ -310,6 +310,45 @@ defmodule Infer.Result do
   end
 
   @doc """
+  Returns `{:ok, new_keyword_list, binds}` with new values if all values map to `{:ok, new_value, binds}`.
+  Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
+
+  ## Examples
+
+      iex> [
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:ok, 2, %{}},
+      ...>   c: {:ok, 3, %{}},
+      ...> ]
+      ...> |> Infer.Result.map_keyword_values()
+      {:ok, [a: 1, b: 2, c: 3], %{}}
+
+      iex> [
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:not_loaded, MapSet.new([:x])},
+      ...>   c: {:ok, 3, %{}},
+      ...>   d: {:not_loaded, MapSet.new([:y])},
+      ...> ]
+      ...> |> Infer.Result.map_keyword_values()
+      {:not_loaded, MapSet.new([:x, :y])}
+
+      iex> [
+      ...>   a: {:ok, 1, %{}},
+      ...>   b: {:error, :x},
+      ...>   c: {:ok, 3, %{}},
+      ...>   d: {:not_loaded, [:y]},
+      ...> ]
+      ...> |> Infer.Result.map_keyword_values()
+      {:error, :x}
+  """
+  def map_keyword_values(enum, mapper \\ &identity/1) do
+    Enum.reduce_while(enum, ok([]), fn {key, elem}, acc ->
+      combine(acc, mapper.(elem) |> transform(&{key, &1}), :all)
+    end)
+    |> transform(&Enum.reverse/1)
+  end
+
+  @doc """
   Returns `{:ok, new_map, binds}` with new values if all values map to `{:ok, new_value, binds}`.
   Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
 

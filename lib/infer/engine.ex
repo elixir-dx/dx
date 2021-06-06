@@ -119,16 +119,11 @@ defmodule Infer.Engine do
     |> Result.transform(&apply(fun, &1))
   end
 
-  defp map_result({:query_one, type, main_key, main_value, conditions}, eval) do
-    {:query_one, type, main_key, main_value, conditions, []}
-    |> map_result(eval)
-  end
-
-  defp map_result({:query_one, type, main_key, main_value, conditions, options}, eval) do
-    [main_value, conditions]
-    |> map_result(eval)
-    |> Result.then(fn [main_value, conditions] ->
-      eval.loader.lookup(eval.cache, :query_one, type, main_key, main_value, conditions, options)
+  defp map_result({:query_one, type, conditions}, eval) do
+    conditions
+    |> Result.map_keyword_values(&map_result(&1, eval))
+    |> Result.then(fn conditions ->
+      eval.loader.lookup(eval.cache, {:query_one, type, conditions})
     end)
   end
 
@@ -217,7 +212,7 @@ defmodule Infer.Engine do
   defp fetch(map, key, eval) do
     case Map.fetch!(map, key) do
       %Ecto.Association.NotLoaded{} ->
-        eval.loader.lookup(eval.cache, :assoc, map, key)
+        eval.loader.lookup(eval.cache, {:assoc, map, key})
 
       other ->
         Result.ok(other)

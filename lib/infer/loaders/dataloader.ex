@@ -5,53 +5,38 @@ defmodule Infer.Loaders.Dataloader do
 
   alias Infer.Result
 
-  def lookup(cache, :assoc, subject, key) do
-    case Dataloader.get(cache, :assoc, key, subject) do
-      {:error, "Unable to find " <> _} -> {:not_loaded, MapSet.new([{:assoc, subject, key}])}
+  def lookup(cache, data_req) do
+    case apply(Dataloader, :get, [cache | args_for(data_req)]) do
+      {:error, "Unable to find " <> _} -> {:not_loaded, MapSet.new([data_req])}
       {:ok, result} -> Result.ok(result)
       other -> other
     end
   end
 
-  def lookup(cache, :query_one, type, main_key, main_value, conditions, options) do
-    case Dataloader.get(cache, :assoc, {:one, type, Keyword.put(options, :where, conditions)}, [
-           {main_key, main_value}
-         ]) do
-      {:error, "Unable to find " <> _} ->
-        {:not_loaded, MapSet.new([{:one, type, main_key, main_value, conditions, options}])}
-
-      {:ok, result} ->
-        Result.ok(result)
-
-      other ->
-        other
-    end
+  defp args_for({:assoc, subject, key}) do
+    [:assoc, key, subject]
   end
 
-  def to_query(type, options) when options == %{} do
-    type
+  defp args_for({:query_one, type, [main_condition | other_conditions]}) do
+    [:assoc, {:one, type, where: other_conditions}, [main_condition]]
   end
 
-  def to_query(type, options) do
-    Infer.Ecto.Query.to_condition(type, options[:where])
+  def query(queryable, options) do
+    Enum.reduce(options, queryable, fn
+      {:where, conditions}, query -> Infer.Ecto.Query.filter_by(query, conditions)
+    end)
   end
 
   def init() do
-    source = Dataloader.Ecto.new(Ev2.Repo, query: &to_query/2)
+    source = Dataloader.Ecto.new(Ev2.Repo, query: &query/2)
 
     Dataloader.new(get_policy: :tuples)
     |> Dataloader.add_source(:assoc, source)
   end
 
   def load(cache, data_reqs) do
-    Enum.reduce(data_reqs, cache, fn
-      {:assoc, subject, key}, cache ->
-        Dataloader.load(cache, :assoc, key, subject)
-
-      {:one, type, main_key, main_value, conditions, options}, cache ->
-        Dataloader.load(cache, :assoc, {:one, type, Keyword.put(options, :where, conditions)}, [
-          {main_key, main_value}
-        ])
+    Enum.reduce(data_reqs, cache, fn data_req, cache ->
+      apply(Dataloader, :load, [cache | args_for(data_req)])
     end)
     |> Dataloader.run()
   end
