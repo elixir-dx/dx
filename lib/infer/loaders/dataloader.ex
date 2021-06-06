@@ -17,13 +17,25 @@ defmodule Infer.Loaders.Dataloader do
     [:assoc, key, subject]
   end
 
-  defp args_for({:query_one, type, [main_condition | other_conditions]}) do
+  defp args_for({:query_one, type, [main_condition | other_conditions], _opts}) do
     [:assoc, {:one, type, where: other_conditions}, [main_condition]]
+  end
+
+  defp args_for({:query_first, type, [main_condition | other_conditions], opts}) do
+    opts = opts |> Keyword.put(:where, other_conditions) |> Keyword.put(:limit, 1)
+    [:assoc, {:one, type, opts}, [main_condition]]
+  end
+
+  defp args_for({:query_all, type, [main_condition | other_conditions], opts}) do
+    opts = Keyword.put(opts, :where, other_conditions)
+    [:assoc, {:many, type, opts}, [main_condition]]
   end
 
   def query(queryable, options) do
     Enum.reduce(options, queryable, fn
       {:where, conditions}, query -> Infer.Ecto.Query.filter_by(query, conditions)
+      {:limit, limit}, query -> Infer.Ecto.Query.limit(query, limit)
+      {:order_by, order}, query -> Infer.Ecto.Query.order_by(query, order)
     end)
   end
 

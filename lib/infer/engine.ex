@@ -119,12 +119,19 @@ defmodule Infer.Engine do
     |> Result.transform(&apply(fun, &1))
   end
 
-  defp map_result({:query_one, type, conditions}, eval) do
+  defp map_result({query_type, type, conditions, opts}, eval)
+       when query_type in [:query_one, :query_first, :query_all] do
     conditions
     |> Result.map_keyword_values(&map_result(&1, eval))
     |> Result.then(fn conditions ->
-      eval.loader.lookup(eval.cache, {:query_one, type, conditions})
+      eval.loader.lookup(eval.cache, {query_type, type, conditions, opts})
     end)
+  end
+
+  # add empty opts when omitted
+  defp map_result({query_type, type, conditions}, eval)
+       when query_type in [:query_one, :query_first, :query_all] do
+    map_result({query_type, type, conditions, []}, eval)
   end
 
   defp map_result({:bound, key, default}, eval) do
