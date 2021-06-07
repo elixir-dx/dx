@@ -111,10 +111,9 @@ defmodule Infer.Engine do
     |> resolve_path(List.wrap(path), eval)
   end
 
-  defp map_result(fun_tuple, eval) when is_tuple(fun_tuple) and is_function(elem(fun_tuple, 0)) do
-    [fun | args] = Tuple.to_list(fun_tuple)
-
+  defp map_result({fun, args}, eval) when is_function(fun) do
     args
+    |> List.wrap()
     |> Result.map(&map_result(&1, eval))
     |> Result.transform(&apply(fun, &1))
   end
