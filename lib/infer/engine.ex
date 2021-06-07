@@ -230,6 +230,18 @@ defmodule Infer.Engine do
   defp resolve_path(val, [], _eval), do: Result.ok(val)
   defp resolve_path(nil, _path, _eval), do: Result.ok(nil)
 
+  defp resolve_path(list, path, eval) when is_list(list) do
+    Result.map(list, &resolve_path(&1, path, eval))
+  end
+
+  defp resolve_path(map, [keys], eval) when is_list(keys) do
+    resolve_path(map, [Util.Map.zip(keys, keys)], eval)
+  end
+
+  defp resolve_path(map, [keymap], eval) when is_map(keymap) do
+    Result.map_values(keymap, &resolve_path(map, List.wrap(&1), eval))
+  end
+
   defp resolve_path(map, [key | path], eval) do
     resolve(key, map, eval)
     |> Result.then(&resolve_path(&1, path, eval))
