@@ -13,11 +13,20 @@ defmodule Infer.Parser do
 
     typedstruct do
       field(:type, module())
-      field(:aliases, %{atom() => list(atom())}, default: %{})
+      field(:aliases, %{atom() => any()}, default: %{})
       field(:opts, map(), default: %{})
     end
 
     def with_opts(token, opts), do: %{token | opts: Map.new(opts)}
+
+    def set_aliases(token, new_aliases) do
+      Map.update!(token, :aliases, fn aliases ->
+        Enum.reduce(new_aliases, aliases, fn
+          {key, nil}, aliases -> Map.delete(aliases, key)
+          {key, val}, aliases -> Map.put(aliases, key, val)
+        end)
+      end)
+    end
   end
 
   @option_keys [:when, :then]
@@ -31,6 +40,25 @@ defmodule Infer.Parser do
   @doc """
   Entry point for this module
   """
+  def parse(directives, token) do
+    directives
+    |> Enum.reduce({[], token}, fn
+      {:infer_alias, aliases}, {rules, token} ->
+        new_token = Token.set_aliases(token, aliases)
+        {rules, new_token}
+
+      directive, {rules, token} ->
+        new_rules = directive_to_rules(directive, token)
+        {Enum.reverse(new_rules) ++ rules, token}
+    end)
+    |> elem(0)
+    |> Enum.reverse()
+  end
+
+  # def directive_to_rules({:infer_alias, opts}, token) do
+  #   to_aliased_rules(%{key => true}, Token.with_opts(token, opts))
+  # end
+
   def directive_to_rules({:infer, key, opts}, token) when is_atom(key) do
     to_aliased_rules(%{key => true}, Token.with_opts(token, opts))
   end
@@ -90,8 +118,37 @@ defmodule Infer.Parser do
 
     struct!(Infer.Rule, attrs)
     |> Map.update!(:when, &normalize_condition/1)
+    |> Map.update!(:when, &replace_aliases(&1, token.aliases))
+    |> Map.update!(:val, &replace_aliases(&1, token.aliases))
   end
 
   defp normalize_condition(atom) when is_atom(atom), do: %{atom => true}
   defp normalize_condition(condition), do: condition
+
+  defp replace_aliases(%type{} = struct, aliases) do
+    fields =
+      struct
+      |> Map.from_struct()
+      |> replace_aliases(aliases)
+
+    struct(type, fields)
+  end
+
+  defp replace_aliases(map, aliases) when is_map(map) do
+    Map.new(map, fn {key, val} ->
+      {replace_aliases(key, aliases), replace_aliases(val, aliases)}
+    end)
+  end
+
+  defp replace_aliases(list, aliases) when is_list(list) do
+    Enum.map(list, &replace_aliases(&1, aliases))
+  end
+
+  defp replace_aliases(key, aliases) when is_map_key(aliases, key) do
+    Map.get(aliases, key)
+  end
+
+  defp replace_aliases(other, _aliases) do
+    other
+  end
 end

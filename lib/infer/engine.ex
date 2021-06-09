@@ -188,6 +188,12 @@ defmodule Infer.Engine do
     evaluate_condition(sub_condition, eval.args, eval)
   end
 
+  defp evaluate_condition({{:ref, path}, conditions}, subject, eval) when is_map(subject) do
+    eval.root_subject
+    |> resolve_path(List.wrap(path), eval)
+    |> Result.then(&evaluate_condition(conditions, &1, eval))
+  end
+
   defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
     resolve(key, subject, eval)
     |> Result.then(&evaluate_condition(conditions, &1, eval))

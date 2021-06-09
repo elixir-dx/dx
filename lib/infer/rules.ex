@@ -39,7 +39,7 @@ defmodule Infer.Rules do
         token = %Infer.Parser.Token{type: type, aliases: aliases}
 
         unquote(directives)
-        |> Enum.flat_map(&Infer.Parser.directive_to_rules(&1, token))
+        |> Infer.Parser.parse(token)
       end
     end
   end
@@ -56,6 +56,12 @@ defmodule Infer.Rules do
   defmacro infer(opts) do
     quote do
       @infer_directives {:infer, unquote(opts)}
+    end
+  end
+
+  defmacro infer_alias(opts) do
+    quote do
+      @infer_directives {:infer_alias, unquote(opts)}
     end
   end
 
