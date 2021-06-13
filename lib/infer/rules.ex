@@ -3,43 +3,46 @@ defmodule Infer.Rules do
 
   defmacro __using__(use_opts) do
     quote do
+      if base_type = unquote(use_opts[:for]) do
+        @infer_base_type base_type
+      end
+
       @before_compile unquote(__MODULE__)
       Module.register_attribute(__MODULE__, :infer_directives, accumulate: true)
       Module.register_attribute(__MODULE__, :infer_aliases, accumulate: true)
 
       import unquote(__MODULE__)
-
-      def infer_base_type() do
-        unquote(use_opts |> Keyword.get(:for, __MODULE__))
-      end
     end
   end
 
   defmacro __before_compile__(%{module: mod}) do
-    directives =
-      mod
-      |> Module.get_attribute(:infer_directives)
-      |> Enum.reverse()
-      |> Enum.map(&Macro.escape/1)
+    base_type = Module.get_attribute(mod, :infer_base_type, mod)
 
     aliases =
       mod
       |> Module.get_attribute(:infer_aliases)
       |> Enum.reverse()
-      |> Enum.map(&Macro.escape/1)
+      |> Infer.Parser.normalize_aliases()
+
+    token = %Infer.Parser.Token{type: base_type, aliases: aliases}
+
+    rules =
+      mod
+      |> Module.get_attribute(:infer_directives)
+      |> Enum.reverse()
+      |> Infer.Parser.parse(token)
 
     quote do
+      def infer_base_type() do
+        unquote(Macro.escape(base_type))
+      end
+
       def infer_aliases do
-        unquote(aliases) |> Infer.Parser.normalize_aliases()
+        unquote(Macro.escape(aliases))
       end
 
       def infer_rules do
-        aliases = infer_aliases()
-        type = infer_base_type()
-        token = %Infer.Parser.Token{type: type, aliases: aliases}
-
-        unquote(directives)
-        |> Infer.Parser.parse(token)
+        unquote(Macro.escape(rules))
       end
     end
   end
