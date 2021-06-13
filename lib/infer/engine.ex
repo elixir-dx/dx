@@ -47,8 +47,8 @@ defmodule Infer.Engine do
     Result.find(rules, &match_next(&1, record, eval), &rule_result(&1, &2, record, eval))
   end
 
-  defp match_next(rule, record, eval) do
-    result = evaluate_condition(rule.when, record, eval)
+  defp match_next({condition, val}, record, eval) do
+    result = evaluate_condition(condition, record, eval)
 
     if eval.debug? do
       subject_info =
@@ -59,14 +59,14 @@ defmodule Infer.Engine do
 
       result_info =
         case result do
-          {:ok, true, _} -> "#{inspect(rule.key)} => #{inspect(rule.val)}"
+          {:ok, true, _} -> inspect(val)
           {:ok, other, _} -> inspect(other, pretty: true)
           other -> inspect(other, pretty: true)
         end
 
       IO.puts(
         "[infer] #{inspect(subject_info)} is #{result_info} for " <>
-          inspect(rule.when, pretty: true)
+          inspect(condition, pretty: true)
       )
     end
 
@@ -79,10 +79,10 @@ defmodule Infer.Engine do
   #       with the given arguments (which in turn can be special tuples)
   #   - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
   #   - `{:bound, :var, default}` - same with default
-  defp rule_result(rule, binds, subject, eval) do
+  defp rule_result({_condition, val}, binds, subject, eval) do
     eval = %{eval | root_subject: subject, binds: binds}
 
-    rule.val
+    val
     |> map_result(eval)
   end
 

@@ -32,7 +32,36 @@ defmodule Infer.Rules do
       |> Enum.reverse()
       |> Infer.Parser.parse(token)
 
+    rules_by_type_and_predicate =
+      rules
+      |> Enum.reverse()
+      |> Enum.reduce(%{}, fn rule, groups ->
+        entry = {rule.when, rule.val}
+
+        Map.update(groups, rule.key, %{rule.type => [entry]}, fn predicate_group ->
+          Map.update(predicate_group, rule.type, [entry], fn entries ->
+            [entry | entries]
+          end)
+        end)
+      end)
+
+    infer_rules_for_ast =
+      for {predicate, predicate_group} <- rules_by_type_and_predicate,
+          {type, entries} <- predicate_group do
+        quote do
+          def infer_rules_for(unquote(Macro.escape(predicate)), unquote(Macro.escape(type))) do
+            unquote(Macro.escape(entries))
+          end
+        end
+      end
+
     quote do
+      unquote(infer_rules_for_ast)
+
+      def infer_rules_for(_predicate, _type) do
+        []
+      end
+
       def infer_base_type() do
         unquote(Macro.escape(base_type))
       end

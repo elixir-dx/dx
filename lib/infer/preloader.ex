@@ -34,7 +34,7 @@ defmodule Infer.Preloader do
         predicate ->
           Util.rules_for_predicate(predicate, type, eval)
       end
-      |> Enum.map(&expand_rules(&1.when, type, eval))
+      |> Enum.map(fn {condition, _val} -> expand_rules(condition, type, eval) end)
       |> case do
         [] -> [predicate]
         rules -> rules
