@@ -33,6 +33,18 @@ defmodule Infer.Engine do
     fetch(map, field, eval)
   end
 
+  def resolve_source(field_or_predicate, eval) when is_atom(field_or_predicate) do
+    resolve(field_or_predicate, eval.root_subject, eval)
+  end
+
+  def resolve_source(list, _eval) when is_list(list) do
+    Result.ok(list)
+  end
+
+  def resolve_source(other, eval) do
+    map_result(other, eval)
+  end
+
   # receives a list of rules for a predicate, returns a value result (`t:Result.v()`).
   #
   # goes through the rules, evaluating the condition of each, which can yield one of
@@ -131,6 +143,61 @@ defmodule Infer.Engine do
   defp map_result({query_type, type, conditions}, eval)
        when query_type in [:query_one, :query_first, :query_all] do
     map_result({query_type, type, conditions, []}, eval)
+  end
+
+  defp map_result({:map, source, each_key, each_val}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.map(subjects, fn subject ->
+        eval = %{eval | binds: %{each_key => subject}}
+
+        map_result(each_val, eval)
+      end)
+    end)
+  end
+
+  defp map_result({:count, source, conditions}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.count(subjects, fn
+        nil ->
+          Result.ok(false)
+
+        subject ->
+          case conditions do
+            predicate when is_atom(predicate) ->
+              resolve(predicate, subject, eval)
+
+            condition when is_map(condition) or is_list(condition) ->
+              evaluate_condition(condition, subject, eval)
+
+            other ->
+              map_result(other, eval)
+          end
+      end)
+    end)
+  end
+
+  defp map_result({:count_while, source, conditions}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.count_while(subjects, fn
+        nil ->
+          Result.ok(false)
+
+        subject ->
+          case conditions do
+            predicate when is_atom(predicate) ->
+              resolve(predicate, subject, eval)
+
+            condition when is_map(condition) or is_list(condition) ->
+              evaluate_condition(condition, subject, eval)
+
+            other ->
+              map_result(other, eval)
+          end
+      end)
+    end)
   end
 
   defp map_result({:bound, key, default}, eval) do

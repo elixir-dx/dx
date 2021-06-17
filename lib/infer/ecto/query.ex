@@ -7,6 +7,9 @@ defmodule Infer.Ecto.Query do
 
   def filter_by(queryable, conditions) do
     Enum.reduce(conditions, queryable, fn
+      {key, nil}, queryable ->
+        from(q in queryable, where: is_nil(field(q, ^key)))
+
       {key, list}, queryable when is_list(list) ->
         from(q in queryable, where: field(q, ^key) in ^list)
 

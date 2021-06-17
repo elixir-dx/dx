@@ -138,6 +138,7 @@ defmodule Infer.Result do
   def unwrap!({:ok, result}), do: result
   def unwrap!({:ok, result, _binds}), do: result
   def unwrap!({:not_loaded, _data_reqs}), do: raise(Infer.Error.NotLoaded)
+  def unwrap!({:error, {e, stacktrace}}), do: reraise(e, stacktrace)
   def unwrap!({:error, e}), do: raise(e)
 
   @doc """
@@ -310,6 +311,103 @@ defmodule Infer.Result do
   end
 
   @doc """
+  Returns the number of elements before `fun` evaluates to `{:ok, false}` or an element is `nil`.
+  Elements are skipped (not counted) whenever `fun` evaluates to `{:ok, :skip}`.
+  If any elements before that return `{:not_loaded, data_reqs}`, returns all of them combined as `{:not_loaded, ...}`.
+  Otherwise, returns `{:ok, default}`.
+
+  ## Examples
+
+      iex> [
+      ...>   {:ok, true, %{}},
+      ...>   {:not_loaded, []},
+      ...>   {:ok, false, %{}},
+      ...> ]
+      ...> |> Infer.Result.count_while()
+      {:not_loaded, []}
+
+      iex> [
+      ...>   {:ok, false, %{}},
+      ...>   {:not_loaded, [1]},
+      ...>   {:not_loaded, [2]},
+      ...>   {:ok, true, %{}},
+      ...>   {:not_loaded, [3]},
+      ...> ]
+      ...> |> Infer.Result.count_while()
+      {:ok, 0, %{}}
+
+      iex> [
+      ...>   {:ok, true, %{}},
+      ...>   {:ok, :skip, %{}},
+      ...>   {:ok, false, %{}},
+      ...>   {:ok, false, %{}},
+      ...> ]
+      ...> |> Infer.Result.count_while()
+      {:ok, 1, %{}}
+
+      iex> [
+      ...>   false,
+      ...>   false,
+      ...> ]
+      ...> |> Infer.Result.count_while(&{:ok, not &1, %{}})
+      {:ok, 2, %{}}
+  """
+  @spec count_while(Enum.t(), (any() -> v())) :: v()
+  def count_while(enum, fun \\ &identity/1) do
+    Enum.reduce_while(enum, ok(0), fn elem, acc ->
+      combine(acc, fun.(elem), :count_while)
+    end)
+  end
+
+  @doc """
+  Returns the number of elements for which `fun` evaluates to `{:ok, true}`.
+  If any elements return `{:not_loaded, data_reqs}`, returns all of them combined as `{:not_loaded, ...}`.
+  Otherwise, returns `{:ok, default}`.
+
+  ## Examples
+
+      iex> [
+      ...>   {:ok, true, %{}},
+      ...>   {:ok, false, %{}},
+      ...>   {:ok, true, %{}},
+      ...> ]
+      ...> |> Infer.Result.count()
+      {:ok, 2, %{}}
+
+      iex> [
+      ...>   {:ok, false, %{}},
+      ...>   {:not_loaded, [1]},
+      ...>   {:not_loaded, [2]},
+      ...>   {:ok, true, %{}},
+      ...>   {:not_loaded, [3]},
+      ...> ]
+      ...> |> Infer.Result.count()
+      {:not_loaded, [1, 2, 3]}
+
+      iex> [
+      ...>   {:ok, true, %{}},
+      ...>   {:ok, :skip, %{}},
+      ...>   {:ok, false, %{}},
+      ...>   {:ok, false, %{}},
+      ...> ]
+      ...> |> Infer.Result.count()
+      {:ok, 1, %{}}
+
+      iex> [
+      ...>   false,
+      ...>   false,
+      ...> ]
+      ...> |> Infer.Result.count(&{:ok, not &1, %{}})
+      {:ok, 2, %{}}
+  """
+  @spec count(Enum.t(), (any() -> v())) :: v()
+  def count(enum, fun \\ &identity/1) do
+    Enum.reduce_while(enum, ok(0), fn elem, acc ->
+      combine(acc, fun.(elem), :count)
+    end)
+  end
+
+  @doc """
   Returns `{:ok, new_keyword_list, binds}` with new values if all values map to `{:ok, new_value, binds}`.
   Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
 
@@ -419,6 +517,22 @@ defmodule Infer.Result do
 
   defp combine({:ok, results, binds}, {:ok, result, new_binds}, :all),
     do: {:cont, {:ok, [result | results], Map.merge(new_binds, binds)}}
+
+  # :count
+  defp combine({:ok, count, binds}, {:ok, true, new_binds}, :count),
+    do: {:cont, {:ok, count + 1, Map.merge(new_binds, binds)}}
+
+  defp combine(acc, {:ok, _, _}, :count), do: {:cont, acc}
+
+  # :count_while
+  defp combine(acc, {:ok, false, _}, :count_while), do: {:halt, acc}
+  defp combine(acc, {:ok, :skip, _}, :count_while), do: {:cont, acc}
+
+  defp combine({:not_loaded, reqs}, {:ok, true, _}, :count_while),
+    do: {:cont, {:not_loaded, reqs}}
+
+  defp combine({:ok, count, binds}, {:ok, true, new_binds}, :count_while),
+    do: {:cont, {:ok, count + 1, Map.merge(new_binds, binds)}}
 
   # :any?
   defp combine(_acc, {:ok, true, binds}, :any?), do: {:halt, {:ok, true, binds}}
