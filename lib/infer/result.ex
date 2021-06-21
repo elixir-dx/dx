@@ -174,7 +174,7 @@ defmodule Infer.Result do
   @spec all?(Enum.t(), (any() -> b())) :: b()
   def all?(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, ok(true), fn elem, acc ->
-      combine(acc, mapper.(elem), :all?)
+      combine(:all?, acc, mapper.(elem))
     end)
   end
 
@@ -211,7 +211,7 @@ defmodule Infer.Result do
   @spec any?(Enum.t(), (any() -> b())) :: b()
   def any?(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, ok(false), fn elem, acc ->
-      combine(acc, mapper.(elem), :any?)
+      combine(:any?, acc, mapper.(elem))
     end)
   end
 
@@ -256,18 +256,9 @@ defmodule Infer.Result do
   """
   @spec find(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
   def find(enum, fun \\ &identity/1, result_mapper \\ &ok/2, default \\ ok(nil)) do
-    Enum.reduce_while(enum, ok(false), fn elem, acc ->
-      combine(acc, fun.(elem), :find)
-      |> case do
-        {:halt, {:ok, true, binds}} -> {:halt, {:result, elem, binds}}
-        other -> other
-      end
+    Enum.reduce_while(enum, default, fn elem, acc ->
+      combine(:find, acc, fun.(elem), &result_mapper.(elem, &1))
     end)
-    |> case do
-      {:result, elem, binds} -> result_mapper.(elem, binds)
-      {:ok, false, _binds} -> default
-      other -> other
-    end
   end
 
   @doc """
@@ -305,7 +296,14 @@ defmodule Infer.Result do
   @spec map(Enum.t(), (any() -> v())) :: v()
   def map(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, ok([]), fn elem, acc ->
-      combine(acc, mapper.(elem), :all)
+      combine(:all, acc, mapper.(elem))
+    end)
+    |> transform(&Enum.reverse/1)
+  end
+
+  def filter_map(enum, fun \\ &identity/1, result_mapper \\ &ok/2) do
+    Enum.reduce_while(enum, ok([]), fn elem, acc ->
+      combine(:filter, acc, fun.(elem), &result_mapper.(elem, &1))
     end)
     |> transform(&Enum.reverse/1)
   end
@@ -355,7 +353,7 @@ defmodule Infer.Result do
   @spec count_while(Enum.t(), (any() -> v())) :: v()
   def count_while(enum, fun \\ &identity/1) do
     Enum.reduce_while(enum, ok(0), fn elem, acc ->
-      combine(acc, fun.(elem), :count_while)
+      combine(:count_while, acc, fun.(elem))
     end)
   end
 
@@ -403,7 +401,7 @@ defmodule Infer.Result do
   @spec count(Enum.t(), (any() -> v())) :: v()
   def count(enum, fun \\ &identity/1) do
     Enum.reduce_while(enum, ok(0), fn elem, acc ->
-      combine(acc, fun.(elem), :count)
+      combine(:count, acc, fun.(elem))
     end)
   end
 
@@ -441,7 +439,7 @@ defmodule Infer.Result do
   """
   def map_keyword_values(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, ok([]), fn {key, elem}, acc ->
-      combine(acc, mapper.(elem) |> transform(&{key, &1}), :all)
+      combine(:all, acc, mapper.(elem) |> transform(&{key, &1}))
     end)
     |> transform(&Enum.reverse/1)
   end
@@ -480,7 +478,7 @@ defmodule Infer.Result do
   """
   def map_values(enum, mapper \\ &identity/1) do
     Enum.reduce_while(enum, ok([]), fn {key, elem}, acc ->
-      combine(acc, mapper.(elem) |> transform(&{key, &1}), :all)
+      combine(:all, acc, mapper.(elem) |> transform(&{key, &1}))
     end)
     |> transform(&Map.new/1)
   end
@@ -495,53 +493,66 @@ defmodule Infer.Result do
   #   - `:find` to return `{:ok, result}` on first match
   #   - `:all` to return all `{:ok, result}` combined as `{:ok, [result1, result2, ...]}`
 
-  @spec combine(b(), b(), :any? | :all?) :: {:cont | :halt, b()}
-  @spec combine(b(), b(), :find) :: {:cont | :halt, v()}
-  @spec combine(v(), v(), :all) :: {:cont | :halt, v()}
+  @spec combine(:any? | :all?, b(), b()) :: {:cont | :halt, b()}
+  @spec combine(:find, b(), b()) :: {:cont | :halt, v()}
+  @spec combine(:all, v(), v()) :: {:cont | :halt, v()}
 
-  defp combine(_acc, {:error, e}, _), do: {:halt, {:error, e}}
+  defp combine(mode, acc, elem, extra \\ nil)
 
-  defp combine({:not_loaded, r1}, {:not_loaded, r2}, _),
+  defp combine(_mode, _acc, {:error, e}, _), do: {:halt, {:error, e}}
+
+  defp combine(_mode, {:not_loaded, r1}, {:not_loaded, r2}, _),
     do: {:cont, {:not_loaded, Util.deep_merge(r1, r2)}}
 
-  defp combine(_acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
+  defp combine(_mode, _acc, {:not_loaded, reqs}, _), do: {:cont, {:not_loaded, reqs}}
 
   # :find
-  defp combine({:not_loaded, reqs}, {:ok, true, _}, :find), do: {:halt, {:not_loaded, reqs}}
-  defp combine({:not_loaded, reqs}, {:ok, false, _}, :find), do: {:cont, {:not_loaded, reqs}}
-  defp combine({:ok, false, _}, {:ok, true, binds}, :find), do: {:halt, {:ok, true, binds}}
-  defp combine(acc, {:ok, false, _}, :find), do: {:cont, acc}
+  defp combine(:find, acc, {:ok, false, _}, _), do: {:cont, acc}
+  defp combine(:find, {:not_loaded, reqs}, {:ok, true, _}, _), do: {:halt, {:not_loaded, reqs}}
+  defp combine(:find, {:ok, _, _}, {:ok, true, binds}, mapper), do: {:halt, mapper.(binds)}
 
   # :all
-  defp combine({:not_loaded, reqs}, {:ok, _, _}, :all), do: {:cont, {:not_loaded, reqs}}
+  defp combine(:all, {:not_loaded, reqs}, {:ok, _, _}, _), do: {:cont, {:not_loaded, reqs}}
 
-  defp combine({:ok, results, binds}, {:ok, result, new_binds}, :all),
+  defp combine(:all, {:ok, results, binds}, {:ok, result, new_binds}, _),
     do: {:cont, {:ok, [result | results], Map.merge(new_binds, binds)}}
 
+  # :filter
+  defp combine(:filter, acc, {:ok, true, binds}, mapper), do: combine(:all, acc, mapper.(binds))
+  # defp combine(:filter, {:not_loaded, reqs}, {:ok, _, _}, _), do: {:cont, {:not_loaded, reqs}}
+  defp combine(:filter, acc, {:ok, false, _}, _), do: {:cont, acc}
+
+  # defp combine(:filter, {:ok, results, binds}, {:ok, true, new_binds}, result),
+  #   do: {:cont, {:ok, [result | results], Map.merge(new_binds, binds)}}
+  # defp combine(:filter, {:ok, _results, _binds} = acc, {:ok, true, new_binds}, mapper),
+  #   do: combine(:all, acc, mapper.(new_binds))
+
   # :count
-  defp combine({:ok, count, binds}, {:ok, true, new_binds}, :count),
+  defp combine(:count, {:ok, count, binds}, {:ok, true, new_binds}, _),
     do: {:cont, {:ok, count + 1, Map.merge(new_binds, binds)}}
 
-  defp combine(acc, {:ok, _, _}, :count), do: {:cont, acc}
+  defp combine(:count, acc, {:ok, _, _}, _), do: {:cont, acc}
 
   # :count_while
-  defp combine(acc, {:ok, false, _}, :count_while), do: {:halt, acc}
-  defp combine(acc, {:ok, :skip, _}, :count_while), do: {:cont, acc}
+  defp combine(:count_while, acc, {:ok, false, _}, _), do: {:halt, acc}
+  defp combine(:count_while, acc, {:ok, :skip, _}, _), do: {:cont, acc}
 
-  defp combine({:not_loaded, reqs}, {:ok, true, _}, :count_while),
+  defp combine(:count_while, {:not_loaded, reqs}, {:ok, true, _}, _),
     do: {:cont, {:not_loaded, reqs}}
 
-  defp combine({:ok, count, binds}, {:ok, true, new_binds}, :count_while),
+  defp combine(:count_while, {:ok, count, binds}, {:ok, true, new_binds}, _),
     do: {:cont, {:ok, count + 1, Map.merge(new_binds, binds)}}
 
   # :any?
-  defp combine(_acc, {:ok, true, binds}, :any?), do: {:halt, {:ok, true, binds}}
-  defp combine(acc, {:ok, false, _}, :any?), do: {:cont, acc}
+  defp combine(:any?, _acc, {:ok, true, binds}, _), do: {:halt, {:ok, true, binds}}
+  defp combine(:any?, acc, {:ok, false, _}, _), do: {:cont, acc}
 
   # :all?
-  defp combine(_acc, {:ok, false, _}, :all?), do: {:halt, {:ok, false, %{}}}
-  defp combine({:not_loaded, reqs}, {:ok, true, _binds}, :all?), do: {:cont, {:not_loaded, reqs}}
+  defp combine(:all?, _acc, {:ok, false, _}, _), do: {:halt, {:ok, false, %{}}}
 
-  defp combine({:ok, true, binds}, {:ok, true, new_binds}, :all?),
+  defp combine(:all?, {:not_loaded, reqs}, {:ok, true, _binds}, _),
+    do: {:cont, {:not_loaded, reqs}}
+
+  defp combine(:all?, {:ok, true, binds}, {:ok, true, new_binds}, _),
     do: {:cont, {:ok, true, Map.merge(new_binds, binds)}}
 end

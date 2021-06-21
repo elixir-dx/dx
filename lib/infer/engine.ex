@@ -145,7 +145,7 @@ defmodule Infer.Engine do
     map_result({query_type, type, conditions, []}, eval)
   end
 
-  defp map_result({:map, source, each_key, each_val}, eval) do
+  defp map_result({:map, source, each_key, each_val}, eval) when is_atom(each_key) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.map(subjects, fn subject ->
@@ -153,6 +153,48 @@ defmodule Infer.Engine do
 
         map_result(each_val, eval)
       end)
+    end)
+  end
+
+  defp map_result({:map, source, condition, each_val}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.filter_map(
+        subjects,
+        &evaluate_condition(condition, &1, eval),
+        fn _subject, binds ->
+          eval = %{eval | binds: binds}
+
+          map_result(each_val, eval)
+        end
+      )
+    end)
+  end
+
+  defp map_result({:map, source, each_val}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.map(subjects, fn
+        nil ->
+          Result.ok(nil)
+
+        subject ->
+          case each_val do
+            predicate when is_atom(predicate) ->
+              resolve(predicate, subject, eval)
+
+            other ->
+              eval = %{eval | root_subject: subject}
+              map_result(other, eval)
+          end
+      end)
+    end)
+  end
+
+  defp map_result({:filter, source, condition}, eval) do
+    resolve_source(source, eval)
+    |> Result.then(fn subjects ->
+      Result.filter_map(subjects, &evaluate_condition(condition, &1, eval))
     end)
   end
 
