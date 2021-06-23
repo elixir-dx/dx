@@ -13,7 +13,7 @@ defmodule Infer.Engine do
   def resolve_predicate(predicate, %type{} = subject, %Eval{} = eval) do
     predicate
     |> Util.rules_for_predicate(type, eval)
-    |> match_rules(subject, eval)
+    |> match_rules(subject, predicate, eval)
   end
 
   @doc """
@@ -25,7 +25,7 @@ defmodule Infer.Engine do
     |> Util.rules_for_predicate(type, eval)
     |> case do
       [] -> fetch(subject, field_or_predicate, eval)
-      rules -> match_rules(rules, subject, eval)
+      rules -> match_rules(rules, subject, field_or_predicate, eval)
     end
   end
 
@@ -52,52 +52,46 @@ defmodule Infer.Engine do
   #   - {:ok, true} -> stop here and return rule assigns
   #   - {:not_loaded, data_reqs} -> collect and move on, return {:not_loaded, all_data_reqs} at the end
   #   - {:error, e} -> return right away
-  @spec match_rules(list(Rule.t()), any(), Eval.t()) :: Result.v()
-  defp match_rules(rules, record, %Eval{} = eval) do
-    eval = %{eval | root_subject: record}
+  @spec match_rules(list(Rule.t()), any(), atom(), Eval.t()) :: Result.v()
+  defp match_rules(rules, subject, predicate, %Eval{} = eval) do
+    eval = %{eval | root_subject: subject}
 
-    Result.find(rules, &match_next(&1, record, eval), &rule_result(&1, &2, record, eval))
-  end
+    result =
+      Result.find(rules, &match_next(&1, subject, eval), fn {_condition, val}, binds ->
+        eval = %{eval | binds: binds}
 
-  defp match_next({condition, val}, record, eval) do
-    result = evaluate_condition(condition, record, eval)
+        map_result(val, eval)
+      end)
 
     if eval.debug? do
       subject_info =
-        case record do
-          %type{} -> type
-          other -> other
+        case subject do
+          %type{id: id} -> "%#{inspect(type)}<#{id}>"
+          other -> inspect(other, limit: 10)
         end
 
       result_info =
         case result do
-          {:ok, true, _} -> inspect(val)
-          {:ok, other, _} -> inspect(other, pretty: true)
-          other -> inspect(other, pretty: true)
+          {:ok, other, _} -> inspect(other, limit: 10, pretty: true)
+          other -> inspect(other, limit: 10, pretty: true)
         end
 
-      IO.puts(
-        "[infer] #{inspect(subject_info)} is #{result_info} for " <>
-          inspect(condition, pretty: true)
-      )
+      IO.puts("[infer] #{subject_info} #{predicate}: #{result_info}")
     end
 
     result
   end
 
-  # Traverses the assigns of a rule, replacing special tuples
+  defp match_next({condition, _val}, subject, eval) do
+    evaluate_condition(condition, subject, eval)
+  end
+
+  # Traverses the value of a rule, replacing special tuples
   #   - `{:ref, path}` with the predicate or field value found at the given path
   #   - `{fun/n, arg_1, ..., arg_n}` with the result of calling the given function
   #       with the given arguments (which in turn can be special tuples)
   #   - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
   #   - `{:bound, :var, default}` - same with default
-  defp rule_result({_condition, val}, binds, subject, eval) do
-    eval = %{eval | root_subject: subject, binds: binds}
-
-    val
-    |> map_result(eval)
-  end
-
   defp map_result(%type{} = struct, eval) do
     struct
     |> Map.from_struct()
@@ -290,6 +284,11 @@ defmodule Infer.Engine do
 
   defp evaluate_condition({:bind, key, condition}, subject, eval) do
     evaluate_condition(condition, subject, eval)
+    |> Result.bind(key, subject)
+  end
+
+  defp evaluate_condition({:bind, key}, subject, _eval) do
+    Result.ok(true)
     |> Result.bind(key, subject)
   end
 

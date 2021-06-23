@@ -5,7 +5,8 @@ defmodule Infer do
   ```elixir
   use Infer.Ecto.Schema
 
-  infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
+  infer has_children?: true, when: %{relatives: %{relation: "parent_of"}}
+  infer has_children?: false
   ```
 
   Unlike full-fledged inference engines (such as [calypte](https://github.com/liveforeverx/calypte) or [retex](https://github.com/lorenzosinisi/retex)),
@@ -14,33 +15,72 @@ defmodule Infer do
   ## Terminology
 
   - `infer ...` defines a **rule** in a module. It applies to an instance of that module: A struct, Ecto record, Ash resource, ...
-  - The first argument, or `:then` part, e.g. `infer :has_children?` is the **result**, or **assigns**, of the rule (inspired by `assigns` in `Plug`).
-  - The result assigns a value to each **predicate**, e.g. the value `true` to the predicate `:has_children?`.
-  - It helps to differentiate **pure predicates** that are not stored anywhere, from **fields** that are stored and can also be predicates.
-  - The `:when` part of a rule defines the **condition**.
-  - The current instance is the **subject**.
+  - This instance of a module, on which rules are evaluated, is the **subject**.
+  - A rule can have a **condition**, or `:when` part, that must be met in order for it to apply, e.g. `%{relatives: %{relation: "parent_of"}}`.
+  - When the condition is met, a given **predicate** is assigned a given **value**, e.g. `has_children?: true`. This is also called the **result** of the rule.
+  - All rules are evaluated from top to bottom until the first one for each predicate matches, similar to a `cond` statement.
+  - A condition can make use of other predicates as well as **fields** defined on the schema or struct of the underlying type.
   - An executed rule results in a (derived) **fact**: subject, predicate, value.
 
-  ## Assigns
+  ## API overview
 
-  - Rules further up have precedence over those further down. In other words, rules are executed from top to bottom,
-    but predicates are not overwritten within one execution run.
-  - Assigns are deep-merged, e.g. when assigning `%{name: %{editable: false}}` onto an existing `%{name: %{value: "Su"}}`,
-    the result will be `%{name: %{value: "Su", editable: false}}`.
-  - Assigning a list to an existing list will append the assigned list to the existing one.
-  - Instead of a simple key, a list of keys can be given as a key as a short hand to setting the same value for
-    all listed keys, e.g. `%{[:admin?, :senior?] => true}`. This also enables using predicate groups as keys.
+  - `Infer.get/3` evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)
+  - `Infer.load/3` is like `get`, but loads any additional data as needed
+  - `Infer.put/3` is like `load`, but puts the results into the `:inferred` field (or virtual schema field) of the subject(s) as a map,
+    and returns the subject(s)
+
+  These functions return a tuple, either `{:ok, result}`, `{:error, error}`, or `{:not_loaded, data_reqs}` (only `get`).
+
+  The corresponding `Infer.get!/3`, `Infer.load!/3` and `Infer.put!/3` functions return `result` directly, or otherwise raise an exception.
+
+  Arguments:
+  - **subjects** can either be an individual subject (with the given predicates defined on it), or a list of subjects.
+    Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.
+  - **predicates** can either be a single predicate, or a list of predicates.
+    Passing a single predicate will return the resulting value, passing a list will return a **map** of the predicates and their resulting values.
+  - **options** (optional) See below.
+
+  Options:
+  - **args** (list or map) can be used to pass in data from the caller's context that can be used in rules (see *Arguments* below).
+    A classic example is the `current_user`, e.g.
+    ```elixir
+    Infer.put!(project, :can_edit?, args: [user: current_user])
+    ```
+  - **extra_rules** (module or list of modules) can be used to add context-specific rules that are not defined directly on the subject.
+    This can be used to structure rules into their own modules and use them only where needed.
+  - **debug?** (boolean) makes Infer print additional information to the console as rules are evaluated.
+    Should only be used while debugging.
 
   ## Conditions
 
-  - Maps represent multiple conditions, of which all need to be satisfied (logical `AND`)
-  - Lists represent multiple conditions, of which at least one needs to be satisfied (logical `OR`)
-  - A single atom is a shorthand for `%{atom: true}`
-  - Values can be negated using `{:not, "value"}`. For now, this only works for simple (non-nested) values.
+  In a rule condition, the part after `when: ...`,
 
-  ### Conditions on list values
+  - **Maps** represent multiple conditions, of which **all** need to be satisfied (logical `AND`).
+  - **Lists** represent multiple conditions, of which **at least one** needs to be satisfied (logical `OR`).
+  - Values can be negated using `{:not, "value"}`.
 
-  When conditions are tested against list values, e.g. a person's list of roles, the condition is satisfied
+  Examples:
+  ```elixir
+  # :role must be "admin"
+  infer role: :admin, when: %{role: "admin"}
+
+  # :role must be either "admin" or "superadmin"
+  infer role: :admin, when: %{role: ["admin", "superadmin"]}
+
+  # :role must be "admin" and :verified? must be true
+  infer role: :admin, when: %{role: "admin", verified?: true}
+
+  # :role must be "admin" and :verified_at must not be nil
+  infer role: :admin, when: %{role: "admin", verified_at: {:not, nil}}
+  ```
+
+  ### Boolean shorthand form
+
+  A single atom is a shorthand for `%{atom: true}`.
+
+  ### Conditions on list data
+
+  When conditions are tested against list data, e.g. a person's list of roles, the condition is satisfied
   if at least one element of the list matches the given conditions (like `Enum.any?/2`).
 
   Although they might look similar, it's important to differentiate between lists that appear in
@@ -66,142 +106,32 @@ defmodule Infer do
 
   The same applies to complex conditions.
 
-  #### Conditions on all list values (experimental)
+  ## Rule results
 
-  To specify that it has to apply to all elements in a list, use `{:all?, condition}` (like `Enum.all?/2`).
+  The assigned value of a predicate is generally assigned as is.
 
-  For example:
+  A few special tuples, however, will be replaced by Infer (see *Features* below)
 
-  ```elixir
-  infer :can_edit?, when: %{roles: {:all?, ["project_manager", "admin"]}}
-
-  iex> %Person{roles: ["worker", "assistant"]} |> Infer.get!(:can_edit?)
-  nil
-
-  iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get!(:can_edit?)
-  nil
-
-  iex> %Person{roles: ["admin"]} |> Infer.get!(:can_edit?)
-  true
-  ```
-
-  When condition B must be satisfied by all list elements that satisfy condition A,
-  `:all?` can be used as a key in the condition map.
+  Example:
 
   ```elixir
-  infer :all_children_adults?,
-    when: %{
-      relatives: %{
-        relation: "parent_of",
-        all?: %{other_person: :adult?}
-      }
-    }
-
-  iex> %Person{
-  ...>   relatives: [
-  ...>     %Relation{relation: "sibling", other_person: %Person{adult?: true}},
-  ...>     %Relation{relation: "parent_of", other_person: %Person{adult?: true}}
-  ...>   ]
-  ...> }
-  ...> |> Infer.get!(:all_children_adults?)
-  true
-
-  iex> %Person{
-  ...>   relatives: [
-  ...>     %Relation{relation: "sibling", other_person: %Person{adult?: true}},
-  ...>     %Relation{relation: "parent_of", other_person: %Person{adult?: true}},
-  ...>     %Relation{relation: "parent_of", other_person: %Person{adult?: false}},
-  ...>   ]
-  ...> }
-  ...> |> Infer.get!(:all_children_adults?)
-  nil
-
-  # no match when there is no element with `relation: "parent_of"`
-  iex> %Person{
-  ...>   relatives: [
-  ...>     %Relation{relation: "sibling", other_person: %Person{adult?: true}}
-  ...>   ]
-  ...> }
-  ...> |> Infer.get!(:all_children_adults?)
-  nil
+  infer d: 4
+  infer nested: %{a: 1, b: 2, c: {:ref, :d}}  # => %{a: 1, b: 2, c: 4}
   ```
 
-  ## Predicates
+  ## Features
 
-  All keys defined in the following places can be used. They share the same namespace, so each key needs
-  to be unique across all these.
+  ### References
 
-  - Fields defined in an ecto schema (see [below](#module-ecto-schema-fields))
-  - Attributes defined in `infer` statements
-  - Groups defined in `predicate_group` statements
-  - `:args` for accessing arguments passed to executing functions, e.g. `args: %{user: nil}` from `Infer.get!(Offer, :film?, args: [user: user])`
+  Syntax:
+  - `{:ref, path}` (in conditions and result values)
 
-  ### Preloading
+  Arguments:
+  -  **path** is a list of fields or predicates, starting from the subject.
+     The brackets can be omitted (i.a. an atom passed), if the path consists of one element.
+     The last element can be a map or list (see *Branching* below)
 
-  By default, Infer will not load any fields from the database that are not required, except for primary keys.
-
-  Preloading means to explicitly load all data (nested fields) that required to infer a given list of predicates:
-
-  ```elixir
-  infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
-
-  # Loads all relatives including their `relation` field, if not loaded yet:
-  Infer.preload(%Person{}, [:has_children?])
-
-  # Querying does not load the data when the conditions can be checked by the database.
-  # When needed, they can be preloaded in addition:
-  Infer.query(Person, :has_children?, preload: [:has_children?])
-  ```
-
-  ### Predicate groups
-
-  Groups with multiple predicates can be defined and used as shorthands in assigns and preloads.
-  See `predicate_group/1` for examples.
-
-  By default, Infer defines `:all_fields` as a group of all fields defined, e.g. Struct fields, Ecto schema fields, ...
-
-  ### Predicates with meta data
-
-  When using Infer, a list of predicates can be defined to have meta data.
-  This means, not only the value of the predicate can be set, but the predicate internally becomes
-  a map with a `:value` key for the actual value, and any other keys to be set as meta data.
-
-  By default, `:all_fields` have meta data.
-
-  This can be useful for generating forms and other scenarios, for example:
-
-  ```elixir
-  name: %{
-    value: "Su",
-    required: false,
-    editable: true,
-    visible: true
-  }
-  ```
-
-  **Note:** Meta data can **not** be used in **conditions**. It can only be assigned and used in other places.
-  Conditions will always access the `:value` directly, just as if the predicate had no meta data.
-
-  Example combining predicate meta data, predicate groups, and preloading:
-
-  ```elixir
-  predicate_group form_fields: [:name, :roles]
-
-  infer form_fields: %{ediable: true}, when: %{args: %{user: %{roles: "admin"}}}
-
-  iex> Infer.query(Person, :has_children?, args: [user: user], preload: [:form_fields])
-  {:ok, [%Person{}, ...], [%{has_children?: true, name: %{editable: true}, roles: %{editable: true}}]}
-  ```
-
-  ### Predicate cache
-
-  You can define a `field :inferred, :map, virtual: true` on your Ecto schema.
-  If you do, `Infer` will use it to store a copy of results inferred by executing
-  functions (such as `Infer.get/3`) in a map in this field, like a cache.
-
-  ### Referencing values in condition (experimental)
-
-  `{:ref, [...]}` is a reference to a **path**, starting from the subject.
+  Example:
 
   ```elixir
   infer ot_fields: %{editable: true},
@@ -214,33 +144,177 @@ defmodule Infer do
       }
   ```
 
-  ### Binding values in condition (highly experimental)
+  #### Branching
+
+  Any part of the `path` that represents an underlying **list of subjects**, such as referencing a `has_many` association,
+  will cause the result of the `:ref` to be a list as well. It basically behaves similar to `Enum.map/2`.
+
+  A **map** as last element of a `path` will branch the returned result out into this map. The keys are returned as is, the values must be a
+  list (or atom) continuing that path. This is particularly powerful when used on a list of subjects (see above), because it
+  will return the given map with the values at the given paths for each underlying subject:
+
+  A **list** as last element of a `path` behaves like a map where each value equals its key.
+
+  Examples:
+  ```elixir
+  infer list: [%{a: 1, b: 2, c: %{d: 4}}, %{a: 9, b: 8, c: %{d: 6}}]
+
+  infer result1: {:ref, [:list, :a]}  # => [1, 9]
+  infer result2: {:ref, [:list, %{x: :a, y: [:c, :d]}]}  # => [%{x: 1, y: 4}, %{x: 9, y: 6}]
+  infer result3: {:ref, [:list, [:a, :b]]}  # => [%{a: 1, b: 2}, %{a: 9, b: 8}]
+  ```
+
+  ### Arguments
+
+  Passing `:args` as an option to any of the Infer API functions enables referencing the passed data
+  in conditions and values using `{:ref, [:args, ...]}`.
+
+  ### Binding subject parts
+
+  Syntax:
+  - `{:bind, key}` (in conditions)
+  - `{:bind, key, subcondition}` (in conditions)
+  - `{:bound, key}` (in result values)
+  - `{:bound, key, default}` (in result values)
 
   When a condition is evaluated on a list of values, the **first value** satisfying
   the condition can be bound to a variable using `{:bind, variable}`.
 
-  `{:bind, variable}` creates a temporary predicate on the root (subject) level,
-  which can be referenced using `{:ref, [...]}`.
-
-  A path consisting of one element can have its brackets omitted.
+  These bound values can be referenced using `{:bound, key}` with an optional default:
+  `{:bound, key, default}`.
 
   ```elixir
-  infer project_manager: {:ref, :person},
+  infer project_manager: {:bound, :person},
       when: %{roles: %{type: "project_manager", person: {:bind, :person}}}
   ```
 
-  `{:bind_all, variable}` works in the same way, but binds a list of all matching
-  list values to the variable.
+  ### Local aliases
 
-  It can be used via `{:ref, variable}`, or also `{:count, variable}` which returns
-  the number of elements in the bound list.
+  Syntax:
+  - `infer_alias key: ...` (in modules before using `key` in `infer ...`)
+
+  In order to create shorthands and avoid repetition, aliases can be defined.
+  These apply only to subsequent rules within the same module and are not exposed in any other way.
 
   ```elixir
-  infer project_managers: {:count, :person},
-      when: %{roles: %{type: "project_manager", person: {:bind_all, :person}}}
+  infer_alias pm?: %{roles: %{type: ["project_manager", admin]}}
+
+  infer ot_fields: %{editable: true}, when: [:pm?, %{construction_bectu?: true}]
   ```
 
-  ## Rule checks at compile-time
+  ### Calling functions
+
+  Syntax:
+  - `{&module.fun/n, [arg_1, ..., arg_n]}` (in result values)
+  - `{&module.fun/1, arg_1}` (in result values)
+
+  Any function can be called to map the given arguments to other values.
+  The function arguments must be passed as a list, except if it's only one.
+  Arguments can be fixed values or other Infer features (passed as is), such as references.
+
+  ```elixir
+  infer day_of_week: {&Date.day_of_week/1, {:ref, :date}}
+
+  infer duration: {&Timex.diff/3, [{:ref, :start_datetime}, {:ref, :end_datetime}, :hours]}
+  ```
+
+  Only pure functions with low overhead should be used.
+  Infer might call them very often during evaluation (once after each loading of data).
+
+  ### Querying
+
+  Syntax:
+  - `{:query_one, type, conditions}`
+  - `{:query_one, type, conditions, options}`
+  - `{:query_first, type, conditions}`
+  - `{:query_first, type, conditions, options}`
+  - `{:query_all, type, conditions}`
+  - `{:query_all, type, conditions, options}`
+
+  Arguments:
+  - `type` is a module name (or Ecto queryable), e.g. an Ecto schema
+  - `conditions` is a **keyword list** of fields and their respective values, or lists of values, they must match
+  - `options` is a subset of the options that Ecto queries support:
+    - `order_by`
+    - `limit`
+
+  #### Conditions
+
+  The first key-value pair has a special behavior:
+  It is used as the main condition for `Dataloader`, and thus should have the highest cardinality.
+  It must be a single value, not a list of values.
+
+  *Rule of thumb:* Put a single field that has the most unique values as first condition.
+
+  ### Transforming lists
+
+  Syntax:
+  - `{:filter, source, condition}` (in result values)
+  - `{:map, source, mapper}`  (in result values)
+  - `{:map, source, bind_key/condition, mapper}` (in result values)
+
+  Arguments:
+  - `source` can either be a list literal, a field or predicate that evaluates to a list, or another feature such as a query.
+  - `condition` has the same form and functionality as any other rule condition.
+  - `mapper` can either be a field or predicate (atom), or is otherwise treated as any other rule value.
+
+  There are 3 variants:
+
+  - `{:filter, source, condition}` keeps only elements from `source`, for which the `condition` is met.
+  - `{:map, source, mapper}` returns the result of `mapper` for each element in `source`.
+  - `{:map, source, bind_key/condition, mapper}` is a special form of `:map`, where the `mapper` is based on the
+    subject of the rule, not the list element. The list element is referenced using the middle arg, which can be either:
+    - a `bind_key` (atom) - the current list element is referenced via `{:bound, bind_key}` in the `mapper`
+    - a `condition` - any values bound in the condition via `{:bind, key, ...}` can be accessed via `{:bound, key}` in the `mapper`
+
+  Use the special form of `:map` only when you need to reference both the list element (via `:bound`),
+  and the subject of the rule (via `:ref`).
+  Using a combination of `:filter` and basic `:map` instead is always preferred, if possible.
+
+  Any `nil` elements in the list are mapped to `nil`, when using `:map` without condition.
+
+  Examples:
+
+  ```elixir
+  infer accepted_offers: {:filter, :offers, %{state: "accepted"}}
+
+  infer offer_ids: {:map, :offers, :id}
+
+  infer first_offer_of_same_user:
+          {:map, :offers, %{state: "accepted", user_id: {:bind, :uid, {:not, nil}}},
+           {:query_first, Offer, user_id: {:bound, :uid}, project_id: {:ref, :project_id}}}
+  ```
+
+  ### Counting
+
+  Syntax:
+  - `{:count, source, condition/predicate}` (in result values)
+  - `{:count_while, source, condition/predicate}` (in result values)
+
+  Arguments:
+  - `source` can either be a list literal, a field or predicate that evaluates to a list, or another feature such as a query.
+  - `condition` has the same form and functionality as any other rule condition.
+  - `predicate` can either be a predicate (atom) that returns either `true`, `false`, or `:skip` (only for `:count_while`)
+
+  Takes the given list and counts the elements that evaluate to `true`.
+  `:count_while` stops after the first element that returns `false`.
+  To not count an element, but not stop counting either, the given predicate may return `:skip`.
+  Any `nil` elements in the list are treated as `false`.
+
+  ### Predicate groups (not implemented yet)
+
+  Groups with multiple predicates can be defined and used as shorthands in assigns and preloads.
+  See `predicate_group/1` for examples.
+
+  By default, Infer defines `:all_fields` as a group of all fields defined, e.g. Struct fields, Ecto schema fields, ...
+
+  Uses:
+
+  - In API: A group name can be passed to the Infer API to infer all predicates in that group.
+  - In rule results: Instead of a simple key, a list of keys can be given as a key as a short hand to setting the same value for
+    all listed keys, e.g. `%{[:admin?, :senior?] => true}`. This also enables using predicate groups as keys.
+
+  ## Rule checks at compile-time (not implemented yet)
 
   Problems that can be detected at compile-time:
 
