@@ -7,13 +7,13 @@ defmodule Infer do
   Infer offers a declarative approach to application logic that especially shines in apps with:
   - Complex data schemas, especially when rules need to look at data in many multiple or deeply nested associated types/modules
   - Complex application logic, especially with many "edge cases" and other conditional logic
-  - Large parts of the data being loaded (e.g. from the database) is only needed to run the application logic and get/display the results
+  - Large parts of the data being loaded (e.g. from the database) is only needed to compute final results
 
   Infer helps in these cases, because:
   - Application logic is declared in a concise and clean way that's readable even to non-developers (with a short introduction)
   - Application logic can be laid out into modules as it makes sense for the application domain, not the code
-  - No execution code needs to be written, just call `Infer` with a single or list of records and the results that are needed,
-    and it will execute it
+  - No execution code needs to be written, just call `Infer` with a single or list of records and the desired results,
+    and it will compute them
   - Infer loads required data as needed (e.g. from the database), in an optimized way that applies filtering, batching and concurrency,
     and avoids overfetching
 
