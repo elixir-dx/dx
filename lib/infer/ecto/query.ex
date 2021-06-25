@@ -5,6 +5,28 @@ defmodule Infer.Ecto.Query do
 
   import Ecto.Query, only: [from: 2, dynamic: 2]
 
+  @doc """
+  Applies all known options to the given `queryable`
+  and returns it, along with all options that were unknown.
+  """
+  def apply_options(queryable, opts) do
+    Enum.reduce(opts, {queryable, []}, fn
+      {:where, conditions}, {query, opts} -> {filter_by(query, conditions), opts}
+      {:limit, limit}, {query, opts} -> {limit(query, limit), opts}
+      {:order_by, order}, {query, opts} -> {order_by(query, order), opts}
+      other, {query, opts} -> {query, [other | opts]}
+    end)
+    |> case do
+      {queryable, opts} -> {queryable, Enum.reverse(opts)}
+    end
+  end
+
+  @doc "Apply all options to the given `queryable`, raise on any unknown option."
+  def from_options(queryable, opts) do
+    {queryable, []} = apply_options(queryable, opts)
+    queryable
+  end
+
   def filter_by(queryable, conditions) do
     Enum.reduce(conditions, queryable, fn
       {key, nil}, queryable ->

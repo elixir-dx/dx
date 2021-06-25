@@ -344,7 +344,7 @@ defmodule Infer do
 
   """
 
-  alias Infer.{Result, Util}
+  alias Infer.{Engine, Result, Util}
   alias Infer.Evaluation, as: Eval
 
   @doc """
@@ -374,7 +374,7 @@ defmodule Infer do
   end
 
   defp do_get(record, predicate, eval) do
-    Infer.Engine.resolve_predicate(predicate, record, eval)
+    Engine.resolve_predicate(predicate, record, eval)
   end
 
   @doc """
@@ -485,8 +485,17 @@ defmodule Infer do
     type.infer_preload(record_or_records, preloads, opts)
   end
 
+  defp get_type(%Ecto.Query{from: %{source: {_, type}}}), do: type
   defp get_type(%type{}), do: type
   defp get_type([%type{} | _]), do: type
+
+  defp get_type(type) when is_atom(type) do
+    if Util.Module.has_function?(type, :infer_rules, 2) do
+      type
+    else
+      raise ArgumentError, "Could not derive type from " <> inspect(type, pretty: true)
+    end
+  end
 
   @doc """
   Preloads data for a record nested under the given field or path (list of fields)
@@ -512,12 +521,17 @@ defmodule Infer do
 
   @doc "Removes all elements not matching the given condition from the given list."
   def filter(records, condition, opts \\ []) when is_list(records) do
-    Enum.filter(records, &load!(&1, condition, opts))
+    eval = Eval.from_options(opts)
+
+    load_all_data_reqs(eval, fn eval ->
+      Result.filter_map(records, &Engine.evaluate_condition(condition, &1, eval))
+    end)
+    |> Result.unwrap!()
   end
 
   @doc "Removes all elements matching the given condition from the given list."
   def reject(records, condition, opts \\ []) when is_list(records) do
-    Enum.reject(records, &load!(&1, condition, opts))
+    filter(records, {:not, condition}, opts)
   end
 
   @doc """
@@ -572,8 +586,16 @@ defmodule Infer do
       #    p.bectu_type IN ('BECTU_CUSTOM_OVERTIME', 'NONE'))
       {:ok, [%Offer{}, %Offer{}, ...], [%{rate_type: :flat_rate_ot}, %{rate_type: :flat_rate_ot}, ...]}
   """
-  def query_all(_type, _condition, _opts \\ []) do
-    # ...
+  def query_all(queryable, condition, opts \\ []) do
+    type = get_type(queryable)
+    query_mod = type.infer_query_module()
+    repo = type.infer_repo()
+
+    {queryable, opts} = query_mod.apply_options(queryable, opts)
+
+    queryable
+    |> repo.all()
+    |> filter(condition, opts)
   end
 
   @doc """
@@ -583,7 +605,15 @@ defmodule Infer do
 
   Same as for `query_all/3`.
   """
-  def query_one(_type, _condition, _opts \\ []) do
-    # ...
+  def query_one(queryable, condition, opts \\ []) do
+    type = get_type(queryable)
+    query_mod = type.infer_query_module()
+    repo = type.infer_repo()
+
+    {queryable, opts} = query_mod.apply_options(queryable, opts)
+
+    queryable
+    |> repo.one!()
+    |> filter(condition, opts)
   end
 end

@@ -257,57 +257,61 @@ defmodule Infer.Engine do
   defp map_result(other, _eval), do: Result.ok(other)
 
   @spec evaluate_condition(any(), any(), Eval.t()) :: Result.b()
-  defp evaluate_condition(condition, subjects, eval) when is_list(subjects) do
+  def evaluate_condition(condition, subjects, eval) when is_list(subjects) do
     Result.any?(subjects, &evaluate_condition(condition, &1, eval))
   end
 
-  defp evaluate_condition(conditions, subject, eval) when is_list(conditions) do
+  def evaluate_condition(conditions, subject, eval) when is_list(conditions) do
     Result.any?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition({:not, condition}, subject, %Eval{} = eval) do
+  def evaluate_condition({:not, condition}, subject, %Eval{} = eval) do
     evaluate_condition(condition, subject, eval)
     |> Result.transform(&not/1)
   end
 
-  defp evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
+  def evaluate_condition({:ref, [:args | path]}, subject, %Eval{} = eval) do
     eval.args
     |> resolve_path(path, eval)
     |> Result.then(&evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
+  def evaluate_condition({:ref, path}, subject, %Eval{} = eval) do
     eval.root_subject
     |> resolve_path(List.wrap(path), eval)
     |> Result.then(&evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition({:bind, key, condition}, subject, eval) do
+  def evaluate_condition({:bind, key, condition}, subject, eval) do
     evaluate_condition(condition, subject, eval)
     |> Result.bind(key, subject)
   end
 
-  defp evaluate_condition({:bind, key}, subject, _eval) do
+  def evaluate_condition({:bind, key}, subject, _eval) do
     Result.ok(true)
     |> Result.bind(key, subject)
   end
 
-  defp evaluate_condition({:args, sub_condition}, subject, %Eval{root_subject: subject} = eval) do
+  def evaluate_condition({:args, sub_condition}, subject, %Eval{root_subject: subject} = eval) do
     evaluate_condition(sub_condition, eval.args, eval)
   end
 
-  defp evaluate_condition({{:ref, path}, conditions}, subject, eval) when is_map(subject) do
+  def evaluate_condition({{:ref, path}, conditions}, subject, eval) when is_map(subject) do
     eval.root_subject
     |> resolve_path(List.wrap(path), eval)
     |> Result.then(&evaluate_condition(conditions, &1, eval))
   end
 
-  defp evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
+  def evaluate_condition({:all, conditions}, subject, eval) do
+    Result.all?(conditions, &evaluate_condition(&1, subject, eval))
+  end
+
+  def evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
     resolve(key, subject, eval)
     |> Result.then(&evaluate_condition(conditions, &1, eval))
   end
 
-  defp evaluate_condition(%type{} = other, %type{} = subject, _eval) do
+  def evaluate_condition(%type{} = other, %type{} = subject, _eval) do
     if Util.Module.has_function?(type, :compare, 2) do
       Result.ok(type.compare(subject, other) == :eq)
     else
@@ -315,17 +319,17 @@ defmodule Infer.Engine do
     end
   end
 
-  defp evaluate_condition(predicate, %_type{} = subject, eval)
-       when is_atom(predicate) and predicate not in [nil, true, false] do
+  def evaluate_condition(predicate, %_type{} = subject, eval)
+      when is_atom(predicate) and predicate not in [nil, true, false] do
     resolve(predicate, subject, eval)
     |> Result.transform(&(&1 == true))
   end
 
-  defp evaluate_condition(conditions, subject, eval) when is_map(conditions) do
+  def evaluate_condition(conditions, subject, eval) when is_map(conditions) do
     Result.all?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
-  defp evaluate_condition(other, subject, _eval) do
+  def evaluate_condition(other, subject, _eval) do
     Result.ok(subject == other)
   end
 

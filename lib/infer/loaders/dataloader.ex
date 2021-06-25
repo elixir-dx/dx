@@ -31,16 +31,8 @@ defmodule Infer.Loaders.Dataloader do
     [:assoc, {:many, type, opts}, [main_condition]]
   end
 
-  def query(queryable, options) do
-    Enum.reduce(options, queryable, fn
-      {:where, conditions}, query -> Infer.Ecto.Query.filter_by(query, conditions)
-      {:limit, limit}, query -> Infer.Ecto.Query.limit(query, limit)
-      {:order_by, order}, query -> Infer.Ecto.Query.order_by(query, order)
-    end)
-  end
-
   def init() do
-    source = Dataloader.Ecto.new(Ev2.Repo, query: &query/2)
+    source = Dataloader.Ecto.new(Ev2.Repo, query: &Infer.Ecto.Query.from_options/2)
 
     Dataloader.new(get_policy: :tuples)
     |> Dataloader.add_source(:assoc, source)
