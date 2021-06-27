@@ -490,7 +490,7 @@ defmodule Infer do
   defp get_type([%type{} | _]), do: type
 
   defp get_type(type) when is_atom(type) do
-    if Util.Module.has_function?(type, :infer_rules, 2) do
+    if Util.Module.has_function?(type, :infer_rules_for, 2) do
       type
     else
       raise ArgumentError, "Could not derive type from " <> inspect(type, pretty: true)
@@ -523,8 +523,19 @@ defmodule Infer do
   def filter(records, condition, opts \\ []) when is_list(records) do
     eval = Eval.from_options(opts)
 
+    do_filter(records, condition, eval)
+  end
+
+  defp do_filter(records, true, _eval) do
+    records
+  end
+
+  defp do_filter(records, condition, eval) do
     load_all_data_reqs(eval, fn eval ->
-      Result.filter_map(records, &Engine.evaluate_condition(condition, &1, eval))
+      Result.filter_map(
+        records,
+        &Engine.evaluate_condition(condition, &1, %{eval | root_subject: &1})
+      )
     end)
     |> Result.unwrap!()
   end
@@ -587,15 +598,11 @@ defmodule Infer do
       {:ok, [%Offer{}, %Offer{}, ...], [%{rate_type: :flat_rate_ot}, %{rate_type: :flat_rate_ot}, ...]}
   """
   def query_all(queryable, condition, opts \\ []) do
-    type = get_type(queryable)
-    query_mod = type.infer_query_module()
-    repo = type.infer_repo()
-
-    {queryable, opts} = query_mod.apply_options(queryable, opts)
+    {queryable, condition, repo, eval} = build_query(queryable, condition, opts)
 
     queryable
     |> repo.all()
-    |> filter(condition, opts)
+    |> do_filter(condition, eval)
   end
 
   @doc """
@@ -606,14 +613,23 @@ defmodule Infer do
   Same as for `query_all/3`.
   """
   def query_one(queryable, condition, opts \\ []) do
+    {queryable, condition, repo, eval} = build_query(queryable, condition, opts)
+
+    queryable
+    |> repo.one!()
+    |> do_filter(condition, eval)
+  end
+
+  defp build_query(queryable, condition, opts) do
     type = get_type(queryable)
     query_mod = type.infer_query_module()
     repo = type.infer_repo()
 
     {queryable, opts} = query_mod.apply_options(queryable, opts)
 
-    queryable
-    |> repo.one!()
-    |> filter(condition, opts)
+    eval = Eval.from_options(opts)
+    {queryable, condition} = query_mod.apply_condition(queryable, condition, eval)
+
+    {queryable, condition, repo, eval}
   end
 end

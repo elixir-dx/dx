@@ -3,7 +3,125 @@ defmodule Infer.Ecto.Query do
   Functions to dynamically generate Ecto query parts.
   """
 
+  alias Infer.Util
+
   import Ecto.Query, only: [from: 2, dynamic: 2]
+
+  defguard is_simple(val)
+           when is_integer(val) or is_float(val) or is_atom(val) or is_binary(val) or
+                  is_boolean(val) or is_nil(val) or is_struct(val)
+
+  def apply_condition(queryable, {:not, condition}, eval) do
+    eval = Map.update!(eval, :negate?, &Kernel.not/1)
+
+    apply_condition(queryable, condition, eval)
+  end
+
+  def apply_condition(queryable, conditions, eval) when is_map(conditions) do
+    apply_condition(queryable, {:all, conditions}, eval)
+  end
+
+  def apply_condition(queryable, {:all, conditions}, eval) do
+    {conditions, queryable} =
+      Enum.flat_map_reduce(conditions, queryable, fn condition, queryable ->
+        case apply_condition(queryable, condition, eval) do
+          {queryable, true} -> {[], queryable}
+          {queryable, condition} -> {[condition], queryable}
+        end
+      end)
+
+    {queryable, {:all, conditions} |> maybe_negate(eval)}
+  end
+
+  def apply_condition(queryable, {key, {op, val}}, eval)
+      when is_atom(key) and
+             op in [:<=, :lte, :less_than_or_equal, :on_or_before, :at_or_before] and
+             is_simple(val) do
+    type = get_type(queryable)
+
+    case Util.rules_for_predicate(key, type, eval) do
+      [] -> {do_apply(queryable, key, :lte, val, eval), true}
+      _rules -> {queryable, {key, val}}
+    end
+  end
+
+  def apply_condition(queryable, {key, val}, eval) when is_atom(key) and is_simple(val) do
+    type = get_type(queryable)
+
+    case Util.rules_for_predicate(key, type, eval) do
+      [] ->
+        {do_apply(queryable, key, :eq, val, eval), true}
+
+      rules ->
+        case rules_for_value(rules, val, eval) do
+          :error -> {queryable, {key, val}}
+          condition -> apply_condition(queryable, condition, eval)
+        end
+    end
+  end
+
+  def apply_condition(queryable, condition, _eval) do
+    {queryable, condition}
+  end
+
+  defp maybe_negate({:all, []}, %{negate?: false}), do: false
+  defp maybe_negate({:all, [condition]}, %{negate?: false}), do: condition
+  defp maybe_negate({:all, conditions}, %{negate?: false}), do: {:all, conditions}
+  defp maybe_negate({:all, []}, %{negate?: true}), do: true
+  defp maybe_negate({:all, [condition]}, %{negate?: true}), do: {:not, condition}
+  defp maybe_negate({:all, conditions}, %{negate?: true}), do: {:not, {:all, conditions}}
+
+  defp do_apply(queryable, key, :eq, nil, %{negate?: false}) do
+    from(q in queryable, where: is_nil(field(q, ^key)))
+  end
+
+  defp do_apply(queryable, key, :eq, nil, %{negate?: true}) do
+    from(q in queryable, where: not is_nil(field(q, ^key)))
+  end
+
+  defp do_apply(queryable, key, :eq, val, %{negate?: false}) do
+    from(q in queryable, where: field(q, ^key) == ^val)
+  end
+
+  defp do_apply(queryable, key, :eq, val, %{negate?: true}) do
+    from(q in queryable, where: field(q, ^key) != ^val)
+  end
+
+  defp do_apply(queryable, key, :lte, val, %{negate?: false}) do
+    from(q in queryable, where: field(q, ^key) <= ^val)
+  end
+
+  defp do_apply(queryable, key, :lte, val, %{negate?: true}) do
+    from(q in queryable, where: field(q, ^key) > ^val)
+  end
+
+  defp get_type(%Ecto.Query{from: %{source: {_, type}}}), do: type
+
+  defp rules_for_value(rules, val, %{negate?: false}) do
+    Enum.reduce_while(rules, {:pre, []}, fn
+      {condition, ^val}, {:pre, nots} when condition == %{} -> {:cont, {:ok, [], nots}}
+      {condition, ^val}, {:pre, nots} -> {:cont, {:ok, [condition], nots}}
+      {condition, ^val}, {:ok, conditions, nots} -> {:cont, {:ok, [condition | conditions], nots}}
+      {_condition, ^val}, {:done, _conditions, _nots} -> {:halt, :error}
+      {_condition, complex}, _ when not is_simple(complex) -> {:halt, :error}
+      {condition, _other}, {:pre, nots} -> {:cont, {:pre, [{:not, condition} | nots]}}
+      {_condition, _other}, {:ok, conditions, nots} -> {:cont, {:done, conditions, nots}}
+      {_condition, _other}, {:done, _conditions, _nots} = acc -> {:cont, acc}
+    end)
+    |> case do
+      {_, [], nots} -> {:all, nots}
+      {_, [condition], nots} -> {:all, [condition | nots]}
+      {_, conditions, nots} -> {:all, [conditions | nots]}
+      {:pre, nots} -> {:all, nots}
+      :error -> :error
+    end
+    |> case do
+      {:all, []} -> %{}
+      {:all, [condition]} -> condition
+      {:all, conditions} -> {:all, Enum.reverse(conditions)}
+      :error -> :error
+    end
+  end
 
   @doc """
   Applies all known options to the given `queryable`

@@ -10,6 +10,7 @@ defmodule Infer.Evaluation do
     field(:root_subject, map())
     field(:cache, any())
     field(:binds, map())
+    field(:negate?, boolean(), default: false)
 
     # Options
     field(:loader, module(), default: Infer.Loaders.Dataloader)

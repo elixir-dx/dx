@@ -306,6 +306,30 @@ defmodule Infer.Engine do
     Result.all?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
+  def evaluate_condition({op, other}, subject, eval)
+      when op in [:<, :lt, :less_than, :before] do
+    map_result(other, eval)
+    |> Result.transform(&compare(&1, subject, :<, [:lt]))
+  end
+
+  def evaluate_condition({op, other}, subject, eval)
+      when op in [:<=, :lte, :less_than_or_equal, :on_or_before, :at_or_before] do
+    map_result(other, eval)
+    |> Result.transform(&compare(&1, subject, :<=, [:lt, :eq]))
+  end
+
+  def evaluate_condition({op, other}, subject, eval)
+      when op in [:>=, :gte, :greater_than_or_equal, :on_or_after, :at_or_after] do
+    map_result(other, eval)
+    |> Result.transform(&compare(&1, subject, :>=, [:gt, :eq]))
+  end
+
+  def evaluate_condition({op, other}, subject, eval)
+      when op in [:>, :gt, :greater_than, :after] do
+    map_result(other, eval)
+    |> Result.transform(&compare(&1, subject, :>, [:gt]))
+  end
+
   def evaluate_condition({key, conditions}, subject, eval) when is_map(subject) do
     resolve(key, subject, eval)
     |> Result.then(&evaluate_condition(conditions, &1, eval))
@@ -331,6 +355,14 @@ defmodule Infer.Engine do
 
   def evaluate_condition(other, subject, _eval) do
     Result.ok(subject == other)
+  end
+
+  defp compare(%type{} = other, %type{} = subject, _operator, compare_results) do
+    type.compare(subject, other) in compare_results
+  end
+
+  defp compare(other, subject, operator, _compare_results) do
+    apply(Kernel, operator, [subject, other])
   end
 
   defp fetch(map, key, eval) do
