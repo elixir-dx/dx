@@ -11,6 +11,12 @@ defmodule Infer.Ecto.Query do
            when is_integer(val) or is_float(val) or is_atom(val) or is_binary(val) or
                   is_boolean(val) or is_nil(val) or is_struct(val)
 
+  @lt_ops ~w(< lt less_than before)a
+  @lte_ops ~w(<= lte less_than_or_equal on_or_before at_or_before)a
+  @gte_ops ~w(>= gte greater_than_or_equal on_or_after at_or_after)a
+  @gt_ops ~w(> gt greater_than after)a
+  @all_ops @lt_ops ++ @lte_ops ++ @gte_ops ++ @gt_ops
+
   def apply_condition(queryable, {:not, condition}, eval) do
     eval = Map.update!(eval, :negate?, &Kernel.not/1)
 
@@ -34,13 +40,11 @@ defmodule Infer.Ecto.Query do
   end
 
   def apply_condition(queryable, {key, {op, val}}, eval)
-      when is_atom(key) and
-             op in [:<=, :lte, :less_than_or_equal, :on_or_before, :at_or_before] and
-             is_simple(val) do
+      when is_atom(key) and op in @all_ops and is_simple(val) do
     type = get_type(queryable)
 
     case Util.rules_for_predicate(key, type, eval) do
-      [] -> {do_apply(queryable, key, :lte, val, eval), true}
+      [] -> {do_apply(queryable, key, op, val, eval), true}
       _rules -> {queryable, {key, val}}
     end
   end
@@ -64,36 +68,47 @@ defmodule Infer.Ecto.Query do
     {queryable, condition}
   end
 
-  defp maybe_negate({:all, []}, %{negate?: false}), do: false
+  defp maybe_negate({:all, []}, _eval), do: true
   defp maybe_negate({:all, [condition]}, %{negate?: false}), do: condition
   defp maybe_negate({:all, conditions}, %{negate?: false}), do: {:all, conditions}
-  defp maybe_negate({:all, []}, %{negate?: true}), do: true
   defp maybe_negate({:all, [condition]}, %{negate?: true}), do: {:not, condition}
   defp maybe_negate({:all, conditions}, %{negate?: true}), do: {:not, {:all, conditions}}
 
-  defp do_apply(queryable, key, :eq, nil, %{negate?: false}) do
-    from(q in queryable, where: is_nil(field(q, ^key)))
-  end
+  defp do_apply(queryable, key, :eq, nil, %{negate?: false}),
+    do: from(q in queryable, where: is_nil(field(q, ^key)))
 
-  defp do_apply(queryable, key, :eq, nil, %{negate?: true}) do
-    from(q in queryable, where: not is_nil(field(q, ^key)))
-  end
+  defp do_apply(queryable, key, :eq, nil, %{negate?: true}),
+    do: from(q in queryable, where: not is_nil(field(q, ^key)))
 
-  defp do_apply(queryable, key, :eq, val, %{negate?: false}) do
-    from(q in queryable, where: field(q, ^key) == ^val)
-  end
+  defp do_apply(queryable, key, :eq, val, %{negate?: false}),
+    do: from(q in queryable, where: field(q, ^key) == ^val)
 
-  defp do_apply(queryable, key, :eq, val, %{negate?: true}) do
-    from(q in queryable, where: field(q, ^key) != ^val)
-  end
+  defp do_apply(queryable, key, :eq, val, %{negate?: true}),
+    do: from(q in queryable, where: field(q, ^key) != ^val)
 
-  defp do_apply(queryable, key, :lte, val, %{negate?: false}) do
-    from(q in queryable, where: field(q, ^key) <= ^val)
-  end
+  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @lt_ops,
+    do: from(q in queryable, where: field(q, ^key) < ^val)
 
-  defp do_apply(queryable, key, :lte, val, %{negate?: true}) do
-    from(q in queryable, where: field(q, ^key) > ^val)
-  end
+  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @lt_ops,
+    do: from(q in queryable, where: field(q, ^key) >= ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @lte_ops,
+    do: from(q in queryable, where: field(q, ^key) <= ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @lte_ops,
+    do: from(q in queryable, where: field(q, ^key) > ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @gte_ops,
+    do: from(q in queryable, where: field(q, ^key) >= ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @gte_ops,
+    do: from(q in queryable, where: field(q, ^key) < ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @gt_ops,
+    do: from(q in queryable, where: field(q, ^key) > ^val)
+
+  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @gt_ops,
+    do: from(q in queryable, where: field(q, ^key) <= ^val)
 
   defp get_type(%Ecto.Query{from: %{source: {_, type}}}), do: type
 
