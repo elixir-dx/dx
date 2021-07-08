@@ -4,8 +4,10 @@ defmodule Infer.Ecto.Query do
   """
 
   alias Infer.Util
+  alias Infer.Evaluation, as: Eval
+  alias __MODULE__.Builder
 
-  import Ecto.Query, only: [from: 2, dynamic: 2]
+  import Ecto.Query, only: [dynamic: 1, dynamic: 2, from: 2]
 
   defguard is_simple(val)
            when is_integer(val) or is_float(val) or is_atom(val) or is_binary(val) or
@@ -17,101 +19,257 @@ defmodule Infer.Ecto.Query do
   @gt_ops ~w(> gt greater_than after)a
   @all_ops @lt_ops ++ @lte_ops ++ @gte_ops ++ @gt_ops
 
-  def apply_condition(queryable, {:not, condition}, eval) do
-    eval = Map.update!(eval, :negate?, &Kernel.not/1)
+  @doc """
+  Returns a 2-tuple with
 
-    apply_condition(queryable, condition, eval)
+    1. the modified queryable with the given conditions applied as WHERE clauses
+    2. any remaining conditions that couldn't be added to the query
+
+  Returns `{query, true}` if all conditions could be added to the query.
+  """
+  def apply_condition(queryable, condition, %Eval{} = eval) do
+    {builder, condition} =
+      queryable
+      |> Builder.init(eval)
+      |> apply_condition(condition)
+
+    {builder.root_query, condition}
   end
 
-  def apply_condition(queryable, conditions, eval) when is_map(conditions) do
-    apply_condition(queryable, {:all, conditions}, eval)
-  end
+  # maps a condition and adds it to the current `root_query`
+  defp apply_condition(builder, condition) do
+    case map_condition(builder, condition) do
+      {builder, where} ->
+        query = builder.root_query
+        query = from(q in query, where: ^where)
+        builder = %{builder | root_query: query}
+        {builder, true}
 
-  def apply_condition(queryable, {:all, conditions}, eval) do
-    {conditions, queryable} =
-      Enum.flat_map_reduce(conditions, queryable, fn condition, queryable ->
-        case apply_condition(queryable, condition, eval) do
-          {queryable, true} -> {[], queryable}
-          {queryable, condition} -> {[condition], queryable}
-        end
-      end)
-
-    {queryable, {:all, conditions} |> maybe_negate(eval)}
-  end
-
-  def apply_condition(queryable, {key, {op, val}}, eval)
-      when is_atom(key) and op in @all_ops and is_simple(val) do
-    type = get_type(queryable)
-
-    case Util.rules_for_predicate(key, type, eval) do
-      [] -> {do_apply(queryable, key, op, val, eval), true}
-      _rules -> {queryable, {key, val}}
+      :error ->
+        {builder, condition}
     end
   end
 
-  def apply_condition(queryable, {key, val}, eval) when is_atom(key) and is_simple(val) do
-    type = get_type(queryable)
+  # maps a Infer condition to an Ecto query condition
+  defp map_condition(builder, {:not, condition}) do
+    case map_condition(builder, condition) do
+      :error -> :error
+      {builder, where} -> {builder, dynamic(not (^where))}
+    end
+  end
 
-    case Util.rules_for_predicate(key, type, eval) do
+  defp map_condition(builder, conditions) when is_map(conditions) do
+    map_condition(builder, {:all, conditions})
+  end
+
+  defp map_condition(builder, {:all, conditions}) do
+    Enum.reduce_while(conditions, {builder, true}, fn condition, {builder, acc_query} ->
+      case map_condition(builder, condition) do
+        :error -> {:halt, :error}
+        {builder, where} -> {:cont, {builder, combine_and(where, acc_query)}}
+      end
+    end)
+  end
+
+  defp map_condition(builder, conditions) when is_list(conditions) do
+    Enum.reduce_while(conditions, {builder, false}, fn condition, {builder, acc_query} ->
+      case map_condition(builder, condition) do
+        :error -> {:halt, :error}
+        {builder, where} -> {:cont, {builder, combine_or(where, acc_query)}}
+      end
+    end)
+  end
+
+  defp map_condition(builder, {:args, sub_condition}) do
+    case Infer.Engine.evaluate_condition(
+           {:args, sub_condition},
+           builder.eval.root_subject,
+           builder.eval
+         ) do
+      {:ok, result, _} -> {builder, result}
+    end
+  end
+
+  defp map_condition(builder, {key, val}) when is_atom(key) do
+    case field_info(key, builder) do
+      :field ->
+        left = Builder.field(builder, key)
+
+        case val do
+          vals when is_list(vals) ->
+            Enum.reduce_while(vals, {builder, false}, fn val, {builder, acc_query} ->
+              case map_condition(builder, {key, val}) do
+                :error -> {:halt, :error}
+                {builder, where} -> {:cont, {builder, combine_or(where, acc_query)}}
+              end
+            end)
+
+          {:not, val} ->
+            Builder.negate(builder, fn builder ->
+              with {builder, right} <- to_val(builder, val) do
+                {builder, compare(left, :eq, right, builder)}
+              end
+            end)
+
+          {op, val} when op in @all_ops ->
+            with {builder, right} <- to_val(builder, val) do
+              {builder, compare(left, op, right, builder)}
+            end
+
+          val ->
+            with {builder, right} <- to_val(builder, val) do
+              {builder, compare(left, :eq, right, builder)}
+            end
+        end
+
+      {:predicate, rules} ->
+        case rules_for_value(rules, val, builder) do
+          :error -> :error
+          condition -> map_condition(builder, condition)
+        end
+
+      {:assoc, :one, _assoc} ->
+        Builder.with_join(builder, key, fn builder ->
+          map_condition(builder, val)
+        end)
+
+      {:assoc, :many, assoc} ->
+        %{queryable: queryable, related_key: related_key, owner_key: owner_key} = assoc
+
+        as = Builder.current_alias(builder)
+
+        subquery =
+          from(q in queryable,
+            where: field(q, ^related_key) == field(parent_as(^as), ^owner_key)
+          )
+
+        Builder.step_into(builder, key, subquery, fn builder ->
+          map_condition(builder, val)
+        end)
+    end
+  end
+
+  # maps the right side of a Infer condition to an Ecto Query value
+  defp to_val(builder, {:ref, path}), do: reference_path(builder, path)
+  defp to_val(builder, val) when is_simple(val), do: {builder, val}
+
+  # returns a reference to a field as an Ecto Query value
+  defp reference_path(builder, path) do
+    Builder.from_root(builder, fn builder ->
+      do_ref(builder, path)
+    end)
+  end
+
+  defp do_ref(builder, [:args | _] = path) do
+    case Infer.Engine.resolve_source({:ref, path}, builder.eval) do
+      {:ok, result, _} -> {builder, result}
+    end
+  end
+
+  defp do_ref(builder, field) when is_atom(field), do: do_ref(builder, [field])
+
+  defp do_ref(builder, [field]) do
+    {builder, Builder.field(builder, field, true)}
+  end
+
+  defp do_ref(builder, [field | path]) do
+    case field_info(field, builder) do
+      {:assoc, :one, _assoc} -> Builder.with_join(builder, field, &do_ref(&1, path))
+      _other -> :error
+    end
+  end
+
+  defp combine_and(true, right), do: right
+  defp combine_and(left, true), do: left
+  defp combine_and(false, _right), do: false
+  defp combine_and(_left, false), do: false
+  defp combine_and(left, right), do: dynamic(^left and ^right)
+
+  defp combine_or(true, _right), do: true
+  defp combine_or(_left, true), do: true
+  defp combine_or(false, right), do: right
+  defp combine_or(left, false), do: left
+  defp combine_or(left, right), do: dynamic(^left or ^right)
+
+  defp compare(left, :eq, nil, %{negate?: false}),
+    do: dynamic(is_nil(^left))
+
+  defp compare(left, :eq, nil, %{negate?: true}),
+    do: dynamic(not is_nil(^left))
+
+  defp compare(left, :eq, vals, %{negate?: false}) when is_list(vals),
+    do: dynamic(^left in ^vals)
+
+  defp compare(left, :eq, vals, %{negate?: true}) when is_list(vals),
+    do: dynamic(^left not in ^vals)
+
+  defp compare(left, :eq, val, %{negate?: false}),
+    do: dynamic(^left == ^val)
+
+  defp compare(left, :eq, val, %{negate?: true}),
+    do: dynamic(^left != ^val)
+
+  defp compare(left, op, val, %{negate?: false}) when op in @lt_ops,
+    do: dynamic(^left < ^val)
+
+  defp compare(left, op, val, %{negate?: true}) when op in @lt_ops,
+    do: dynamic(^left >= ^val)
+
+  defp compare(left, op, val, %{negate?: false}) when op in @lte_ops,
+    do: dynamic(^left <= ^val)
+
+  defp compare(left, op, val, %{negate?: true}) when op in @lte_ops,
+    do: dynamic(^left > ^val)
+
+  defp compare(left, op, val, %{negate?: false}) when op in @gte_ops,
+    do: dynamic(^left >= ^val)
+
+  defp compare(left, op, val, %{negate?: true}) when op in @gte_ops,
+    do: dynamic(^left < ^val)
+
+  defp compare(left, op, val, %{negate?: false}) when op in @gt_ops,
+    do: dynamic(^left > ^val)
+
+  defp compare(left, op, val, %{negate?: true}) when op in @gt_ops,
+    do: dynamic(^left <= ^val)
+
+  defp field_info(predicate, %Builder{} = builder) do
+    type = Builder.current_type(builder)
+
+    case Util.rules_for_predicate(predicate, type, builder.eval) do
       [] ->
-        {do_apply(queryable, key, :eq, val, eval), true}
+        case Util.Ecto.association_details(type, predicate) do
+          %_{cardinality: :one} = assoc ->
+            {:assoc, :one, assoc}
+
+          %_{cardinality: :many} = assoc ->
+            {:assoc, :many, assoc}
+
+          _other ->
+            case Util.Ecto.field_details(type, predicate) do
+              nil ->
+                raise ArgumentError,
+                      """
+                      Unknown field #{inspect(predicate)} on #{inspect(type)}.
+                      Path:  #{inspect(builder.path)}
+                      Types: #{inspect(builder.types)}
+                      """
+
+              _other ->
+                :field
+            end
+        end
 
       rules ->
-        case rules_for_value(rules, val, eval) do
-          :error -> {queryable, {key, val}}
-          condition -> apply_condition(queryable, condition, eval)
-        end
+        {:predicate, rules}
     end
   end
 
-  def apply_condition(queryable, condition, _eval) do
-    {queryable, condition}
-  end
-
-  defp maybe_negate({:all, []}, _eval), do: true
-  defp maybe_negate({:all, [condition]}, %{negate?: false}), do: condition
-  defp maybe_negate({:all, conditions}, %{negate?: false}), do: {:all, conditions}
-  defp maybe_negate({:all, [condition]}, %{negate?: true}), do: {:not, condition}
-  defp maybe_negate({:all, conditions}, %{negate?: true}), do: {:not, {:all, conditions}}
-
-  defp do_apply(queryable, key, :eq, nil, %{negate?: false}),
-    do: from(q in queryable, where: is_nil(field(q, ^key)))
-
-  defp do_apply(queryable, key, :eq, nil, %{negate?: true}),
-    do: from(q in queryable, where: not is_nil(field(q, ^key)))
-
-  defp do_apply(queryable, key, :eq, val, %{negate?: false}),
-    do: from(q in queryable, where: field(q, ^key) == ^val)
-
-  defp do_apply(queryable, key, :eq, val, %{negate?: true}),
-    do: from(q in queryable, where: field(q, ^key) != ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @lt_ops,
-    do: from(q in queryable, where: field(q, ^key) < ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @lt_ops,
-    do: from(q in queryable, where: field(q, ^key) >= ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @lte_ops,
-    do: from(q in queryable, where: field(q, ^key) <= ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @lte_ops,
-    do: from(q in queryable, where: field(q, ^key) > ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @gte_ops,
-    do: from(q in queryable, where: field(q, ^key) >= ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @gte_ops,
-    do: from(q in queryable, where: field(q, ^key) < ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: false}) when op in @gt_ops,
-    do: from(q in queryable, where: field(q, ^key) > ^val)
-
-  defp do_apply(queryable, key, op, val, %{negate?: true}) when op in @gt_ops,
-    do: from(q in queryable, where: field(q, ^key) <= ^val)
-
-  defp get_type(%Ecto.Query{from: %{source: {_, type}}}), do: type
-
+  # maps a comparison of "predicate equals value" to an Infer condition
+  # in the form of "all preceding rules yielding other values must NOT match
+  # AND any rule yielding the value must match".
+  # The rules matching the value must be in a row.
+  # In any other case, or in the case of non-simple rule results, `:error` is returned.
   defp rules_for_value(rules, val, %{negate?: false}) do
     Enum.reduce_while(rules, {:pre, []}, fn
       {condition, ^val}, {:pre, nots} when condition == %{} -> {:cont, {:ok, [], nots}}
@@ -192,4 +350,27 @@ defmodule Infer.Ecto.Query do
 
     from(q in queryable, order_by: ^fields)
   end
+
+  @doc "Returns generated SQL for given query with all params replaced"
+  def to_sql(repo, query) do
+    {sql, params} = repo.to_sql(:all, query)
+
+    params
+    |> Enum.with_index(1)
+    |> Enum.reverse()
+    |> Enum.reduce(sql, fn {param, i}, sql ->
+      String.replace(sql, "$#{i}", sql_escape(param))
+    end)
+  end
+
+  defp sql_escape(true), do: "TRUE"
+  defp sql_escape(false), do: "FALSE"
+  defp sql_escape(nil), do: "NULL"
+  defp sql_escape(number) when is_integer(number) or is_float(number), do: to_string(number)
+
+  defp sql_escape(list) when is_list(list),
+    do: "(#{Enum.map(list, &sql_escape/1) |> Enum.join(", ")})"
+
+  defp sql_escape(str) when is_binary(str), do: "'#{String.replace(str, "'", "\'")}'"
+  defp sql_escape(other), do: other |> to_string() |> sql_escape()
 end

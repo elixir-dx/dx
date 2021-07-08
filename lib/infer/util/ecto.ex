@@ -13,6 +13,10 @@ defmodule Infer.Util.Ecto do
     module.__schema__(:association, assoc)
   end
 
+  def field_details(module, field) do
+    module.__schema__(:type, field)
+  end
+
   def association_type(module, assoc) do
     case association_details(module, assoc) do
       %{related: type} -> type

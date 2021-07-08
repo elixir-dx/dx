@@ -630,6 +630,11 @@ defmodule Infer do
     eval = Eval.from_options(opts)
     {queryable, condition} = query_mod.apply_condition(queryable, condition, eval)
 
+    if eval.debug? do
+      sql = query_mod.to_sql(repo, queryable)
+      IO.puts("Infer SQL:\n#{sql}")
+    end
+
     {queryable, condition, repo, eval}
   end
 end
