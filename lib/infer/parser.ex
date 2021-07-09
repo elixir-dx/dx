@@ -140,6 +140,16 @@ defmodule Infer.Parser do
     end)
   end
 
+  defp replace_aliases({:all, conditions}, aliases) do
+    aliased =
+      Enum.map(conditions, fn
+        {key, val} -> {replace_aliases(key, aliases), replace_aliases(val, aliases)}
+        condition -> replace_aliases(condition, aliases)
+      end)
+
+    {:all, aliased}
+  end
+
   defp replace_aliases(list, aliases) when is_list(list) do
     Enum.map(list, &replace_aliases(&1, aliases))
   end
