@@ -86,117 +86,71 @@ defmodule Infer.Ecto.Query.Builder do
   def current_type(%{types: [], aliases: {_, type, _}}), do: type
 
   def negate(builder, fun) do
-    %{builder | negate?: not builder.negate?}
-    |> fun.()
-    |> negate_first_elem()
-  end
-
-  defp negate_first_elem(tuple) when is_tuple(tuple) do
-    builder = elem(tuple, 0)
-    builder = %{builder | negate?: not builder.negate?}
-    put_elem(tuple, 0, builder)
-  end
-
-  defp negate_first_elem(:error), do: :error
-
-  def step_into(%{query: nil} = builder, _key, subquery, fun) do
-    %{
-      builder
-      | query: subquery,
-        in_subquery?: true
-        # negate?: false
-    }
-    |> add_aliased()
+    builder
+    |> do_negate()
     |> fun.()
     |> case do
-      {%Builder{} = nested, condition} ->
-        query = nested.query |> without_select()
-        query = from(q in query, where: ^condition)
-        where = exists(query, builder)
-
-        builder = %{
-          builder
-          | root_query: nested.root_query,
-            aliases: nested.aliases,
-            next_alias_index: nested.next_alias_index
-        }
-
-        {builder, where}
+      {nested, result} -> {Map.put(nested, :negate?, builder.negate?), result}
+      :error -> :error
     end
+  end
+
+  defp do_negate(%{negate?: prev} = builder), do: %{builder | negate?: not prev}
+
+  defp merge(old, new) do
+    %{
+      old
+      | root_query: new.root_query,
+        aliases: new.aliases,
+        next_alias_index: new.next_alias_index
+    }
+  end
+
+  defp merge_query(%{query: nil} = old, new) do
+    %{
+      old
+      | root_query: new.root_query,
+        aliases: new.aliases,
+        next_alias_index: new.next_alias_index
+    }
+  end
+
+  defp merge_query(old, new) do
+    %{
+      old
+      | query: new.query,
+        aliases: new.aliases,
+        next_alias_index: new.next_alias_index
+    }
   end
 
   def step_into(builder, _key, subquery, fun) do
-    %{
-      builder
-      | query: subquery,
-        in_subquery?: true
-        # negate?: false
-    }
+    %{builder | query: subquery, in_subquery?: true, negate?: false}
     |> add_aliased()
     |> fun.()
     |> case do
-      {%Builder{} = nested, condition} ->
-        query = nested.query |> without_select()
-        query = from(q in query, where: ^condition)
-        where = exists(query, builder)
+      {nested, condition} ->
+        where =
+          nested.query
+          |> from(select: fragment("*"), where: ^condition)
+          |> exists(builder)
 
-        builder = %{
-          builder
-          | root_query: nested.root_query,
-            aliases: nested.aliases,
-            next_alias_index: nested.next_alias_index
-        }
-
-        {builder, where}
-    end
-  end
-
-  defp exists(subquery, %{negate?: false}) do
-    dynamic(exists(subquery))
-  end
-
-  defp exists(subquery, %{negate?: true}) do
-    dynamic(not exists(subquery))
-  end
-
-  defp without_select(query), do: from(q in query, select: fragment("*"))
-
-  def from_root(builder, fun) do
-    %{builder | path: [], types: [], query: nil}
-    |> fun.()
-    |> case do
-      {nested, result} ->
-        builder = %{
-          builder
-          | root_query: nested.root_query,
-            aliases: nested.aliases,
-            next_alias_index: nested.next_alias_index
-        }
-
-        {builder, result}
+        {merge(builder, nested), where}
 
       :error ->
         :error
     end
   end
 
-  def with_join(%{query: nil} = builder, key, fun) do
-    builder
-    |> add_aliased_join(key)
+  defp exists(subquery, %{negate?: false}), do: dynamic(exists(subquery))
+  defp exists(subquery, %{negate?: true}), do: dynamic(not exists(subquery))
+
+  def from_root(builder, fun) do
+    %{builder | path: [], types: [], query: nil}
     |> fun.()
     |> case do
-      {nested, result} ->
-        builder = %{
-          builder
-          | root_query: nested.root_query,
-            aliases: nested.aliases,
-            next_alias_index: nested.next_alias_index
-        }
-
-        {builder, result}
-
-      _other ->
-        :error
+      {nested, result} -> {merge(builder, nested), result}
+      :error -> :error
     end
   end
 
@@ -205,20 +159,13 @@ defmodule Infer.Ecto.Query.Builder do
     |> add_aliased_join(key)
     |> fun.()
     |> case do
-      {nested, result} ->
-        builder = %{
-          builder
-          | query: nested.query,
-            aliases: nested.aliases,
-            next_alias_index: nested.next_alias_index
-        }
-
-        {builder, result}
-
-      _other ->
-        :error
+      {nested, result} -> {merge_query(builder, nested), result}
+      :error -> :error
     end
   end
+
+  defp update_query(%{query: nil} = builder, fun), do: Map.update!(builder, :root_query, fun)
+  defp update_query(builder, fun), do: Map.update!(builder, :query, fun)
 
   def add_aliased(builder) do
     {builder, as} = do_alias(builder)
@@ -228,29 +175,10 @@ defmodule Infer.Ecto.Query.Builder do
     %{builder | path: [as | parent_path], types: [type | builder.types]}
   end
 
-  defp do_alias(%{query: nil} = builder) do
-    {builder, as} = next_alias(builder)
-    query = aliased_from(builder.root_query, as)
-    {%{builder | root_query: query}, as}
-  end
-
   defp do_alias(builder) do
     {builder, as} = next_alias(builder)
-    query = aliased_from(builder.query, as)
-    {%{builder | query: query}, as}
-  end
-
-  def add_aliased_join(%{query: nil} = builder, key) do
-    {builder, as} = next_alias(builder)
-    left = current_alias(builder)
-
-    type =
-      case Infer.Util.Ecto.association_details(current_type(builder), key) do
-        %_{related: type} -> type
-      end
-
-    query = aliased_join(builder.root_query, left, key, as)
-    %{builder | root_query: query, path: [as | builder.path], types: [type | builder.types]}
+    builder = update_query(builder, &aliased_from(&1, as))
+    {builder, as}
   end
 
   def add_aliased_join(builder, key) do
@@ -262,8 +190,8 @@ defmodule Infer.Ecto.Query.Builder do
         %_{related: type} -> type
       end
 
-    query = aliased_join(builder.query, left, key, as)
-    %{builder | query: query, path: [as | builder.path], types: [type | builder.types]}
+    builder = update_query(builder, &aliased_join(&1, left, key, as))
+    %{builder | path: [as | builder.path], types: [type | builder.types]}
   end
 
   defp next_alias(%{next_alias_index: i} = builder) do

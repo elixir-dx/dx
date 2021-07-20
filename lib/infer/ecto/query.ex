@@ -20,6 +20,15 @@ defmodule Infer.Ecto.Query do
   @all_ops @lt_ops ++ @lte_ops ++ @gte_ops ++ @gt_ops
 
   @doc """
+  Add predicate-based filters to a queryable and return it.
+  """
+  def where(queryable, condition, opts \\ []) when is_list(opts) do
+    eval = Eval.from_options(opts)
+    {queryable, true} = apply_condition(queryable, condition, eval)
+    queryable
+  end
+
+  @doc """
   Returns a 2-tuple with
 
     1. the modified queryable with the given conditions applied as WHERE clauses
