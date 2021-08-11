@@ -1,21 +1,25 @@
 defmodule Infer do
   @moduledoc """
-  Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto) in a central and concise way.
+  Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto)
+  in a central and concise way.
 
   # Why Infer?
 
   Infer offers a declarative approach to application logic that especially shines in apps with:
-  - Complex data schemas, especially when rules need to look at data in many multiple or deeply nested associated types/modules
+  - Complex data schemas, especially when rules need to look at data in many multiple or deeply
+    nested associated types/modules
   - Complex application logic, especially with many "edge cases" and other conditional logic
-  - Large parts of the data being loaded (e.g. from the database) is only needed to compute final results
+  - Large parts of the data being loaded (e.g. from the database) is only needed to compute final
+    results
 
   Infer helps in these cases, because:
-  - Application logic is declared in a concise and clean way that's readable even to non-developers (with a short introduction)
+  - Application logic is declared in a concise and clean way that's readable even to
+    non-developers (with a short introduction)
   - Application logic can be laid out into modules as it makes sense for the application domain, not the code
-  - No execution code needs to be written, just call `Infer` with a single or list of records and the desired results,
-    and it will compute them
-  - Infer loads required data as needed (e.g. from the database), in an optimized way that applies filtering, batching and concurrency,
-    and avoids overfetching
+  - No execution code needs to be written, just call `Infer` with a single or list of records and
+    the desired results, and it will compute them
+  - Infer loads required data as needed (e.g. from the database), in an optimized way that applies
+    filtering, batching and concurrency, and avoids overfetching
 
   # Usage
 
@@ -28,45 +32,54 @@ defmodule Infer do
   infer has_children?: false
   ```
 
-  Unlike full-fledged inference engines (such as [calypte](https://github.com/liveforeverx/calypte) or [retex](https://github.com/lorenzosinisi/retex)),
-  all rules in Infer are bound to an individual record type as their subject. This, in turn, allows to utilize Ecto schemas and queries to their full extent.
+  Unlike full-fledged inference engines (such as [calypte](https://github.com/liveforeverx/calypte)
+  or [retex](https://github.com/lorenzosinisi/retex)), all rules in Infer are bound to an individual
+  record type as their subject. This, in turn, allows to utilize Ecto schemas and queries to their full extent.
 
   ## Terminology
 
-  - `infer ...` defines a **rule** in a module. It applies to an instance of that module: A struct, Ecto record, Ash resource, ...
+  - `infer ...` defines a **rule** in a module. It applies to an instance of that module:
+    A struct, Ecto record, Ash resource, ...
   - This instance of a module, on which rules are evaluated, is the **subject**.
-  - A rule can have a **condition**, or `:when` part, that must be met in order for it to apply, e.g. `%{relatives: %{relation: "parent_of"}}`.
-  - When the condition is met, a given **predicate** is assigned a given **value**, e.g. `has_children?: true`. This is also called the **result** of the rule.
-  - All rules are evaluated from top to bottom until the first one for each predicate matches, similar to a `cond` statement.
-  - A condition can make use of other predicates as well as **fields** defined on the schema or struct of the underlying type.
+  - A rule can have a **condition**, or `:when` part, that must be met in order for it to apply,
+    e.g. `%{relatives: %{relation: "parent_of"}}`.
+  - When the condition is met, a given **predicate** is assigned a given **value**,
+    e.g. `has_children?: true`. This is also called the **result** of the rule.
+  - All rules are evaluated from top to bottom until the first one for each predicate matches,
+    similar to a `cond` statement.
+  - A condition can make use of other predicates as well as **fields** defined on the schema or
+    struct of the underlying type.
   - An executed rule results in a (derived) **fact**: subject, predicate, value.
 
   ## API overview
 
   - `Infer.get/3` evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)
   - `Infer.load/3` is like `get`, but loads any additional data as needed
-  - `Infer.put/3` is like `load`, but puts the results into the `:inferred` field (or virtual schema field) of the subject(s) as a map,
-    and returns the subject(s)
+  - `Infer.put/3` is like `load`, but puts the results into the `:inferred` field
+    (or virtual schema field) of the subject(s) as a map, and returns the subject(s)
 
   These functions return a tuple, either `{:ok, result}`, `{:error, error}`, or `{:not_loaded, data_reqs}` (only `get`).
 
-  The corresponding `Infer.get!/3`, `Infer.load!/3` and `Infer.put!/3` functions return `result` directly, or otherwise raise an exception.
+  The corresponding `Infer.get!/3`, `Infer.load!/3` and `Infer.put!/3` functions return `result`
+  directly, or otherwise raise an exception.
 
   Arguments:
   - **subjects** can either be an individual subject (with the given predicates defined on it), or a list of subjects.
     Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.
   - **predicates** can either be a single predicate, or a list of predicates.
-    Passing a single predicate will return the resulting value, passing a list will return a **map** of the predicates and their resulting values.
+    Passing a single predicate will return the resulting value, passing a list will return a **map**
+    of the predicates and their resulting values.
   - **options** (optional) See below.
 
   Options:
-  - **args** (list or map) can be used to pass in data from the caller's context that can be used in rules (see *Arguments* below).
-    A classic example is the `current_user`, e.g.
+  - **args** (list or map) can be used to pass in data from the caller's context that can be used in
+    rules (see *Arguments* below). A classic example is the `current_user`, e.g.
     ```elixir
     Infer.put!(project, :can_edit?, args: [user: current_user])
     ```
-  - **extra_rules** (module or list of modules) can be used to add context-specific rules that are not defined directly on the subject.
-    This can be used to structure rules into their own modules and use them only where needed.
+  - **extra_rules** (module or list of modules) can be used to add context-specific rules that are
+    not defined directly on the subject. This can be used to structure rules into their own modules
+    and use them only where needed.
   - **debug?** (boolean) makes Infer print additional information to the console as rules are evaluated.
     Should only be used while debugging.
 
@@ -165,11 +178,13 @@ defmodule Infer do
 
   #### Branching
 
-  Any part of the `path` that represents an underlying **list of subjects**, such as referencing a `has_many` association,
-  will cause the result of the `:ref` to be a list as well. It basically behaves similar to `Enum.map/2`.
+  Any part of the `path` that represents an underlying **list of subjects**, such as referencing
+  a `has_many` association, will cause the result of the `:ref` to be a list as well.
+  It basically behaves similar to `Enum.map/2`.
 
-  A **map** as last element of a `path` will branch the returned result out into this map. The keys are returned as is, the values must be a
-  list (or atom) continuing that path. This is particularly powerful when used on a list of subjects (see above), because it
+  A **map** as last element of a `path` will branch the returned result out into this map.
+  The keys are returned as is, the values must be a list (or atom) continuing that path.
+  This is particularly powerful when used on a list of subjects (see above), because it
   will return the given map with the values at the given paths for each underlying subject:
 
   A **list** as last element of a `path` behaves like a map where each value equals its key.
@@ -273,7 +288,8 @@ defmodule Infer do
   - `{:map, source, bind_key/condition, mapper}` (in result values)
 
   Arguments:
-  - `source` can either be a list literal, a field or predicate that evaluates to a list, or another feature such as a query.
+  - `source` can either be a list literal, a field or predicate that evaluates to a list,
+    or another feature such as a query.
   - `condition` has the same form and functionality as any other rule condition.
   - `mapper` can either be a field or predicate (atom), or is otherwise treated as any other rule value.
 
@@ -284,7 +300,8 @@ defmodule Infer do
   - `{:map, source, bind_key/condition, mapper}` is a special form of `:map`, where the `mapper` is based on the
     subject of the rule, not the list element. The list element is referenced using the middle arg, which can be either:
     - a `bind_key` (atom) - the current list element is referenced via `{:bound, bind_key}` in the `mapper`
-    - a `condition` - any values bound in the condition via `{:bind, key, ...}` can be accessed via `{:bound, key}` in the `mapper`
+    - a `condition` - any values bound in the condition via `{:bind, key, ...}` can be accessed
+      via `{:bound, key}` in the `mapper`
 
   Use the special form of `:map` only when you need to reference both the list element (via `:bound`),
   and the subject of the rule (via `:ref`).
@@ -311,9 +328,11 @@ defmodule Infer do
   - `{:count_while, source, condition/predicate}` (in result values)
 
   Arguments:
-  - `source` can either be a list literal, a field or predicate that evaluates to a list, or another feature such as a query.
+  - `source` can either be a list literal, a field or predicate that evaluates to a list,
+    or another feature such as a query.
   - `condition` has the same form and functionality as any other rule condition.
-  - `predicate` can either be a predicate (atom) that returns either `true`, `false`, or `:skip` (only for `:count_while`)
+  - `predicate` can either be a predicate (atom) that returns either `true`, `false`,
+    or `:skip` (only for `:count_while`)
 
   Takes the given list and counts the elements that evaluate to `true`.
   `:count_while` stops after the first element that returns `false`.
@@ -330,16 +349,19 @@ defmodule Infer do
   Uses:
 
   - In API: A group name can be passed to the Infer API to infer all predicates in that group.
-  - In rule results: Instead of a simple key, a list of keys can be given as a key as a short hand to setting the same value for
-    all listed keys, e.g. `%{[:admin?, :senior?] => true}`. This also enables using predicate groups as keys.
+  - In rule results: Instead of a simple key, a list of keys can be given as a key as a short hand
+    to setting the same value for all listed keys, e.g. `%{[:admin?, :senior?] => true}`.
+    This also enables using predicate groups as keys.
 
   ## Rule checks at compile-time (not implemented yet)
 
   Problems that can be detected at compile-time:
 
   - Invalid rule: "Rule X uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
-  - Invalid function call: "`Infer.get!(%Person{}, :has_child?)` uses non-existing predicate `:has_child?`. Did you mean `:has_children?`"
-  - Cycles in rule definitions: "Cycle detected: Rule X on Person references Rule Y on Role. Rule Y on Role references Rule X on Person."
+  - Invalid function call: "`Infer.get!(%Person{}, :has_child?)` uses non-existing
+    predicate `:has_child?`. Did you mean `:has_children?`"
+  - Cycles in rule definitions: "Cycle detected: Rule X on Person references Rule Y on Role.
+    Rule Y on Role references Rule X on Person."
   - Unreachable rules: "Rule Y can never be reached, as Rule X always matches."
 
   """
@@ -552,18 +574,22 @@ defmodule Infer do
 
   - `:base_query` (Ecto.Query) - query to use as a base for retrieving records.
     Can be used for additional conditions, pagination, etc. Default: `Ecto.Query.from(x in ^type)`.
-  - `:put` (predicate list) - predicates to evaluate, which are not part of the condition (requires [predicate cache](#module-predicate-cache)).
+  - `:put` (predicate list) - predicates to evaluate, which are not part of the condition
+    (requires [predicate cache](#module-predicate-cache)).
   - `:put_with_meta` (boolean) - whether or not the predicates listed in `:put` return a map when they have meta data.
     When `false`, only the value is returned for each. Default: `true`.
-  - `:preload` (predicate list) - load all data required to evaluate the given predicate(s) on the results (also see `preload/2`).
+  - `:preload` (predicate list) - load all data required to evaluate the given predicate(s) on the
+    results (also see `preload/2`).
 
   ### Using `:put` and `:preload`
 
   In general, as much work as possible is done in the database:
 
-  - If possible, the condition is completely translated to an `Ecto.Query` so the database only returns matching records.
+  - If possible, the condition is completely translated to an `Ecto.Query` so the database only
+    returns matching records.
   - Even predicates given via `:put` are evaluated in the database and returned as a single value, whenever possible.
-  - Use `:preload` to ensure that data is loaded, which is required to evaluate the given predicate(s) in the application.
+  - Use `:preload` to ensure that data is loaded, which is required to evaluate the given
+    predicate(s) in the application.
 
   ## Examples
 
