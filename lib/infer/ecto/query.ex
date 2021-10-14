@@ -347,6 +347,11 @@ defmodule Infer.Ecto.Query do
     from(q in queryable, order_by: ^fields)
   end
 
+  def inspect(query, repo) do
+    IO.puts(to_sql(repo, query))
+    query
+  end
+
   @doc "Returns generated SQL for given query with all params replaced"
   def to_sql(repo, query) do
     {sql, params} = repo.to_sql(:all, query)
