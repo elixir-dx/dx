@@ -19,13 +19,23 @@ defmodule Infer.Ecto.Query do
   @gt_ops ~w(> gt greater_than after)a
   @all_ops @lt_ops ++ @lte_ops ++ @gte_ops ++ @gt_ops
 
+  defmodule TranslationError do
+    defexception [:queryable, :condition]
+
+    def message(e),
+      do: "Could not translate some conditions to SQL:\n#{inspect(e.condition, pretty: true)}"
+  end
+
   @doc """
   Add predicate-based filters to a queryable and return it.
   """
   def where(queryable, condition, opts \\ []) when is_list(opts) do
     eval = Eval.from_options(opts)
-    {queryable, true} = apply_condition(queryable, condition, eval)
-    queryable
+
+    case apply_condition(queryable, condition, eval) do
+      {queryable, true} -> queryable
+      {queryable, condition} -> raise TranslationError, queryable: queryable, condition: condition
+    end
   end
 
   @doc """
@@ -275,35 +285,91 @@ defmodule Infer.Ecto.Query do
   end
 
   # maps a comparison of "predicate equals value" to an Infer condition
-  # in the form of "all preceding rules yielding other values must NOT match
-  # AND any rule yielding the value must match".
-  # The rules matching the value must be in a row.
-  # In any other case, or in the case of non-simple rule results, `:error` is returned.
   defp rules_for_value(rules, val, %{negate?: false}) do
-    Enum.reduce_while(rules, {:pre, []}, fn
-      {condition, ^val}, {:pre, nots} when condition == %{} -> {:cont, {:ok, [], nots}}
-      {condition, ^val}, {:pre, nots} -> {:cont, {:ok, [condition], nots}}
-      {condition, ^val}, {:ok, conditions, nots} -> {:cont, {:ok, [condition | conditions], nots}}
-      {_condition, ^val}, {:done, _conditions, _nots} -> {:halt, :error}
-      {_condition, complex}, _ when not is_simple(complex) -> {:halt, :error}
-      {condition, _other}, {:pre, nots} -> {:cont, {:pre, [{:not, condition} | nots]}}
-      {_condition, _other}, {:ok, conditions, nots} -> {:cont, {:done, conditions, nots}}
-      {_condition, _other}, {:done, _conditions, _nots} = acc -> {:cont, acc}
+    vals = List.wrap(val)
+
+    rules
+    |> Enum.reverse()
+    |> Enum.reduce_while(false, fn
+      {condition, val}, acc when is_simple(val) ->
+        if val in vals do
+          {:cont, [condition, acc]}
+        else
+          {:cont, {:all, [{:not, condition}, acc]}}
+        end
+
+      _other, _acc ->
+        {:halt, :error}
     end)
+    |> simplify_condition()
+  end
+
+  defp simplify_condition(conditions) when is_map(conditions) do
+    simplify_condition({:all, Enum.to_list(conditions)})
+  end
+
+  defp simplify_condition({:all, []}), do: true
+
+  defp simplify_condition({:all, conditions}) when is_list(conditions) do
+    conditions
+    # flatten
+    |> Enum.reduce([], fn
+      {:all, []}, acc ->
+        acc
+
+      {:all, other}, acc when is_list(other) ->
+        case simplify_condition({:all, other}) do
+          {:all, other} -> acc ++ other
+          other -> acc ++ [other]
+        end
+
+      other, acc ->
+        acc ++ [other]
+    end)
+    # shorten
+    |> Enum.reverse()
+    |> Enum.reduce_while([], fn condition, acc ->
+      case simplify_condition(condition) do
+        false -> {:halt, false}
+        true -> {:cont, acc}
+        condition -> {:cont, [condition | acc]}
+      end
+    end)
+    # wrap / unwrap
     |> case do
-      {_, [], nots} -> {:all, nots}
-      {_, [condition], nots} -> {:all, [condition | nots]}
-      {_, conditions, nots} -> {:all, [conditions | nots]}
-      {:pre, nots} -> {:all, nots}
-      :error -> :error
-    end
-    |> case do
-      {:all, []} -> %{}
-      {:all, [condition]} -> condition
-      {:all, conditions} -> {:all, Enum.reverse(conditions)}
-      :error -> :error
+      [condition] -> condition
+      conditions when is_list(conditions) -> {:all, conditions}
+      other -> other
     end
   end
+
+  defp simplify_condition([]), do: false
+
+  defp simplify_condition(conditions) when is_list(conditions) do
+    conditions
+    # flatten
+    |> Enum.flat_map(fn
+      [] -> [false]
+      list when is_list(list) -> simplify_condition(list)
+      other -> [other]
+    end)
+    # shorten
+    |> Enum.reverse()
+    |> Enum.reduce_while([], fn condition, acc ->
+      case simplify_condition(condition) do
+        true -> {:halt, true}
+        false -> {:cont, acc}
+        other -> {:cont, [other, acc]}
+      end
+    end)
+    # unwrap
+    |> case do
+      [condition] -> condition
+      other -> other
+    end
+  end
+
+  defp simplify_condition(condition), do: condition
 
   @doc """
   Applies all known options to the given `queryable`
