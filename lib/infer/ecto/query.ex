@@ -350,7 +350,7 @@ defmodule Infer.Ecto.Query do
     # flatten
     |> Enum.flat_map(fn
       [] -> [false]
-      list when is_list(list) -> simplify_condition(list)
+      list when is_list(list) -> simplify_condition(list) |> wrap_condition()
       other -> [other]
     end)
     # shorten
@@ -370,6 +370,9 @@ defmodule Infer.Ecto.Query do
   end
 
   defp simplify_condition(condition), do: condition
+
+  defp wrap_condition(list) when is_list(list), do: list
+  defp wrap_condition(other), do: [other]
 
   @doc """
   Applies all known options to the given `queryable`
