@@ -63,7 +63,7 @@ defmodule Infer.Engine do
         map_result(val, eval)
       end)
 
-    if eval.debug? do
+    if eval.debug? == :trace do
       subject_info =
         case subject do
           %type{id: id} -> "%#{inspect(type)}<#{id}>"
@@ -93,6 +93,7 @@ defmodule Infer.Engine do
         with the given arguments (which in turn can be special tuples)
     - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
     - `{:bound, :var, default}` - same with default
+    - ...
   """
   def map_result(%type{} = struct, eval) do
     struct

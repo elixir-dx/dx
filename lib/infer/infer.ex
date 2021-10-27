@@ -557,6 +557,8 @@ defmodule Infer do
   end
 
   defp do_filter(records, condition, eval) do
+    if eval.debug?, do: IO.puts("Infer Filter: #{inspect(condition, pretty: true)}")
+
     load_all_data_reqs(eval, fn eval ->
       Result.filter_map(
         records,
@@ -633,6 +635,7 @@ defmodule Infer do
     queryable
     |> repo.all()
     |> do_filter(condition, eval)
+    |> apply_select(eval)
   end
 
   @doc """
@@ -648,6 +651,7 @@ defmodule Infer do
     queryable
     |> repo.one!()
     |> do_filter(condition, eval)
+    |> apply_select(eval)
   end
 
   defp build_query(queryable, condition, opts) do
@@ -662,9 +666,18 @@ defmodule Infer do
 
     if eval.debug? do
       sql = query_mod.to_sql(repo, queryable)
-      IO.puts("Infer SQL:\n#{sql}")
+      IO.puts("Infer SQL: #{sql}")
     end
 
     {queryable, condition, repo, eval}
+  end
+
+  defp apply_select(records, %{select: nil}), do: records
+
+  defp apply_select(records, %{select: mapping} = eval) do
+    load_all_data_reqs(eval, fn eval ->
+      Result.map(records, &Engine.map_result(mapping, %{eval | root_subject: &1}))
+    end)
+    |> Result.unwrap!()
   end
 end

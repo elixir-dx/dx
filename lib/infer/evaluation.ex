@@ -18,6 +18,7 @@ defmodule Infer.Evaluation do
     field(:debug?, boolean(), default: false)
     field(:preload, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
+    field(:select, any())
   end
 
   def from_options(opts) do
