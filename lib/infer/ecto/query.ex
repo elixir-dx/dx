@@ -70,6 +70,10 @@ defmodule Infer.Ecto.Query do
   end
 
   # maps a Infer condition to an Ecto query condition
+  defp map_condition(builder, bool) when is_boolean(bool) do
+    {builder, bool}
+  end
+
   defp map_condition(builder, {:not, condition}) do
     case map_condition(builder, condition) do
       :error -> :error
