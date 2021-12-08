@@ -254,6 +254,13 @@ defmodule Infer.Engine do
     end
   end
 
+  defp map_result(tuple, eval) when is_tuple(tuple) do
+    tuple
+    |> Tuple.to_list()
+    |> map_result(eval)
+    |> Result.transform(&List.to_tuple/1)
+  end
+
   defp map_result(other, _eval), do: Result.ok(other)
 
   @spec evaluate_condition(any(), any(), Eval.t()) :: Result.b()
