@@ -17,19 +17,23 @@ defmodule Infer.Loaders.Dataloader do
     [:assoc, key, subject]
   end
 
-  defp args_for({:query_one, type, [main_condition | other_conditions], _opts}) do
-    [:assoc, {:one, type, where: other_conditions}, [main_condition]]
+  defp args_for({:query_one, type, [main_condition | other_conditions], opts}) do
+    opts = opts |> where(other_conditions)
+    [:assoc, {:one, type, opts}, [main_condition]]
   end
 
   defp args_for({:query_first, type, [main_condition | other_conditions], opts}) do
-    opts = opts |> Keyword.put(:where, other_conditions) |> Keyword.put(:limit, 1)
+    opts = opts |> where(other_conditions) |> Keyword.put(:limit, 1)
     [:assoc, {:one, type, opts}, [main_condition]]
   end
 
   defp args_for({:query_all, type, [main_condition | other_conditions], opts}) do
-    opts = Keyword.put(opts, :where, other_conditions)
+    opts = opts |> where(other_conditions)
     [:assoc, {:many, type, opts}, [main_condition]]
   end
+
+  defp where(opts, []), do: opts
+  defp where(opts, conditions), do: Keyword.put(opts, :where, {:all, conditions})
 
   def init() do
     # workaround for dataloader incompatibility with transactions

@@ -311,22 +311,10 @@ defmodule Infer.Ecto.Query do
   """
   def apply_options(queryable, opts) do
     Enum.reduce(opts, {queryable, []}, fn
-      {:where, conditions}, {query, opts} when is_list(conditions) ->
-        {where(query, {:all, conditions}), opts}
-
-      {:where, conditions}, {_query, _opts} ->
-        raise ArgumentError,
-              "Expected a list of conditions in Infer query operator. Got " <>
-                inspect(conditions, pretty: true)
-
-      {:limit, limit}, {query, opts} ->
-        {limit(query, limit), opts}
-
-      {:order_by, order}, {query, opts} ->
-        {order_by(query, order), opts}
-
-      other, {query, opts} ->
-        {query, [other | opts]}
+      {:where, conditions}, {query, opts} -> {where(query, conditions), opts}
+      {:limit, limit}, {query, opts} -> {limit(query, limit), opts}
+      {:order_by, order}, {query, opts} -> {order_by(query, order), opts}
+      other, {query, opts} -> {query, [other | opts]}
     end)
     |> case do
       {queryable, opts} -> {queryable, Enum.reverse(opts)}
