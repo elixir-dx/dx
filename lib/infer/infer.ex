@@ -391,12 +391,16 @@ defmodule Infer do
   end
 
   defp do_get(record, predicates, eval) when is_list(predicates) do
-    Result.map(predicates, &do_get(record, &1, eval))
+    Result.map(predicates, &Engine.resolve_predicate(&1, record, eval))
     |> Result.transform(&Util.Map.zip(predicates, &1))
   end
 
-  defp do_get(record, predicate, eval) do
+  defp do_get(record, predicate, eval) when is_atom(predicate) do
     Engine.resolve_predicate(predicate, record, eval)
+  end
+
+  defp do_get(record, result, eval) do
+    Engine.map_result(result, %{eval | root_subject: record})
   end
 
   @doc """

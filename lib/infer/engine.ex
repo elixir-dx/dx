@@ -86,46 +86,48 @@ defmodule Infer.Engine do
     evaluate_condition(condition, subject, eval)
   end
 
-  # Traverses the value of a rule, replacing special tuples
-  #   - `{:ref, path}` with the predicate or field value found at the given path
-  #   - `{fun/n, arg_1, ..., arg_n}` with the result of calling the given function
-  #       with the given arguments (which in turn can be special tuples)
-  #   - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
-  #   - `{:bound, :var, default}` - same with default
-  defp map_result(%type{} = struct, eval) do
+  @doc """
+  Traverses the value of a rule, replacing special tuples
+    - `{:ref, path}` with the predicate or field value found at the given path
+    - `{fun/n, arg_1, ..., arg_n}` with the result of calling the given function
+        with the given arguments (which in turn can be special tuples)
+    - `{:bound, :var}` - with a corresponding matching `{:bind, :var}`
+    - `{:bound, :var, default}` - same with default
+  """
+  def map_result(%type{} = struct, eval) do
     struct
     |> Map.from_struct()
     |> map_result(eval)
     |> Result.transform(&struct(type, &1))
   end
 
-  defp map_result(map, eval) when is_map(map) do
+  def map_result(map, eval) when is_map(map) do
     Result.map_values(map, &map_result(&1, eval))
   end
 
-  defp map_result(list, eval) when is_list(list) do
+  def map_result(list, eval) when is_list(list) do
     Result.map(list, &map_result(&1, eval))
   end
 
-  defp map_result({:ref, [:args | path]}, eval) do
+  def map_result({:ref, [:args | path]}, eval) do
     eval.args
     |> resolve_path(path, eval)
   end
 
-  defp map_result({:ref, path}, eval) do
+  def map_result({:ref, path}, eval) do
     eval.root_subject
     |> resolve_path(List.wrap(path), eval)
   end
 
-  defp map_result({fun, args}, eval) when is_function(fun) do
+  def map_result({fun, args}, eval) when is_function(fun) do
     args
     |> List.wrap()
     |> Result.map(&map_result(&1, eval))
     |> Result.transform(&apply(fun, &1))
   end
 
-  defp map_result({query_type, type, conditions, opts}, eval)
-       when query_type in [:query_one, :query_first, :query_all] do
+  def map_result({query_type, type, conditions, opts}, eval)
+      when query_type in [:query_one, :query_first, :query_all] do
     conditions
     |> Result.map_keyword_values(&map_result(&1, eval))
     |> Result.then(fn conditions ->
@@ -134,12 +136,12 @@ defmodule Infer.Engine do
   end
 
   # add empty opts when omitted
-  defp map_result({query_type, type, conditions}, eval)
-       when query_type in [:query_one, :query_first, :query_all] do
+  def map_result({query_type, type, conditions}, eval)
+      when query_type in [:query_one, :query_first, :query_all] do
     map_result({query_type, type, conditions, []}, eval)
   end
 
-  defp map_result({:map, source, each_key, each_val}, eval) when is_atom(each_key) do
+  def map_result({:map, source, each_key, each_val}, eval) when is_atom(each_key) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.map(subjects, fn subject ->
@@ -150,7 +152,7 @@ defmodule Infer.Engine do
     end)
   end
 
-  defp map_result({:map, source, condition, each_val}, eval) do
+  def map_result({:map, source, condition, each_val}, eval) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.filter_map(
@@ -165,7 +167,7 @@ defmodule Infer.Engine do
     end)
   end
 
-  defp map_result({:map, source, each_val}, eval) do
+  def map_result({:map, source, each_val}, eval) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.map(subjects, fn
@@ -185,14 +187,14 @@ defmodule Infer.Engine do
     end)
   end
 
-  defp map_result({:filter, source, condition}, eval) do
+  def map_result({:filter, source, condition}, eval) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.filter_map(subjects, &evaluate_condition(condition, &1, eval))
     end)
   end
 
-  defp map_result({:count, source, conditions}, eval) do
+  def map_result({:count, source, conditions}, eval) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.count(subjects, fn
@@ -214,7 +216,7 @@ defmodule Infer.Engine do
     end)
   end
 
-  defp map_result({:count_while, source, conditions}, eval) do
+  def map_result({:count_while, source, conditions}, eval) do
     resolve_source(source, eval)
     |> Result.then(fn subjects ->
       Result.count_while(subjects, fn
@@ -236,14 +238,14 @@ defmodule Infer.Engine do
     end)
   end
 
-  defp map_result({:bound, key, default}, eval) do
+  def map_result({:bound, key, default}, eval) do
     case Map.fetch(eval.binds, key) do
       {:ok, value} -> Result.ok(value)
       :error -> Result.ok(default)
     end
   end
 
-  defp map_result({:bound, key}, eval) do
+  def map_result({:bound, key}, eval) do
     case Map.fetch(eval.binds, key) do
       {:ok, value} ->
         Result.ok(value)
@@ -254,14 +256,14 @@ defmodule Infer.Engine do
     end
   end
 
-  defp map_result(tuple, eval) when is_tuple(tuple) do
+  def map_result(tuple, eval) when is_tuple(tuple) do
     tuple
     |> Tuple.to_list()
     |> map_result(eval)
     |> Result.transform(&List.to_tuple/1)
   end
 
-  defp map_result(other, _eval), do: Result.ok(other)
+  def map_result(other, _eval), do: Result.ok(other)
 
   @spec evaluate_condition(any(), any(), Eval.t()) :: Result.b()
   def evaluate_condition(condition, subjects, eval) when is_list(subjects) do
