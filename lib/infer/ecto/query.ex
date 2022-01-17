@@ -477,14 +477,17 @@ defmodule Infer.Ecto.Query do
     end)
   end
 
-  defp sql_escape(true), do: "TRUE"
-  defp sql_escape(false), do: "FALSE"
-  defp sql_escape(nil), do: "NULL"
-  defp sql_escape(number) when is_integer(number) or is_float(number), do: to_string(number)
+  defp sql_escape(term, dquote \\ false)
 
-  defp sql_escape(list) when is_list(list),
-    do: "(#{Enum.map(list, &sql_escape/1) |> Enum.join(", ")})"
+  defp sql_escape(true, _), do: "TRUE"
+  defp sql_escape(false, _), do: "FALSE"
+  defp sql_escape(nil, _), do: "NULL"
+  defp sql_escape(number, _) when is_integer(number) or is_float(number), do: to_string(number)
 
-  defp sql_escape(str) when is_binary(str), do: "'#{String.replace(str, "'", "\'")}'"
-  defp sql_escape(other), do: other |> to_string() |> sql_escape()
+  defp sql_escape(list, _) when is_list(list),
+    do: "'{#{Enum.map_join(list, ", ", &sql_escape(&1, true))}}'"
+
+  defp sql_escape(str, true) when is_binary(str), do: "\"#{String.replace(str, "\"", "\\\"")}\""
+  defp sql_escape(str, false) when is_binary(str), do: "'#{String.replace(str, "'", "\'")}'"
+  defp sql_escape(other, dquote), do: other |> to_string() |> sql_escape(dquote)
 end
