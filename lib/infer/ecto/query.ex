@@ -56,6 +56,29 @@ defmodule Infer.Ecto.Query do
   end
 
   # maps a condition and adds it to the current `root_query`
+  defp apply_condition(builder, condition) when is_map(condition) do
+    apply_condition(builder, {:all, condition})
+  end
+
+  defp apply_condition(builder, {:all, conditions}) do
+    Enum.reduce(conditions, {builder, []}, fn condition, {builder, remaining_conditions} ->
+      case map_condition(builder, condition) do
+        {builder, where} ->
+          query = builder.root_query
+          query = from(q in query, where: ^where)
+          builder = %{builder | root_query: query}
+          {builder, remaining_conditions}
+
+        :error ->
+          {builder, [condition | remaining_conditions]}
+      end
+    end)
+    |> case do
+      {builder, []} -> {builder, true}
+      {builder, conditions} -> {builder, {:all, conditions}}
+    end
+  end
+
   defp apply_condition(builder, condition) do
     case map_condition(builder, condition) do
       {builder, where} ->
