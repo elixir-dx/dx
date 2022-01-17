@@ -143,8 +143,25 @@ defmodule Infer.Ecto.Query do
 
         case val do
           vals when is_list(vals) ->
-            Enum.reduce_while(vals, {builder, false}, fn val, {builder, acc_query} ->
-              case map_condition(builder, {key, val}) do
+            groups =
+              vals
+              |> List.flatten()
+              |> Enum.group_by(fn
+                val when is_integer(val) -> :integer
+                val when is_float(val) -> :float
+                val when is_binary(val) or is_atom(val) -> :string
+                _other -> :other
+              end)
+
+            {other_vals, simple_groups} = Map.pop(groups, :other, [])
+            grouped_vals = Map.values(simple_groups) ++ other_vals
+
+            Enum.reduce_while(grouped_vals, {builder, false}, fn val, {builder, acc_query} ->
+              case val do
+                vals when is_list(vals) -> {builder, compare(left, :eq, vals, builder)}
+                val -> map_condition(builder, {key, val})
+              end
+              |> case do
                 :error -> {:halt, :error}
                 {builder, where} -> {:cont, {builder, combine_or(where, acc_query)}}
               end
