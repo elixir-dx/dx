@@ -20,6 +20,10 @@ defmodule Infer.Engine do
   Returns the result of evaluating a field or predicate.
   """
   @spec resolve(atom(), map(), Eval.t()) :: Result.v()
+  def resolve(field, subject, %Eval{resolve_predicates?: false} = eval) do
+    fetch(subject, field, eval)
+  end
+
   def resolve(field_or_predicate, %type{} = subject, %Eval{} = eval) do
     field_or_predicate
     |> Util.rules_for_predicate(type, eval)
@@ -306,6 +310,10 @@ defmodule Infer.Engine do
     evaluate_condition(sub_condition, eval.args, eval)
   end
 
+  def evaluate_condition({:fields, sub_condition}, subject, eval) do
+    evaluate_condition(sub_condition, subject, %{eval | resolve_predicates?: false})
+  end
+
   def evaluate_condition({{:ref, path}, conditions}, subject, eval) when is_map(subject) do
     eval.root_subject
     |> resolve_path(List.wrap(path), eval)
@@ -400,6 +408,10 @@ defmodule Infer.Engine do
 
   defp resolve_path(map, [keymap], eval) when is_map(keymap) do
     Result.map_values(keymap, &resolve_path(map, List.wrap(&1), eval))
+  end
+
+  defp resolve_path(map, [:fields | path], eval) do
+    resolve_path(map, path, %{eval | resolve_predicates?: false})
   end
 
   defp resolve_path(map, [key | path], eval) do

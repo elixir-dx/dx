@@ -203,6 +203,30 @@ defmodule Infer do
   Passing `:args` as an option to any of the Infer API functions enables referencing the passed data
   in conditions and values using `{:ref, [:args, ...]}`.
 
+  ### Overriding existing fields
+
+  It's possible to give predicates the same name as existing fields in the schema.
+  This represents the fact that these fields are derived from other data, using rules.
+
+  Rules on these fields can even take into account the existing value of the underlying field.
+  In order to reference it, use `:fields` in between a path or condition, for example:
+
+  ```elixir
+  schema "blog_posts" do
+    field :state
+    field :published_at
+  end
+
+  # nilify published_at when deleted, or when it's an old archived post
+  infer published_at: nil, when: %{state: "deleted"}
+  infer published_at: nil, when: %{state: "archived", fields: %{published_at: {:before, ~D[2020-02-20]}}}
+  infer published_at: {:ref, [:fields, :published_at]}
+  ```
+
+  While it's always possible to achieve a similar behavior by giving the predicate a different
+  name than the field, and then mapping the predicate to the field somewhere else,
+  using the field name in conjunction with `:fields` makes explicit that it's a conditional override.
+
   ### Binding subject parts
 
   Syntax:

@@ -11,6 +11,7 @@ defmodule Infer.Evaluation do
     field(:cache, any())
     field(:binds, map())
     field(:negate?, boolean(), default: false)
+    field(:resolve_predicates?, boolean(), default: true)
 
     # Options
     field(:loader, module(), default: Infer.Loaders.Dataloader)
