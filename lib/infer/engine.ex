@@ -25,6 +25,8 @@ defmodule Infer.Engine do
   end
 
   def resolve(field_or_predicate, %type{} = subject, %Eval{} = eval) do
+    eval = %{eval | resolve_predicates?: true}
+
     field_or_predicate
     |> Util.rules_for_predicate(type, eval)
     |> case do
@@ -410,8 +412,9 @@ defmodule Infer.Engine do
     Result.map_values(keymap, &resolve_path(map, List.wrap(&1), eval))
   end
 
-  defp resolve_path(map, [:fields | path], eval) do
-    resolve_path(map, path, %{eval | resolve_predicates?: false})
+  defp resolve_path(map, [:fields, key | path], eval) do
+    fetch(map, key, eval)
+    |> Result.then(&resolve_path(&1, path, eval))
   end
 
   defp resolve_path(map, [key | path], eval) do
