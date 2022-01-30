@@ -1,0 +1,68 @@
+on: push
+
+jobs:
+  checks:
+    name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        elixir: [1.13.2]
+        otp: [24.1.7]
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: infer_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    env:
+      MIX_ENV: test
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Erlang & Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ matrix.elixir }}
+        otp-version: ${{ matrix.otp }}
+
+    # Caching
+    - name: Dependencies cache
+      uses: actions/cache@v1
+      with:
+        path: deps
+        key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+
+    - name: Build cache
+      uses: actions/cache@v1
+      with:
+        path: _build
+        key: ${{ runner.os }}-build-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{matrix.elixir}}-${{matrix.otp}}-
+
+
+    # Setup
+    - name: Install dependencies
+      run: mix deps.get
+
+    # Checks
+    - name: Compiler warnings (test)
+      run: mix compile --warnings-as-errors --force
+
+    - name: Test suite
+      run: mix test
+      env:
+        WARNINGS_AS_ERRORS: "true"
+
+    - name: Code format
+      run: mix format --check-formatted --dry-run

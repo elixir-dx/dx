@@ -36,12 +36,14 @@ defmodule Infer.Loaders.Dataloader do
   defp where(opts, conditions), do: Keyword.put(opts, :where, {:all, conditions})
 
   def init() do
+    repo = config(:repo)
+
     # workaround for dataloader incompatibility with transactions
     #   -> https://github.com/absinthe-graphql/dataloader/issues/129#issuecomment-965492108
-    run_concurrently? = not db_conn_checked_out?(Ev2.Repo)
+    run_concurrently? = not db_conn_checked_out?(repo)
 
     source =
-      Dataloader.Ecto.new(Ev2.Repo,
+      Dataloader.Ecto.new(repo,
         query: &Infer.Ecto.Query.from_options/2,
         async: run_concurrently?
       )
@@ -61,4 +63,6 @@ defmodule Infer.Loaders.Dataloader do
     end)
     |> Dataloader.run()
   end
+
+  def config(:repo), do: Application.fetch_env!(:infer, :repo)
 end
