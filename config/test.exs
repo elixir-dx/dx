@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :infer, Infer.Test.Repo,
   hostname: "localhost",
