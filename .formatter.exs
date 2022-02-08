@@ -8,7 +8,12 @@ locals_without_parens = [
 ]
 
 [
-  inputs: ["*.{ex,exs}", "{lib,test}/**/*.{ex,exs}"],
+  inputs: [
+    "*.{ex,exs}",
+    "lib/**/*.{ex,exs}",
+    "test/{infer,support}/**/*.{ex,exs}",
+    "test/*.{ex,exs}"
+  ],
   import_deps: [:ecto],
   subdirectories: ["test/schema/migrations"],
   locals_without_parens: locals_without_parens,
