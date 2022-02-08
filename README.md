@@ -30,10 +30,10 @@ We've been using it in production since March 2021, and increasingly port our bu
 To make it an easy-to-adopt open-source library, the next steps are to:
 
 - [x] extract the code into this repo
-- [] re-add tests (because they were domain-specific)
-- [] write guides, a reference and an announcement
-- [] resolve absinthe-graphql/dataloader#129 and re-add dataloader as a hex dependency
-- [] release on hex.pm
+- [ ] re-add tests (because they were domain-specific)
+- [ ] write guides, a reference and an announcement
+- [ ] resolve absinthe-graphql/dataloader#129 and re-add dataloader as a hex dependency
+- [ ] release on hex.pm
 
 ## Installation
 
