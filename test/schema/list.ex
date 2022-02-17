@@ -10,6 +10,7 @@ defmodule Infer.Test.Schema.List do
     has_many :tasks, Task
 
     field :archived_at, :utc_datetime
+    field :hourly_points, :float
     timestamps()
   end
 end
