@@ -19,6 +19,8 @@ defmodule Test.Support.Factories do
 
   def refinement(_type, _refinement), do: nil
 
+  def create(module, refinements \\ %{}), do: build(module, refinements) |> Infer.Test.Repo.insert!
+
   def build(module, refinements \\ %{})
 
   @doc """

@@ -18,6 +18,8 @@ defmodule Infer.Test.DataCase do
     quote do
       alias Infer.Test.Repo
       alias Infer.Test.Schema.{List, Task, User}
+
+      import Test.Support.Factories
     end
   end
 
