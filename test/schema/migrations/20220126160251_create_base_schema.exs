@@ -22,6 +22,7 @@ defmodule Infer.Test.Repo.Migrations.CreateBaseSchema do
       add :list_id, references(:lists), null: false
       add :created_by_id, references(:users), null: false
       add :completed_at, :utc_datetime
+      add :due_on, :date
       add :archived_at, :utc_datetime
       timestamps()
     end

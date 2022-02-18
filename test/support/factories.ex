@@ -1,4 +1,22 @@
 defmodule Test.Support.Factories do
+  def refinement(Infer.Test.Schema.User, :default) do
+    %{
+      email: "alice@acme.org"
+    }
+  end
+
+  def refinement(Infer.Test.Schema.List, :default) do
+    %{
+      title: "My List"
+    }
+  end
+
+  def refinement(Infer.Test.Schema.Task, :default) do
+    %{
+      title: "My Task"
+    }
+  end
+
   def refinement(_type, _refinement), do: nil
 
   def build(module, refinements \\ %{})
