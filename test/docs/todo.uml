@@ -1,0 +1,52 @@
+@startuml
+!theme plain
+
+class User {
+  email
+  first_name
+  last_name
+  full_name()
+  latest_data_for_author()
+  nested_data_for_author()
+  failing_data_for_author()
+  fallback_data_for_author()
+  indirect_data_for_author()
+}
+
+class List {
+  title
+  creator_id
+  hourly_points
+  inserted_at
+  updated_at
+  archived_at
+  by_author()
+  newest_completed_tasks()
+  completed_tasks()
+}
+
+class Task {
+  title
+  desc
+  list_id
+  assignee_id
+  inserted_at
+  updated_at
+  archived_at
+  plus_2()
+  list_hourly_points()
+  task_points()
+  prev_two_tasks()
+}
+
+class Membership {
+  user_id
+  list_id
+}
+
+List *-- User
+Task *-- User
+Task *-- List
+Membership *-- List
+Membership *-- User
+@enduml
