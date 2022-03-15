@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - 'docs/**'
 
 jobs:
   publish-docs:
@@ -50,5 +51,5 @@ jobs:
     - name: Push docs
       uses: JamesIves/github-pages-deploy-action@v4.2.5
       with:
-        branch: docs
+        branch: gh-pages
         folder: doc
