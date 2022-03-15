@@ -65,10 +65,13 @@ defmodule Infer.MixProject do
 
   def docs do
     [
-      extras: [
-        "README.md"
+      extra_section: "Guides",
+      api_reference: false,
+      extras: Path.wildcard("docs/**/*.md"),
+      groups_for_extras: [
+        Basics: Path.wildcard("docs/basics/*.md")
       ],
-      main: "readme",
+      main: "welcome",
       source_url: @source_url,
       source_ref: "v#{@version}"
     ]
