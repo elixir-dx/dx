@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-docs:
+    name: Publish docs
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        elixir: [1.13.2]
+        otp: [24.1.7]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Erlang & Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ matrix.elixir }}
+        otp-version: ${{ matrix.otp }}
+
+    # Caching
+    - name: Dependencies cache
+      uses: actions/cache@v1
+      with:
+        path: deps
+        key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+
+    - name: Build cache
+      uses: actions/cache@v1
+      with:
+        path: _build
+        key: ${{ runner.os }}-build-dev-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-dev-${{matrix.elixir}}-${{matrix.otp}}-
+
+    # Setup
+    - name: Install dependencies
+      run: mix deps.get
+
+    # Run
+    - name: Generate docs
+      run: mix docs
+
+    - name: Push docs
+      uses: JamesIves/github-pages-deploy-action@v4.2.5
+      with:
+        branch: docs
+        folder: doc

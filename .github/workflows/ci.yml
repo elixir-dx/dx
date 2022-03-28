@@ -46,10 +46,9 @@ jobs:
       uses: actions/cache@v1
       with:
         path: _build
-        key: ${{ runner.os }}-build-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
+        key: ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
         restore-keys: |
-          ${{ runner.os }}-build-${{matrix.elixir}}-${{matrix.otp}}-
-
+          ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-
 
     # Setup
     - name: Install dependencies
