@@ -26,9 +26,9 @@ defmodule Infer.FunctionTest do
   end
 
   setup context do
-    overrides = context[:task_data] || %{}
+    overrides = context[:task] || %{}
 
-    task_data =
+    task =
       build(
         Task,
         {%{
@@ -38,21 +38,21 @@ defmodule Infer.FunctionTest do
          }, overrides}
       )
 
-    [task_data: task_data]
+    [task: task]
   end
 
-  test "adds two numbers", %{task_data: task_data} do
-    assert Infer.get!(task_data, :plus_2, extra_rules: Rules, args: [number: 2]) ==
+  test "adds two numbers", %{task: task} do
+    assert Infer.get!(task, :plus_2, extra_rules: Rules, args: [number: 2]) ==
              4
   end
 
-  @tag task_data: %{list: %{hourly_points: nil}}
-  test "returns fallback rate", %{task_data: task_data} do
-    assert Infer.load!(task_data, :task_points, extra_rules: Rules) == 3
+  @tag task: %{list: %{hourly_points: nil}}
+  test "returns fallback rate", %{task: task} do
+    assert Infer.load!(task, :task_points, extra_rules: Rules) == 3
   end
 
-  @tag task_data: %{list: %{hourly_points: 0.5}}
-  test "returns referenced rate", %{task_data: task_data} do
-    assert Infer.load!(task_data, :task_points, extra_rules: Rules) == 7
+  @tag task: %{list: %{hourly_points: 0.5}}
+  test "returns referenced rate", %{task: task} do
+    assert Infer.load!(task, :task_points, extra_rules: Rules) == 7
   end
 end
