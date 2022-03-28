@@ -15,23 +15,21 @@ defmodule Infer.MapTest do
 
     infer prev_tasks_1:
             {:map, :prev_dates, :due_on,
-             {:query_one, Task,
-              due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
+             {:query_one, Task, due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
 
     infer prev_tasks_2:
             {:map, :prev_dates, {:bind, :due_on},
-             {:query_one, Task,
-              due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
+             {:query_one, Task, due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
 
     infer prev_tasks_3:
             {:map, :prev_dates, {:bind, :due_on, %{}},
-             {:query_one, Task,
-              due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
+             {:query_one, Task, due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
   end
 
   setup do
     user = create(User)
     list = create(List, %{created_by_id: user.id})
+
     tasks =
       for date <- Date.range(monday(), monday(-6)) do
         create(Task, %{due_on: date, list_id: list.id, created_by_id: user.id})

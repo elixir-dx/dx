@@ -3,7 +3,6 @@ defmodule Infer.QueryFirstTest do
   use Infer.Test.DataCase, async: false
   import Test.Support.DateTimeHelpers, only: [monday: 2]
 
-
   defmodule Rules do
     use Infer.Rules, for: List
 
@@ -18,11 +17,17 @@ defmodule Infer.QueryFirstTest do
   setup do
     user = create(User)
     lists = for _ <- 1..2, do: create(List, %{created_by_id: user.id})
-    tasks = 
+
+    tasks =
       lists
       |> Enum.flat_map(fn list ->
         for date_offset <- 1..5 do
-          create(Task, %{title: "Task #{date_offset}", created_by_id: user.id, list_id: list.id, completed_at: monday(-date_offset, ~T[12:34:56])})
+          create(Task, %{
+            title: "Task #{date_offset}",
+            created_by_id: user.id,
+            list_id: list.id,
+            completed_at: monday(-date_offset, ~T[12:34:56])
+          })
         end
       end)
 
@@ -50,7 +55,7 @@ defmodule Infer.QueryFirstTest do
   end
 
   describe "query_first" do
-    test "returns tasks for one list", %{lists: [list|_], tasks: tasks} do
+    test "returns tasks for one list", %{lists: [list | _], tasks: tasks} do
       expected =
         tasks
         |> Enum.filter(&(&1.list_id == list.id))

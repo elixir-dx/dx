@@ -60,22 +60,34 @@ defmodule Infer.BindTest do
   end
 
   test "returns bound value on root level of the assigns", %{user: user, list2: list2} do
-    assert Infer.get!(user, :latest_data_for_author, extra_rules: UserRules, args: [created_by_id: 2]) ==
+    assert Infer.get!(user, :latest_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 2]
+           ) ==
              list2
   end
 
   test "returns first bound value", %{user: user, list3: list3} do
-    assert Infer.get!(user, :latest_data_for_author, extra_rules: UserRules, args: [created_by_id: 3]) ==
+    assert Infer.get!(user, :latest_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 3]
+           ) ==
              list3
   end
 
   test "returns nil when no match", %{user: user} do
-    assert Infer.get!(user, :latest_data_for_author, extra_rules: UserRules, args: [created_by_id: 0]) ==
+    assert Infer.get!(user, :latest_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 0]
+           ) ==
              nil
   end
 
   test "returns bound value in nested assigns", %{user: user, list2: list2} do
-    assert Infer.get!(user, :nested_data_for_author, extra_rules: UserRules, args: [created_by_id: 2]) ==
+    assert Infer.get!(user, :nested_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 2]
+           ) ==
              %{might: [1, 2, 3, %TestStruct{field: list2}]}
   end
 
@@ -90,10 +102,16 @@ defmodule Infer.BindTest do
     list2: list2,
     list5: list5
   } do
-    assert Infer.get!(user, :fallback_data_for_author, extra_rules: UserRules, args: [created_by_id: 2]) ==
+    assert Infer.get!(user, :fallback_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 2]
+           ) ==
              %{preferred: list2, fallback: nil}
 
-    assert Infer.get!(user, :fallback_data_for_author, extra_rules: UserRules, args: [created_by_id: 0]) ==
+    assert Infer.get!(user, :fallback_data_for_author,
+             extra_rules: UserRules,
+             args: [created_by_id: 0]
+           ) ==
              %{preferred: nil, fallback: list5}
   end
 
