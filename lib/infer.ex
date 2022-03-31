@@ -80,8 +80,12 @@ defmodule Infer do
   - **extra_rules** (module or list of modules) can be used to add context-specific rules that are
     not defined directly on the subject. This can be used to structure rules into their own modules
     and use them only where needed.
-  - **debug?** (boolean) makes Infer print additional information to the console as rules are evaluated.
+  - **debug** (boolean) makes Infer print additional information to the console as rules are evaluated.
     Should only be used while debugging.
+  - **return_cache** (boolean) makes non-bang functions return `{:ok, result, cache}` instead of
+    `{:ok, result}` on success. This `cache` can be passed to other Infer functions (see `cache` option)
+  - **cache** (`Dataloader` struct) can be used to pass in an existing cache, so data already loaded
+    doesn't need to be loaded again. Can be initialized using `Infer.Loaders.Dataloader.init/0`.
 
   ## Conditions
 
@@ -407,7 +411,7 @@ defmodule Infer do
     eval = Eval.from_options(opts)
 
     do_get(records, predicates, eval)
-    |> Result.to_simple()
+    |> Result.to_simple_if(not eval.return_cache?)
   end
 
   defp do_get(records, predicates, eval) when is_list(records) do
@@ -439,13 +443,13 @@ defmodule Infer do
   Like `get/3`, but loads additional data if needed.
   """
   def load(records, predicates, opts \\ []) do
-    do_load(records, predicates, opts)
-    |> Result.to_simple()
-  end
-
-  defp do_load(records, predicates, opts) when is_list(opts) do
     eval = Eval.from_options(opts)
 
+    do_load(records, predicates, eval)
+    |> Result.to_simple_if(not eval.return_cache?)
+  end
+
+  defp do_load(records, predicates, eval) do
     load_all_data_reqs(eval, fn eval ->
       do_get(records, predicates, eval)
     end)
@@ -454,7 +458,8 @@ defmodule Infer do
   defp load_all_data_reqs(eval, fun) do
     case fun.(eval) do
       {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
-      result -> result
+      {:ok, result, _binds} -> {:ok, result, eval.cache}
+      other -> other
     end
   end
 
@@ -475,9 +480,11 @@ defmodule Infer do
   Same as for `get/3`.
   """
   def put(records, predicates, opts \\ []) do
-    do_load(records, List.wrap(predicates), opts)
+    eval = Eval.from_options(opts)
+
+    do_load(records, List.wrap(predicates), eval)
     |> Result.transform(&do_put(records, &1))
-    |> Result.to_simple()
+    |> Result.to_simple_if(not eval.return_cache?)
   end
 
   defp do_put(records, results) when is_list(records) do

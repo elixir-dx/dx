@@ -9,6 +9,7 @@ defmodule Infer.Evaluation do
   typedstruct do
     field(:root_subject, map())
     field(:cache, any())
+    field(:return_cache?, boolean(), default: false)
     field(:binds, map())
     field(:negate?, boolean(), default: false)
     field(:resolve_predicates?, boolean(), default: true)
@@ -35,6 +36,7 @@ defmodule Infer.Evaluation do
     Enum.reduce(opts, eval, fn
       {:extra_rules, mods}, eval -> %{eval | extra_rules: List.wrap(mods)}
       {:debug, debug}, eval -> %{eval | debug?: debug}
+      {:return_cache, return_cache}, eval -> %{eval | return_cache?: return_cache}
       {:args, args}, eval -> %{eval | args: Map.new(args)}
       {key, val}, eval -> Map.replace!(eval, key, val)
     end)

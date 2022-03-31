@@ -115,6 +115,9 @@ defmodule Infer.Result do
   def to_simple({:ok, result, _binds}), do: {:ok, result}
   def to_simple(other), do: other
 
+  def to_simple_if({:ok, result, _binds}, true), do: {:ok, result}
+  def to_simple_if(other, _), do: other
+
   @doc """
   Converts 2-tuples to the internal 3-tuple result format (type `t:v()` or `t:b()`).
 
