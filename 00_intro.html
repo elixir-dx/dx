@@ -7,7 +7,7 @@
     <meta name="generator" content="ExDoc v0.28.0">
     <meta name="project" content="infer v0.3.0">
 
-    <title>Infer.Rule — infer v0.3.0</title>
+    <title>Introduction — infer v0.3.0</title>
     <link rel="stylesheet" href="dist/elixir-a816d167216329cc463d.css" />
 
     <script src="dist/sidebar_items-08bd78dcdd.js"></script>
@@ -18,7 +18,7 @@
 
 
   </head>
-  <body data-type="modules">
+  <body data-type="extras">
     <script>
 
       try {
@@ -87,99 +87,42 @@ infer
 </button>
 
 
-    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/rule.ex#L1" title="View Source" class="view-source" rel="help">
+    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/docs/basics/00_intro.md#L1" title="View Source" class="view-source" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">Infer.Rule</span> 
-  <small class="app-vsn" translate="no">(infer v0.3.0)</small>
-
+  <span>Introduction</span>
 </h1>
 
+<p>In the following sections, we'll learn...</p><ul><li>what <a href="01_predicates.html">predicates</a> are, and how to define rules to assign their values</li><li>how <a href="02_associations.html">associations</a> are easily traversed when defining rules</li><li>combining <a href="03_conditions.md">conditions</a> to define more complex rules</li><li>using <a href="04_references.md">references</a> to compare multiple fields or predicates with each other</li><li>passing in <a href="05_arguments.md">arguments</a> from the outside context in which rules are evaluated</li></ul><p>Finally, we close with a chapter on <a href="06_thinking_in_infer.html">Thinking in Infer</a>, learn to apply
+all the lessons learnt.</p>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
 
-  <section id="moduledoc">
-<p>Represents a rule to apply to an Infer, based on an individual record.</p><h2 id="module-when" class="section-heading">
-  <a href="#module-when" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
-  <code class="inline">when</code>
-</h2>
-<p>Nested map with data requirements and matching values.</p><p>Lists mean one of the values must match.</p><p>Negations can be expressed using <code class="inline">{:not, value}</code> or <code class="inline">{:not, [values]}</code>.</p>
-  </section>
-
-
-  <section id="summary" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#summary">
-        <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
+      <a href="welcome.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Welcome 👋
+        </span>
       </a>
-      Summary
-    </h1>
-
-  <div class="summary-types summary">
-    <h2>
-      <a href="#types">Types</a>
-    </h2>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#t:t/0" translate="no">t()</a>
-
-        </div>
-
-      </div>
 
   </div>
+  <div class="bottom-actions-item">
 
-  </section>
-
-
-  <section id="types" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#types">
-        <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
+      <a href="01_predicates.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Predicates
+        </span>
       </a>
-Types
-    </h1>
-    <div class="types-list">
-<section class="detail" id="t:t/0">
-
-  <div class="detail-header">
-    <a href="#t:t/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">t()</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/rule.ex#L14" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
 
   </div>
-
-  <section class="docstring">
-
-      <h2>Specs</h2>
-      <div class="specs">
-
-          <pre translate="no">t() :: %Infer.Rule{
-  key: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>() | nil,
-  type: (<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>() | nil) | nil,
-  val: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>() | nil,
-  when: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
-}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-
-    </div>
-  </section>
+</div>
 
       <footer class="footer">
 
@@ -190,7 +133,7 @@ Types
               <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
               <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
 
-                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/lib/infer/rule.ex">(current file)</a>
+                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/docs/basics/00_intro.md">(current file)</a>
 
             </span>
 

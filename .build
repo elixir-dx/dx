@@ -1,7 +1,9 @@
-01_introduction.html
-02_predicates.html
-03_associations.html
+00_intro.html
+01_predicates.html
+02_associations.html
+06_thinking_in_infer.html
 404.html
+99_outro.html
 Infer.DSL.Add.html
 Infer.DSL.Bind.html
 Infer.DSL.BindAll.html
@@ -41,8 +43,8 @@ dist/html/fonts/remixicon.svg
 dist/html/fonts/remixicon.ttf
 dist/html/fonts/remixicon.woff
 dist/html/fonts/remixicon.woff2
-dist/search_items-b79fa01ea3.js
-dist/sidebar_items-cca66efdef.js
+dist/search_items-3f89bfa32d.js
+dist/sidebar_items-08bd78dcdd.js
 index.html
 search.html
 welcome.html
