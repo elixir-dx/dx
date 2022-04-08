@@ -547,6 +547,8 @@ defmodule Infer do
   defp get_type([%type{} | _]), do: type
 
   defp get_type(type) when is_atom(type) do
+    Code.ensure_compiled(type)
+
     if Util.Module.has_function?(type, :infer_rules_for, 2) do
       type
     else
