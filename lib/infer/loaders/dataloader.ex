@@ -53,8 +53,12 @@ defmodule Infer.Loaders.Dataloader do
   end
 
   defp db_conn_checked_out?(repo_name) do
-    {adapter, meta} = Ecto.Repo.Registry.lookup(repo_name)
-    adapter.checked_out?(meta)
+    case Ecto.Repo.Registry.lookup(repo_name) do
+      # Ecto < 3.8.0
+      {adapter, meta} -> adapter.checked_out?(meta)
+      # Ecto >= 3.8.0
+      %{adapter: adapter} = meta -> adapter.checked_out?(meta)
+    end
   end
 
   def load(cache, data_reqs) do
