@@ -6,7 +6,7 @@ defmodule Infer.QueryFirstTest do
   defmodule Rules do
     use Infer.Rules, for: List
 
-    infer newest_completed_tasks:
+    infer newest_completed_task:
             {:query_first, Task, [list_id: {:ref, :id}], order_by: [desc: :completed_at]}
 
     infer completed_tasks:
@@ -61,7 +61,7 @@ defmodule Infer.QueryFirstTest do
         |> Enum.filter(&(&1.list_id == list.id))
         |> Enum.max_by(& &1.completed_at, DateTime)
 
-      assert Infer.load!(list, :newest_completed_tasks, extra_rules: Rules) ==
+      assert Infer.load!(list, :newest_completed_task, extra_rules: Rules) ==
                expected
 
       assert_received {:ecto_query, %{source: nil, result: {:ok, %{num_rows: 1}}}}
@@ -77,7 +77,7 @@ defmodule Infer.QueryFirstTest do
           |> Enum.max_by(& &1.completed_at, DateTime)
         end
 
-      assert Infer.load!(lists, :newest_completed_tasks, extra_rules: Rules) ==
+      assert Infer.load!(lists, :newest_completed_task, extra_rules: Rules) ==
                expected
 
       assert_received {:ecto_query, %{source: nil, result: {:ok, %{num_rows: 2}}}}
