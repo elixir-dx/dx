@@ -1,5 +1,6 @@
 defmodule Infer.Test.Schema.Task do
   use Ecto.Schema
+  use Infer.Ecto.Schema, repo: Infer.Test.Repo
 
   alias Infer.Test.Schema.{List, User}
 

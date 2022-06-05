@@ -11,6 +11,12 @@ defmodule Test.Support.Factories do
     }
   end
 
+  def refinement(Infer.Test.Schema.ListTemplate, :default) do
+    %{
+      title: "My List Template"
+    }
+  end
+
   def refinement(Infer.Test.Schema.Task, :default) do
     %{
       title: "My Task"

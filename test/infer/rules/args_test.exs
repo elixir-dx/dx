@@ -21,7 +21,7 @@ defmodule Infer.Rules.ArgsTest do
 
   describe "args can be passed to rules" do
     setup do
-      user = create(User, %{last_name: "Miguel"})
+      user = create(User, %{last_name: "Medina"})
       list = create(List, %{created_by: user})
       [list: list, user: user]
     end
@@ -65,7 +65,7 @@ defmodule Infer.Rules.ArgsTest do
       assert Infer.get!(list, :created_by?, extra_rules: [Rules], args: [user: user]) ==
                false
 
-      other_user = create(User, %{last_name: "Vargerra"})
+      other_user = create(User, %{last_name: "Vega"})
 
       assert Infer.get!(list, :created_by?, extra_rules: [Rules], args: [user: other_user]) ==
                false

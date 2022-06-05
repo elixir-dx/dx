@@ -79,7 +79,7 @@ defmodule Infer.MixProject do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.migrate", "test"]
+      test: ["ecto.reset", "test"]
     ]
   end
 end
