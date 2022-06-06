@@ -17,7 +17,10 @@ defmodule Infer.Test.DataCase do
   using do
     quote do
       alias Infer.Test.Repo
-      alias Infer.Test.Schema.{List, Task, User}
+      alias Infer.Test.Schema.{List, ListCalendarOverride, ListTemplate, Task, User}
+
+      import Test.Support.Factories
+      import Test.Support.DateTimeHelpers
     end
   end
 
