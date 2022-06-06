@@ -1,8 +1,5 @@
 defmodule Infer.QueryOneTest do
-  # async: false to receive :ecto_query messages correctly
-  use Infer.Test.DataCase, async: false
-
-  import Test.Support.DateTimeHelpers, only: [monday: 1]
+  use Infer.Test.DataLoadingCase
 
   defmodule Rules do
     use Infer.Rules, for: Task
@@ -24,12 +21,12 @@ defmodule Infer.QueryOneTest do
 
     calendar_overrides =
       for date_offset <- 0..3, list <- Enum.reverse(lists) do
-        create(ListCalendarOverride, %{date: monday(date_offset), list_id: list.id})
+        create(ListCalendarOverride, %{date: today(date_offset), list_id: list.id})
       end
 
     tasks =
       for date_offset <- 0..3 do
-        create(Task, %{due_on: monday(date_offset), list_id: main_list.id, created_by: %{}})
+        create(Task, %{due_on: today(date_offset), list_id: main_list.id, created_by: %{}})
       end
 
     [
@@ -37,26 +34,6 @@ defmodule Infer.QueryOneTest do
       lists: lists,
       calendar_overrides: calendar_overrides
     ]
-  end
-
-  # subscribe to ecto queries
-  setup do
-    test_process = self()
-    handler_id = "ecto-queries-test"
-
-    callback = fn
-      _event, _measurements, %{result: {:ok, %{command: :select}}} = metadata, _config ->
-        send(test_process, {:ecto_query, metadata})
-
-      _, _, _, _ ->
-        nil
-    end
-
-    :ok = :telemetry.attach(handler_id, [:infer, :test, :repo, :query], callback, nil)
-
-    on_exit(fn ->
-      :telemetry.detach(handler_id)
-    end)
   end
 
   describe "query_one" do

@@ -1,8 +1,6 @@
 defmodule Infer.RefBranchingTest do
   use Infer.Test.DataCase, async: true
 
-  import Test.Support.DateTimeHelpers, only: [monday: 1]
-
   setup do
     list = create(List, %{created_by: %{}})
 
@@ -12,7 +10,7 @@ defmodule Infer.RefBranchingTest do
             create(Task, %{
               list_id: list.id,
               title: "Todo #{i}",
-              due_on: monday(i),
+              due_on: today(i),
               created_by: %{last_name: "User #{i}"}
             })
 

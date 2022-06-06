@@ -1,8 +1,5 @@
 defmodule Infer.QueryAllTest do
-  # async: false to receive :ecto_query messages correctly
-  use Infer.Test.DataCase, async: false
-
-  import Test.Support.DateTimeHelpers, only: [monday: 1]
+  use Infer.Test.DataLoadingCase
 
   defmodule Rules do
     use Infer.Rules, for: Task
@@ -24,30 +21,10 @@ defmodule Infer.QueryAllTest do
 
     tasks =
       for date_offset <- 0..3 do
-        create(Task, %{due_on: monday(date_offset), list_id: list.id, created_by_id: user.id})
+        create(Task, %{due_on: today(date_offset), list_id: list.id, created_by_id: user.id})
       end
 
     [tasks: tasks]
-  end
-
-  # subscribe to ecto queries
-  setup do
-    test_process = self()
-    handler_id = "ecto-queries-test"
-
-    callback = fn
-      _event, _measurements, %{result: {:ok, %{command: :select}}} = metadata, _config ->
-        send(test_process, {:ecto_query, metadata})
-
-      _, _, _, _ ->
-        nil
-    end
-
-    :ok = :telemetry.attach(handler_id, [:infer, :test, :repo, :query], callback, nil)
-
-    on_exit(fn ->
-      :telemetry.detach(handler_id)
-    end)
   end
 
   test "returns 2 prev_two_tasks for newest task", %{tasks: tasks} do

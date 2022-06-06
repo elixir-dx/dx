@@ -1,10 +1,5 @@
 defmodule Infer.FunctionTest do
-  use ExUnit.Case, async: true
-
-  alias Infer.Test.Schema.Task
-
-  import Test.Support.Factories
-  import Test.Support.DateTimeHelpers
+  use Infer.Test.DataCase, async: true
 
   defmodule Rules do
     use Infer.Rules, for: Task
@@ -33,8 +28,8 @@ defmodule Infer.FunctionTest do
         Task,
         {%{
            list: %{},
-           inserted_at: monday(~T[07:00:00]),
-           completed_at: monday(~T[20:00:00])
+           inserted_at: today(~T[07:00:00]),
+           completed_at: today(~T[20:00:00])
          }, overrides}
       )
 
@@ -42,8 +37,7 @@ defmodule Infer.FunctionTest do
   end
 
   test "adds two numbers", %{task: task} do
-    assert Infer.get!(task, :plus_2, extra_rules: Rules, args: [number: 2]) ==
-             4
+    assert Infer.get!(task, :plus_2, extra_rules: Rules, args: [number: 2]) == 4
   end
 
   @tag task: %{list: %{hourly_points: nil}}

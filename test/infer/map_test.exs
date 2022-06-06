@@ -1,8 +1,6 @@
 defmodule Infer.MapTest do
   use Infer.Test.DataCase, async: true
 
-  import Test.Support.DateTimeHelpers, only: [monday: 0, monday: 1]
-
   defmodule Rules do
     use Infer.Rules, for: Task
 
@@ -31,7 +29,7 @@ defmodule Infer.MapTest do
     list = create(List, %{created_by_id: user.id})
 
     tasks =
-      for date <- Date.range(monday(), monday(-6)) do
+      for date <- Date.range(today(), today(-6)) do
         create(Task, %{due_on: date, list_id: list.id, created_by_id: user.id})
       end
 

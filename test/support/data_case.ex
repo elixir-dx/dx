@@ -20,6 +20,7 @@ defmodule Infer.Test.DataCase do
       alias Infer.Test.Schema.{List, ListCalendarOverride, ListTemplate, Task, User}
 
       import Test.Support.Factories
+      import Test.Support.DateTimeHelpers
     end
   end
 
