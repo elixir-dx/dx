@@ -4,17 +4,17 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.28.3">
+    <meta name="generator" content="ExDoc v0.28.0">
     <meta name="project" content="infer v0.3.0">
 
     <title>Infer — infer v0.3.0</title>
-    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
+    <link rel="stylesheet" href="dist/elixir-a816d167216329cc463d.css" />
 
-    <script src="dist/sidebar_items-63acb095d8.js"></script>
+    <script src="dist/sidebar_items-f0e05c085a.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+    <script async src="dist/app-80aa23c1d96b6dc3c064.js"></script>
 
 
   </head>
@@ -22,13 +22,8 @@
     <script>
 
       try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
+        if (localStorage.getItem('night-mode') === 'true') {
+          document.body.classList.add('night-mode');
         }
       } catch (error) { }
     </script>
@@ -37,7 +32,7 @@
 
 
 <section class="sidebar">
-  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+  <button class="sidebar-button sidebar-toggle">
     <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
   </button>
 
@@ -49,7 +44,6 @@
       <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
     </button>
     <label class="search-label">
-      <p class="sr-only">Search</p>
       <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
     </label>
   </form>
@@ -62,7 +56,7 @@
   <div class="sidebar-header">
 
     <div class="sidebar-projectDetails">
-      <a href="welcome.html" class="sidebar-projectName" translate="no">
+      <a href="readme.html" class="sidebar-projectName" translate="no">
 infer
       </a>
       <strong class="sidebar-projectVersion" translate="no">
@@ -70,7 +64,7 @@ infer
       </strong>
     </div>
     <ul class="sidebar-listNav">
-      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
 
         <li><a id="modules-list-link" href="#full-list">Modules</a></li>
 
@@ -113,13 +107,11 @@ non-developers (with a short introduction)</li><li>Application logic can be laid
 the desired results, and it will compute them</li><li>Infer loads required data as needed (e.g. from the database), in an optimized way that applies
 filtering, batching and concurrency, and avoids overfetching</li></ul><h1>Usage</h1><p><code class="inline">use Infer.Ecto.Schema</code> enables a module to specify inferences, such as</p><pre><code class="makeup elixir" translate="no"><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">has_children?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0248283257-1">%{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0248283257-2">%{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;parent_of&quot;</span><span class="p" data-group-id="0248283257-2">}</span><span class="p" data-group-id="0248283257-1">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">has_children?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9280483805-1">%{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9280483805-2">%{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;parent_of&quot;</span><span class="p" data-group-id="9280483805-2">}</span><span class="p" data-group-id="9280483805-1">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">has_children?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span></code></pre><p>Unlike full-fledged inference engines (such as <a href="https://github.com/liveforeverx/calypte">calypte</a>
 or <a href="https://github.com/lorenzosinisi/retex">retex</a>), all rules in Infer are bound to an individual
 record type as their subject. This, in turn, allows to utilize Ecto schemas and queries to their full extent.</p><h2 id="module-terminology" class="section-heading">
-  <a href="#module-terminology" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">terminology</p>
-  </a>
+  <a href="#module-terminology" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Terminology
 </h2>
 <ul><li><code class="inline">infer ...</code> defines a <strong>rule</strong> in a module. It applies to an instance of that module:
@@ -128,9 +120,7 @@ e.g. <code class="inline">%{relatives: %{relation: &quot;parent_of&quot;}}</code
 e.g. <code class="inline">has_children?: true</code>. This is also called the <strong>result</strong> of the rule.</li><li>All rules are evaluated from top to bottom until the first one for each predicate matches,
 similar to a <code class="inline">cond</code> statement.</li><li>A condition can make use of other predicates as well as <strong>fields</strong> defined on the schema or
 struct of the underlying type.</li><li>An executed rule results in a (derived) <strong>fact</strong>: subject, predicate, value.</li></ul><h2 id="module-api-overview" class="section-heading">
-  <a href="#module-api-overview" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">api-overview</p>
-  </a>
+  <a href="#module-api-overview" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   API overview
 </h2>
 <ul><li><a href="#get/3"><code class="inline">Infer.get/3</code></a> evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)</li><li><a href="#load/3"><code class="inline">Infer.load/3</code></a> is like <code class="inline">get</code>, but loads any additional data as needed</li><li><a href="#put/3"><code class="inline">Infer.put/3</code></a> is like <code class="inline">load</code>, but puts the results into the <code class="inline">:inferred</code> field
@@ -139,152 +129,128 @@ directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><strong>s
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><strong>predicates</strong> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <strong>map</strong>
 of the predicates and their resulting values.</li><li><strong>options</strong> (optional) See below.</li></ul><p>Options:</p><ul><li><strong>args</strong> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="nc">Infer</span><span class="o">.</span><span class="n">put!</span><span class="p" data-group-id="5072608154-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5072608154-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="5072608154-2">]</span><span class="p" data-group-id="5072608154-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="nc">Infer</span><span class="o">.</span><span class="n">put!</span><span class="p" data-group-id="7589212076-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7589212076-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="7589212076-2">]</span><span class="p" data-group-id="7589212076-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
-and use them only where needed.</li><li><strong>debug?</strong> (boolean) makes Infer print additional information to the console as rules are evaluated.
-Should only be used while debugging.</li></ul><h2 id="module-conditions" class="section-heading">
-  <a href="#module-conditions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">conditions</p>
-  </a>
+and use them only where needed.</li><li><strong>debug</strong> (boolean) makes Infer print additional information to the console as rules are evaluated.
+Should only be used while debugging.</li><li><strong>return_cache</strong> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
+<code class="inline">{:ok, result}</code> on success. This <code class="inline">cache</code> can be passed to other Infer functions (see <code class="inline">cache</code> option)</li><li><strong>cache</strong> (<a href="https://hexdocs.pm/dataloader/1.0.9/Dataloader.html"><code class="inline">Dataloader</code></a> struct) can be used to pass in an existing cache, so data already loaded
+doesn't need to be loaded again. Can be initialized using <a href="Infer.Loaders.Dataloader.html#init/0"><code class="inline">Infer.Loaders.Dataloader.init/0</code></a>.</li></ul><h2 id="module-conditions" class="section-heading">
+  <a href="#module-conditions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Conditions
 </h2>
 <p>In a rule condition, the part after <code class="inline">when: ...</code>,</p><ul><li><strong>Maps</strong> represent multiple conditions, of which <strong>all</strong> need to be satisfied (logical <code class="inline">AND</code>).</li><li><strong>Lists</strong> represent multiple conditions, of which <strong>at least one</strong> needs to be satisfied (logical <code class="inline">OR</code>).</li><li>Values can be negated using <code class="inline">{:not, &quot;value&quot;}</code>.</li></ul><p>Examples:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># :role must be &quot;admin&quot;</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-1">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="6905349853-1">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-1">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="5278551053-1">}</span><span class="w">
 
 </span><span class="c1"># :role must be either &quot;admin&quot; or &quot;superadmin&quot;</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-2">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-3">[</span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;superadmin&quot;</span><span class="p" data-group-id="6905349853-3">]</span><span class="p" data-group-id="6905349853-2">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-2">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-3">[</span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;superadmin&quot;</span><span class="p" data-group-id="5278551053-3">]</span><span class="p" data-group-id="5278551053-2">}</span><span class="w">
 
 </span><span class="c1"># :role must be &quot;admin&quot; and :verified? must be true</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-4">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">verified?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6905349853-4">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-4">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">verified?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="5278551053-4">}</span><span class="w">
 
 </span><span class="c1"># :role must be &quot;admin&quot; and :verified_at must not be nil</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-5">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">verified_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6905349853-6">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6905349853-6">}</span><span class="p" data-group-id="6905349853-5">}</span></code></pre><h3 id="module-boolean-shorthand-form" class="section-heading">
-  <a href="#module-boolean-shorthand-form" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">boolean-shorthand-form</p>
-  </a>
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-5">%{</span><span class="ss">role</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">verified_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5278551053-6">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="5278551053-6">}</span><span class="p" data-group-id="5278551053-5">}</span></code></pre><h3 id="module-boolean-shorthand-form" class="section-heading">
+  <a href="#module-boolean-shorthand-form" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Boolean shorthand form
 </h3>
 <p>A single atom is a shorthand for <code class="inline">%{atom: true}</code>.</p><h3 id="module-conditions-on-list-data" class="section-heading">
-  <a href="#module-conditions-on-list-data" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">conditions-on-list-data</p>
-  </a>
+  <a href="#module-conditions-on-list-data" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Conditions on list data
 </h3>
 <p>When conditions are tested against list data, e.g. a person's list of roles, the condition is satisfied
 if at least one element of the list matches the given conditions (like <a href="https://hexdocs.pm/elixir/Enum.html#any?/2"><code class="inline">Enum.any?/2</code></a>).</p><p>Although they might look similar, it's important to differentiate between lists that appear in
 conditions, and lists that appear in the data, which are checked against a condition.</p><p>When both occur together, i.e. a list in a condition is checked against a list of values, the condition
-is met if at least one of the condition list elements applies to at least one element of the value list.</p><p>For example:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2112985791-1">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2112985791-2">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="2112985791-2">]</span><span class="p" data-group-id="2112985791-1">}</span><span class="w">
+is met if at least one of the condition list elements applies to at least one element of the value list.</p><p>For example:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7294619814-1">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7294619814-2">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="7294619814-2">]</span><span class="p" data-group-id="7294619814-1">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2112985791-3">%</span><span class="nc" data-group-id="2112985791-3">Person</span><span class="p" data-group-id="2112985791-3">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2112985791-4">[</span><span class="s">&quot;worker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;assistant&quot;</span><span class="p" data-group-id="2112985791-4">]</span><span class="p" data-group-id="2112985791-3">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="2112985791-5">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="2112985791-5">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="7294619814-3">%</span><span class="nc" data-group-id="7294619814-3">Person</span><span class="p" data-group-id="7294619814-3">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7294619814-4">[</span><span class="s">&quot;worker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;assistant&quot;</span><span class="p" data-group-id="7294619814-4">]</span><span class="p" data-group-id="7294619814-3">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="7294619814-5">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="7294619814-5">)</span><span class="w">
 </span><span class="no">nil</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2112985791-6">%</span><span class="nc" data-group-id="2112985791-6">Person</span><span class="p" data-group-id="2112985791-6">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2112985791-7">[</span><span class="s">&quot;assistant&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;project_manager&quot;</span><span class="p" data-group-id="2112985791-7">]</span><span class="p" data-group-id="2112985791-6">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="2112985791-8">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="2112985791-8">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="7294619814-6">%</span><span class="nc" data-group-id="7294619814-6">Person</span><span class="p" data-group-id="7294619814-6">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7294619814-7">[</span><span class="s">&quot;assistant&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;project_manager&quot;</span><span class="p" data-group-id="7294619814-7">]</span><span class="p" data-group-id="7294619814-6">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="7294619814-8">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="7294619814-8">)</span><span class="w">
 </span><span class="no">true</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2112985791-9">%</span><span class="nc" data-group-id="2112985791-9">Person</span><span class="p" data-group-id="2112985791-9">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2112985791-10">[</span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="2112985791-10">]</span><span class="p" data-group-id="2112985791-9">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="2112985791-11">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="2112985791-11">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="7294619814-9">%</span><span class="nc" data-group-id="7294619814-9">Person</span><span class="p" data-group-id="7294619814-9">{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7294619814-10">[</span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="7294619814-10">]</span><span class="p" data-group-id="7294619814-9">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="7294619814-11">(</span><span class="ss">:can_edit?</span><span class="p" data-group-id="7294619814-11">)</span><span class="w">
 </span><span class="no">true</span></code></pre><p>The same applies to complex conditions.</p><h2 id="module-rule-results" class="section-heading">
-  <a href="#module-rule-results" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">rule-results</p>
-  </a>
+  <a href="#module-rule-results" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Rule results
 </h2>
 <p>The assigned value of a predicate is generally assigned as is.</p><p>A few special tuples, however, will be replaced by Infer (see <em>Features</em> below)</p><p>Example:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">d</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">nested</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7812682188-1">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7812682188-2">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:d</span><span class="p" data-group-id="7812682188-2">}</span><span class="p" data-group-id="7812682188-1">}</span><span class="w">  </span><span class="c1"># =&gt; %{a: 1, b: 2, c: 4}</span></code></pre><h2 id="module-features" class="section-heading">
-  <a href="#module-features" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">features</p>
-  </a>
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">nested</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1450105265-1">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1450105265-2">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:d</span><span class="p" data-group-id="1450105265-2">}</span><span class="p" data-group-id="1450105265-1">}</span><span class="w">  </span><span class="c1"># =&gt; %{a: 1, b: 2, c: 4}</span></code></pre><h2 id="module-features" class="section-heading">
+  <a href="#module-features" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Features
 </h2>
 <h3 id="module-references" class="section-heading">
-  <a href="#module-references" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">references</p>
-  </a>
+  <a href="#module-references" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   References
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{:ref, path}</code> (in conditions and result values)</li></ul><p>Arguments:</p><ul><li> <strong>path</strong> is a list of fields or predicates, starting from the subject.
 The brackets can be omitted (i.a. an atom passed), if the path consists of one element.
-The last element can be a map or list (see <em>Branching</em> below)</li></ul><p>Example:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">ot_fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2629156506-1">%{</span><span class="ss">editable</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2629156506-1">}</span><span class="p">,</span><span class="w">
-    </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2629156506-2">%{</span><span class="w">
+The last element can be a map or list (see <em>Branching</em> below)</li></ul><p>Example:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">ot_fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3521152776-1">%{</span><span class="ss">editable</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="3521152776-1">}</span><span class="p">,</span><span class="w">
+    </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3521152776-2">%{</span><span class="w">
       </span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-      </span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2629156506-3">%{</span><span class="w">
-        </span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2629156506-4">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2629156506-5">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:user</span><span class="p" data-group-id="2629156506-5">]</span><span class="p" data-group-id="2629156506-4">}</span><span class="p">,</span><span class="w">
-        </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2629156506-6">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="2629156506-6">]</span><span class="w">
-      </span><span class="p" data-group-id="2629156506-3">}</span><span class="w">
-    </span><span class="p" data-group-id="2629156506-2">}</span></code></pre><h4>Branching</h4><p>Any part of the <code class="inline">path</code> that represents an underlying <strong>list of subjects</strong>, such as referencing
+      </span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3521152776-3">%{</span><span class="w">
+        </span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3521152776-4">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3521152776-5">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:user</span><span class="p" data-group-id="3521152776-5">]</span><span class="p" data-group-id="3521152776-4">}</span><span class="p">,</span><span class="w">
+        </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3521152776-6">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p" data-group-id="3521152776-6">]</span><span class="w">
+      </span><span class="p" data-group-id="3521152776-3">}</span><span class="w">
+    </span><span class="p" data-group-id="3521152776-2">}</span></code></pre><h4>Branching</h4><p>Any part of the <code class="inline">path</code> that represents an underlying <strong>list of subjects</strong>, such as referencing
 a <code class="inline">has_many</code> association, will cause the result of the <code class="inline">:ref</code> to be a list as well.
 It basically behaves similar to <a href="https://hexdocs.pm/elixir/Enum.html#map/2"><code class="inline">Enum.map/2</code></a>.</p><p>A <strong>map</strong> as last element of a <code class="inline">path</code> will branch the returned result out into this map.
 The keys are returned as is, the values must be a list (or atom) continuing that path.
 This is particularly powerful when used on a list of subjects (see above), because it
-will return the given map with the values at the given paths for each underlying subject:</p><p>A <strong>list</strong> as last element of a <code class="inline">path</code> behaves like a map where each value equals its key.</p><p>Examples:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-1">[</span><span class="p" data-group-id="0042059629-2">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-3">%{</span><span class="ss">d</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p" data-group-id="0042059629-3">}</span><span class="p" data-group-id="0042059629-2">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-4">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-5">%{</span><span class="ss">d</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p" data-group-id="0042059629-5">}</span><span class="p" data-group-id="0042059629-4">}</span><span class="p" data-group-id="0042059629-1">]</span><span class="w">
+will return the given map with the values at the given paths for each underlying subject:</p><p>A <strong>list</strong> as last element of a <code class="inline">path</code> behaves like a map where each value equals its key.</p><p>Examples:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-1">[</span><span class="p" data-group-id="4465176889-2">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-3">%{</span><span class="ss">d</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p" data-group-id="4465176889-3">}</span><span class="p" data-group-id="4465176889-2">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-4">%{</span><span class="ss">a</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="ss">b</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="ss">c</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-5">%{</span><span class="ss">d</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p" data-group-id="4465176889-5">}</span><span class="p" data-group-id="4465176889-4">}</span><span class="p" data-group-id="4465176889-1">]</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">result1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-7">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:a</span><span class="p" data-group-id="0042059629-7">]</span><span class="p" data-group-id="0042059629-6">}</span><span class="w">  </span><span class="c1"># =&gt; [1, 9]</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">result2</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-8">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-9">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-10">%{</span><span class="ss">x</span><span class="p">:</span><span class="w"> </span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="ss">y</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-11">[</span><span class="ss">:c</span><span class="p">,</span><span class="w"> </span><span class="ss">:d</span><span class="p" data-group-id="0042059629-11">]</span><span class="p" data-group-id="0042059629-10">}</span><span class="p" data-group-id="0042059629-9">]</span><span class="p" data-group-id="0042059629-8">}</span><span class="w">  </span><span class="c1"># =&gt; [%{x: 1, y: 4}, %{x: 9, y: 6}]</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">result3</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0042059629-12">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-13">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0042059629-14">[</span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="ss">:b</span><span class="p" data-group-id="0042059629-14">]</span><span class="p" data-group-id="0042059629-13">]</span><span class="p" data-group-id="0042059629-12">}</span><span class="w">  </span><span class="c1"># =&gt; [%{a: 1, b: 2}, %{a: 9, b: 8}]</span></code></pre><h3 id="module-arguments" class="section-heading">
-  <a href="#module-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">arguments</p>
-  </a>
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">result1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-7">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:a</span><span class="p" data-group-id="4465176889-7">]</span><span class="p" data-group-id="4465176889-6">}</span><span class="w">  </span><span class="c1"># =&gt; [1, 9]</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">result2</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-8">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-9">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-10">%{</span><span class="ss">x</span><span class="p">:</span><span class="w"> </span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="ss">y</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-11">[</span><span class="ss">:c</span><span class="p">,</span><span class="w"> </span><span class="ss">:d</span><span class="p" data-group-id="4465176889-11">]</span><span class="p" data-group-id="4465176889-10">}</span><span class="p" data-group-id="4465176889-9">]</span><span class="p" data-group-id="4465176889-8">}</span><span class="w">  </span><span class="c1"># =&gt; [%{x: 1, y: 4}, %{x: 9, y: 6}]</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">result3</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4465176889-12">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-13">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4465176889-14">[</span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="ss">:b</span><span class="p" data-group-id="4465176889-14">]</span><span class="p" data-group-id="4465176889-13">]</span><span class="p" data-group-id="4465176889-12">}</span><span class="w">  </span><span class="c1"># =&gt; [%{a: 1, b: 2}, %{a: 9, b: 8}]</span></code></pre><h3 id="module-arguments" class="section-heading">
+  <a href="#module-arguments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Arguments
 </h3>
 <p>Passing <code class="inline">:args</code> as an option to any of the Infer API functions enables referencing the passed data
 in conditions and values using <code class="inline">{:ref, [:args, ...]}</code>.</p><h3 id="module-overriding-existing-fields" class="section-heading">
-  <a href="#module-overriding-existing-fields" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">overriding-existing-fields</p>
-  </a>
+  <a href="#module-overriding-existing-fields" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Overriding existing fields
 </h3>
 <p>It's possible to give predicates the same name as existing fields in the schema.
 This represents the fact that these fields are derived from other data, using rules.</p><p>Rules on these fields can even take into account the existing value of the underlying field.
-In order to reference it, use <code class="inline">:fields</code> in between a path or condition, for example:</p><pre><code class="makeup elixir" translate="no"><span class="n">schema</span><span class="w"> </span><span class="s">&quot;blog_posts&quot;</span><span class="w"> </span><span class="k" data-group-id="7972906275-1">do</span><span class="w">
+In order to reference it, use <code class="inline">:fields</code> in between a path or condition, for example:</p><pre><code class="makeup elixir" translate="no"><span class="n">schema</span><span class="w"> </span><span class="s">&quot;blog_posts&quot;</span><span class="w"> </span><span class="k" data-group-id="6104584728-1">do</span><span class="w">
   </span><span class="n">field</span><span class="w"> </span><span class="ss">:state</span><span class="w">
   </span><span class="n">field</span><span class="w"> </span><span class="ss">:published_at</span><span class="w">
-</span><span class="k" data-group-id="7972906275-1">end</span><span class="w">
+</span><span class="k" data-group-id="6104584728-1">end</span><span class="w">
 
 </span><span class="c1"># nilify published_at when deleted, or when it&#39;s an old archived post</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7972906275-2">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;deleted&quot;</span><span class="p" data-group-id="7972906275-2">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7972906275-3">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;archived&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7972906275-4">%{</span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7972906275-5">{</span><span class="ss">:before</span><span class="p">,</span><span class="w"> </span><span class="ld">~D[2020-02-20]</span><span class="p" data-group-id="7972906275-5">}</span><span class="p" data-group-id="7972906275-4">}</span><span class="p" data-group-id="7972906275-3">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7972906275-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7972906275-7">[</span><span class="ss">:fields</span><span class="p">,</span><span class="w"> </span><span class="ss">:published_at</span><span class="p" data-group-id="7972906275-7">]</span><span class="p" data-group-id="7972906275-6">}</span></code></pre><p>While it's always possible to achieve a similar behavior by giving the predicate a different
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6104584728-2">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;deleted&quot;</span><span class="p" data-group-id="6104584728-2">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6104584728-3">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;archived&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6104584728-4">%{</span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6104584728-5">{</span><span class="ss">:before</span><span class="p">,</span><span class="w"> </span><span class="ld">~D[2020-02-20]</span><span class="p" data-group-id="6104584728-5">}</span><span class="p" data-group-id="6104584728-4">}</span><span class="p" data-group-id="6104584728-3">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6104584728-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="6104584728-7">[</span><span class="ss">:fields</span><span class="p">,</span><span class="w"> </span><span class="ss">:published_at</span><span class="p" data-group-id="6104584728-7">]</span><span class="p" data-group-id="6104584728-6">}</span></code></pre><p>While it's always possible to achieve a similar behavior by giving the predicate a different
 name than the field, and then mapping the predicate to the field somewhere else,
 using the field name in conjunction with <code class="inline">:fields</code> makes explicit that it's a conditional override.</p><h3 id="module-binding-subject-parts" class="section-heading">
-  <a href="#module-binding-subject-parts" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">binding-subject-parts</p>
-  </a>
+  <a href="#module-binding-subject-parts" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Binding subject parts
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{:bind, key}</code> (in conditions)</li><li><code class="inline">{:bind, key, subcondition}</code> (in conditions)</li><li><code class="inline">{:bound, key}</code> (in result values)</li><li><code class="inline">{:bound, key, default}</code> (in result values)</li></ul><p>When a condition is evaluated on a list of values, the <strong>first value</strong> satisfying
 the condition can be bound to a variable using <code class="inline">{:bind, variable}</code>.</p><p>These bound values can be referenced using <code class="inline">{:bound, key}</code> with an optional default:
-<code class="inline">{:bound, key, default}</code>.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">project_manager</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8514632023-1">{</span><span class="ss">:bound</span><span class="p">,</span><span class="w"> </span><span class="ss">:person</span><span class="p" data-group-id="8514632023-1">}</span><span class="p">,</span><span class="w">
-    </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8514632023-2">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8514632023-3">%{</span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">person</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8514632023-4">{</span><span class="ss">:bind</span><span class="p">,</span><span class="w"> </span><span class="ss">:person</span><span class="p" data-group-id="8514632023-4">}</span><span class="p" data-group-id="8514632023-3">}</span><span class="p" data-group-id="8514632023-2">}</span></code></pre><h3 id="module-local-aliases" class="section-heading">
-  <a href="#module-local-aliases" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">local-aliases</p>
-  </a>
+<code class="inline">{:bound, key, default}</code>.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">project_manager</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9702439170-1">{</span><span class="ss">:bound</span><span class="p">,</span><span class="w"> </span><span class="ss">:person</span><span class="p" data-group-id="9702439170-1">}</span><span class="p">,</span><span class="w">
+    </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9702439170-2">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9702439170-3">%{</span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">person</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9702439170-4">{</span><span class="ss">:bind</span><span class="p">,</span><span class="w"> </span><span class="ss">:person</span><span class="p" data-group-id="9702439170-4">}</span><span class="p" data-group-id="9702439170-3">}</span><span class="p" data-group-id="9702439170-2">}</span></code></pre><h3 id="module-local-aliases" class="section-heading">
+  <a href="#module-local-aliases" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Local aliases
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">infer_alias key: ...</code> (in modules before using <code class="inline">key</code> in <code class="inline">infer ...</code>)</li></ul><p>In order to create shorthands and avoid repetition, aliases can be defined.
-These apply only to subsequent rules within the same module and are not exposed in any other way.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer_alias</span><span class="w"> </span><span class="ss">pm?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6248932990-1">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6248932990-2">%{</span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6248932990-3">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">admin</span><span class="p" data-group-id="6248932990-3">]</span><span class="p" data-group-id="6248932990-2">}</span><span class="p" data-group-id="6248932990-1">}</span><span class="w">
+These apply only to subsequent rules within the same module and are not exposed in any other way.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer_alias</span><span class="w"> </span><span class="ss">pm?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8121577731-1">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8121577731-2">%{</span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8121577731-3">[</span><span class="s">&quot;project_manager&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">admin</span><span class="p" data-group-id="8121577731-3">]</span><span class="p" data-group-id="8121577731-2">}</span><span class="p" data-group-id="8121577731-1">}</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">ot_fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6248932990-4">%{</span><span class="ss">editable</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6248932990-4">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6248932990-5">[</span><span class="ss">:pm?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="6248932990-6">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6248932990-6">}</span><span class="p" data-group-id="6248932990-5">]</span></code></pre><h3 id="module-calling-functions" class="section-heading">
-  <a href="#module-calling-functions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">calling-functions</p>
-  </a>
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">ot_fields</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8121577731-4">%{</span><span class="ss">editable</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8121577731-4">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8121577731-5">[</span><span class="ss">:pm?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8121577731-6">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8121577731-6">}</span><span class="p" data-group-id="8121577731-5">]</span></code></pre><h3 id="module-calling-functions" class="section-heading">
+  <a href="#module-calling-functions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Calling functions
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{&amp;module.fun/n, [arg_1, ..., arg_n]}</code> (in result values)</li><li><code class="inline">{&amp;module.fun/1, arg_1}</code> (in result values)</li></ul><p>Any function can be called to map the given arguments to other values.
 The function arguments must be passed as a list, except if it's only one.
-Arguments can be fixed values or other Infer features (passed as is), such as references.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">day_of_week</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1326671355-1">{</span><span class="o">&amp;</span><span class="nc">Date</span><span class="o">.</span><span class="n">day_of_week</span><span class="o">/</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1326671355-2">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:date</span><span class="p" data-group-id="1326671355-2">}</span><span class="p" data-group-id="1326671355-1">}</span><span class="w">
+Arguments can be fixed values or other Infer features (passed as is), such as references.</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">day_of_week</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2147586247-1">{</span><span class="o">&amp;</span><span class="nc">Date</span><span class="o">.</span><span class="n">day_of_week</span><span class="o">/</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2147586247-2">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:date</span><span class="p" data-group-id="2147586247-2">}</span><span class="p" data-group-id="2147586247-1">}</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">duration</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1326671355-3">{</span><span class="o">&amp;</span><span class="nc">Timex</span><span class="o">.</span><span class="n">diff</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1326671355-4">[</span><span class="p" data-group-id="1326671355-5">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:start_datetime</span><span class="p" data-group-id="1326671355-5">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1326671355-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:end_datetime</span><span class="p" data-group-id="1326671355-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:hours</span><span class="p" data-group-id="1326671355-4">]</span><span class="p" data-group-id="1326671355-3">}</span></code></pre><p>Only pure functions with low overhead should be used.
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">duration</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2147586247-3">{</span><span class="o">&amp;</span><span class="nc">Timex</span><span class="o">.</span><span class="n">diff</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2147586247-4">[</span><span class="p" data-group-id="2147586247-5">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:start_datetime</span><span class="p" data-group-id="2147586247-5">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2147586247-6">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:end_datetime</span><span class="p" data-group-id="2147586247-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:hours</span><span class="p" data-group-id="2147586247-4">]</span><span class="p" data-group-id="2147586247-3">}</span></code></pre><p>Only pure functions with low overhead should be used.
 Infer might call them very often during evaluation (once after each loading of data).</p><h3 id="module-querying" class="section-heading">
-  <a href="#module-querying" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">querying</p>
-  </a>
+  <a href="#module-querying" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Querying
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{:query_one, type, conditions}</code></li><li><code class="inline">{:query_one, type, conditions, options}</code></li><li><code class="inline">{:query_first, type, conditions}</code></li><li><code class="inline">{:query_first, type, conditions, options}</code></li><li><code class="inline">{:query_all, type, conditions}</code></li><li><code class="inline">{:query_all, type, conditions, options}</code></li></ul><p>Arguments:</p><ul><li><code class="inline">type</code> is a module name (or Ecto queryable), e.g. an Ecto schema</li><li><code class="inline">conditions</code> is a <strong>keyword list</strong> of fields and their respective values, or lists of values, they must match</li><li><code class="inline">options</code> is a subset of the options that Ecto queries support:<ul><li><code class="inline">order_by</code></li><li><code class="inline">limit</code></li></ul></li></ul><h4>Conditions</h4><p>The first key-value pair has a special behavior:
 It is used as the main condition for <a href="https://hexdocs.pm/dataloader/1.0.9/Dataloader.html"><code class="inline">Dataloader</code></a>, and thus should have the highest cardinality.
 It must be a single value, not a list of values.</p><p><em>Rule of thumb:</em> Put a single field that has the most unique values as first condition.</p><h3 id="module-transforming-lists" class="section-heading">
-  <a href="#module-transforming-lists" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">transforming-lists</p>
-  </a>
+  <a href="#module-transforming-lists" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Transforming lists
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{:filter, source, condition}</code> (in result values)</li><li><code class="inline">{:map, source, mapper}</code>  (in result values)</li><li><code class="inline">{:map, source, bind_key/condition, mapper}</code> (in result values)</li></ul><p>Arguments:</p><ul><li><code class="inline">source</code> can either be a list literal, a field or predicate that evaluates to a list,
@@ -292,16 +258,14 @@ or another feature such as a query.</li><li><code class="inline">condition</code
 subject of the rule, not the list element. The list element is referenced using the middle arg, which can be either:<ul><li>a <code class="inline">bind_key</code> (atom) - the current list element is referenced via <code class="inline">{:bound, bind_key}</code> in the <code class="inline">mapper</code></li><li>a <code class="inline">condition</code> - any values bound in the condition via <code class="inline">{:bind, key, ...}</code> can be accessed
 via <code class="inline">{:bound, key}</code> in the <code class="inline">mapper</code></li></ul></li></ul><p>Use the special form of <code class="inline">:map</code> only when you need to reference both the list element (via <code class="inline">:bound</code>),
 and the subject of the rule (via <code class="inline">:ref</code>).
-Using a combination of <code class="inline">:filter</code> and basic <code class="inline">:map</code> instead is always preferred, if possible.</p><p>Any <code class="inline">nil</code> elements in the list are mapped to <code class="inline">nil</code>, when using <code class="inline">:map</code> without condition.</p><p>Examples:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">accepted_offers</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2542633638-1">{</span><span class="ss">:filter</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2542633638-2">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;accepted&quot;</span><span class="p" data-group-id="2542633638-2">}</span><span class="p" data-group-id="2542633638-1">}</span><span class="w">
+Using a combination of <code class="inline">:filter</code> and basic <code class="inline">:map</code> instead is always preferred, if possible.</p><p>Any <code class="inline">nil</code> elements in the list are mapped to <code class="inline">nil</code>, when using <code class="inline">:map</code> without condition.</p><p>Examples:</p><pre><code class="makeup elixir" translate="no"><span class="n">infer</span><span class="w"> </span><span class="ss">accepted_offers</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0994720169-1">{</span><span class="ss">:filter</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0994720169-2">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;accepted&quot;</span><span class="p" data-group-id="0994720169-2">}</span><span class="p" data-group-id="0994720169-1">}</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">offer_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2542633638-3">{</span><span class="ss">:map</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="2542633638-3">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">offer_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0994720169-3">{</span><span class="ss">:map</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="0994720169-3">}</span><span class="w">
 
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">first_offer_of_same_user</span><span class="p">:</span><span class="w">
-        </span><span class="p" data-group-id="2542633638-4">{</span><span class="ss">:map</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2542633638-5">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;accepted&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2542633638-6">{</span><span class="ss">:bind</span><span class="p">,</span><span class="w"> </span><span class="ss">:uid</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2542633638-7">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="2542633638-7">}</span><span class="p" data-group-id="2542633638-6">}</span><span class="p" data-group-id="2542633638-5">}</span><span class="p">,</span><span class="w">
-         </span><span class="p" data-group-id="2542633638-8">{</span><span class="ss">:query_first</span><span class="p">,</span><span class="w"> </span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2542633638-9">{</span><span class="ss">:bound</span><span class="p">,</span><span class="w"> </span><span class="ss">:uid</span><span class="p" data-group-id="2542633638-9">}</span><span class="p">,</span><span class="w"> </span><span class="ss">project_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2542633638-10">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:project_id</span><span class="p" data-group-id="2542633638-10">}</span><span class="p" data-group-id="2542633638-8">}</span><span class="p" data-group-id="2542633638-4">}</span></code></pre><h3 id="module-counting" class="section-heading">
-  <a href="#module-counting" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">counting</p>
-  </a>
+        </span><span class="p" data-group-id="0994720169-4">{</span><span class="ss">:map</span><span class="p">,</span><span class="w"> </span><span class="ss">:offers</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0994720169-5">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;accepted&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0994720169-6">{</span><span class="ss">:bind</span><span class="p">,</span><span class="w"> </span><span class="ss">:uid</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0994720169-7">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="0994720169-7">}</span><span class="p" data-group-id="0994720169-6">}</span><span class="p" data-group-id="0994720169-5">}</span><span class="p">,</span><span class="w">
+         </span><span class="p" data-group-id="0994720169-8">{</span><span class="ss">:query_first</span><span class="p">,</span><span class="w"> </span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0994720169-9">{</span><span class="ss">:bound</span><span class="p">,</span><span class="w"> </span><span class="ss">:uid</span><span class="p" data-group-id="0994720169-9">}</span><span class="p">,</span><span class="w"> </span><span class="ss">project_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0994720169-10">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="ss">:project_id</span><span class="p" data-group-id="0994720169-10">}</span><span class="p" data-group-id="0994720169-8">}</span><span class="p" data-group-id="0994720169-4">}</span></code></pre><h3 id="module-counting" class="section-heading">
+  <a href="#module-counting" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Counting
 </h3>
 <p>Syntax:</p><ul><li><code class="inline">{:count, source, condition/predicate}</code> (in result values)</li><li><code class="inline">{:count_while, source, condition/predicate}</code> (in result values)</li></ul><p>Arguments:</p><ul><li><code class="inline">source</code> can either be a list literal, a field or predicate that evaluates to a list,
@@ -310,18 +274,14 @@ or <code class="inline">:skip</code> (only for <code class="inline">:count_while
 <code class="inline">:count_while</code> stops after the first element that returns <code class="inline">false</code>.
 To not count an element, but not stop counting either, the given predicate may return <code class="inline">:skip</code>.
 Any <code class="inline">nil</code> elements in the list are treated as <code class="inline">false</code>.</p><h3 id="module-predicate-groups-not-implemented-yet" class="section-heading">
-  <a href="#module-predicate-groups-not-implemented-yet" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">predicate-groups-not-implemented-yet</p>
-  </a>
+  <a href="#module-predicate-groups-not-implemented-yet" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Predicate groups (not implemented yet)
 </h3>
 <p>Groups with multiple predicates can be defined and used as shorthands in assigns and preloads.
 See <code class="inline">predicate_group/1</code> for examples.</p><p>By default, Infer defines <code class="inline">:all_fields</code> as a group of all fields defined, e.g. Struct fields, Ecto schema fields, ...</p><p>Uses:</p><ul><li>In API: A group name can be passed to the Infer API to infer all predicates in that group.</li><li>In rule results: Instead of a simple key, a list of keys can be given as a key as a short hand
 to setting the same value for all listed keys, e.g. <code class="inline">%{[:admin?, :senior?] =&gt; true}</code>.
 This also enables using predicate groups as keys.</li></ul><h2 id="module-rule-checks-at-compile-time-not-implemented-yet" class="section-heading">
-  <a href="#module-rule-checks-at-compile-time-not-implemented-yet" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">rule-checks-at-compile-time-not-implemented-yet</p>
-  </a>
+  <a href="#module-rule-checks-at-compile-time-not-implemented-yet" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Rule checks at compile-time (not implemented yet)
 </h2>
 <p>Problems that can be detected at compile-time:</p><ul><li>Invalid rule: &quot;Rule X uses non-existing predicate <code class="inline">:has_child?</code>. Did you mean <code class="inline">:has_children?</code>&quot;</li><li>Invalid function call: &quot;<code class="inline">Infer.get!(%Person{}, :has_child?)</code> uses non-existing
@@ -356,16 +316,6 @@ Rule Y on Role references Rule X on Person.&quot;</li><li>Unreachable rules: &qu
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#get!/3" translate="no">get!(records, predicates, opts \\ [])</a>
-
-        </div>
-
-          <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p></div>
-
-      </div>
-
-      <div class="summary-row">
-        <div class="summary-signature">
           <a href="#get/3" translate="no">get(records, predicates, opts \\ [])</a>
 
         </div>
@@ -376,11 +326,11 @@ Rule Y on Role references Rule X on Person.&quot;</li><li>Unreachable rules: &qu
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#load!/3" translate="no">load!(records, predicates, opts \\ [])</a>
+          <a href="#get!/3" translate="no">get!(records, predicates, opts \\ [])</a>
 
         </div>
 
-          <div class="summary-synopsis"><p>Like <a href="#get!/3"><code class="inline">get!/3</code></a>, but loads additional data if needed.</p></div>
+          <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p></div>
 
       </div>
 
@@ -391,6 +341,16 @@ Rule Y on Role references Rule X on Person.&quot;</li><li>Unreachable rules: &qu
         </div>
 
           <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a>, but loads additional data if needed.</p></div>
+
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#load!/3" translate="no">load!(records, predicates, opts \\ [])</a>
+
+        </div>
+
+          <div class="summary-synopsis"><p>Like <a href="#get!/3"><code class="inline">get!/3</code></a>, but loads additional data if needed.</p></div>
 
       </div>
 
@@ -417,20 +377,20 @@ inside the given record(s).</p></div>
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#put!/3" translate="no">put!(records, predicates, opts \\ [])</a>
-
-        </div>
-
-      </div>
-
-      <div class="summary-row">
-        <div class="summary-signature">
           <a href="#put/3" translate="no">put(records, predicates, opts \\ [])</a>
 
         </div>
 
           <div class="summary-synopsis"><p>Loads the given predicate(s) for the given record(s) and merges the
 results into the <code class="inline">inferred</code> map field of the record(s), returning them.</p></div>
+
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#put!/3" translate="no">put!(records, predicates, opts \\ [])</a>
+
+        </div>
 
       </div>
 
@@ -489,7 +449,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L573" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L582" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -500,30 +460,6 @@ Functions
   <section class="docstring">
 
 <p>Removes all elements not matching the given condition from the given list.</p>
-  </section>
-</section>
-<section class="detail" id="get!/3">
-
-    <span id="get!/2"></span>
-
-  <div class="detail-header">
-    <a href="#get!/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L433" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-<p>Like <a href="#get/3"><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p>
   </section>
 </section>
 <section class="detail" id="get/3">
@@ -537,7 +473,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L406" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L410" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -548,27 +484,25 @@ Functions
   <section class="docstring">
 
 <p>Evaluates one or multiple predicates for one or multiple records and returns the results.</p><p>Does not load any additional data.</p><h2 id="get/3-options" class="section-heading">
-  <a href="#get/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
+  <a href="#get/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Options
 </h2>
 <ul><li><code class="inline">:with_meta</code> (boolean) - whether or not to return a map for predicates with meta data.
 When <code class="inline">false</code>, only the values are returned for all predicates. Default: <code class="inline">true</code>.</li></ul>
   </section>
 </section>
-<section class="detail" id="load!/3">
+<section class="detail" id="get!/3">
 
-    <span id="load!/2"></span>
+    <span id="get!/2"></span>
 
   <div class="detail-header">
-    <a href="#load!/3" class="detail-link" title="Link to this function">
+    <a href="#get!/3" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
+    <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L464" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L437" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -578,7 +512,7 @@ When <code class="inline">false</code>, only the values are returned for all pre
 
   <section class="docstring">
 
-<p>Like <a href="#get!/3"><code class="inline">get!/3</code></a>, but loads additional data if needed.</p>
+<p>Like <a href="#get/3"><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p>
   </section>
 </section>
 <section class="detail" id="load/3">
@@ -592,7 +526,7 @@ When <code class="inline">false</code>, only the values are returned for all pre
     </a>
     <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L441" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L445" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -603,6 +537,30 @@ When <code class="inline">false</code>, only the values are returned for all pre
   <section class="docstring">
 
 <p>Like <a href="#get/3"><code class="inline">get/3</code></a>, but loads additional data if needed.</p>
+  </section>
+</section>
+<section class="detail" id="load!/3">
+
+    <span id="load!/2"></span>
+
+  <div class="detail-header">
+    <a href="#load!/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
+
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L469" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+<p>Like <a href="#get!/3"><code class="inline">get!/3</code></a>, but loads additional data if needed.</p>
   </section>
 </section>
 <section class="detail" id="preload/3">
@@ -616,7 +574,7 @@ When <code class="inline">false</code>, only the values are returned for all pre
     </a>
     <h1 class="signature" translate="no">preload(records, preloads, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L520" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L527" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -627,26 +585,22 @@ When <code class="inline">false</code>, only the values are returned for all pre
   <section class="docstring">
 
 <p>Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).</p><h2 id="preload/3-options" class="section-heading">
-  <a href="#preload/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
+  <a href="#preload/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Options
 </h2>
 <ul><li><code class="inline">:refresh</code> - whether or not to load data again that's already loaded. Default: <code class="inline">false</code>.</li></ul><h2 id="preload/3-examples" class="section-heading">
-  <a href="#preload/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">examples</p>
-  </a>
+  <a href="#preload/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Examples
 </h2>
-<p>Preload data required to infer the value of the predicate <code class="inline">:has_children?</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Person</span><span class="w"> </span><span class="k" data-group-id="5465278114-1">do</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5465278114-2">%{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5465278114-3">%{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;parent_of&quot;</span><span class="p" data-group-id="5465278114-3">}</span><span class="p" data-group-id="5465278114-2">}</span><span class="w">
-</span><span class="k" data-group-id="5465278114-1">end</span><span class="w">
+<p>Preload data required to infer the value of the predicate <code class="inline">:has_children?</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Person</span><span class="w"> </span><span class="k" data-group-id="0794692129-1">do</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0794692129-2">%{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0794692129-3">%{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;parent_of&quot;</span><span class="p" data-group-id="0794692129-3">}</span><span class="p" data-group-id="0794692129-2">}</span><span class="w">
+</span><span class="k" data-group-id="0794692129-1">end</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="5465278114-4">(</span><span class="p" data-group-id="5465278114-5">%</span><span class="nc" data-group-id="5465278114-5">Person</span><span class="p" data-group-id="5465278114-5">{</span><span class="p" data-group-id="5465278114-5">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="5465278114-4">)</span><span class="w">
-</span><span class="p" data-group-id="5465278114-6">%</span><span class="nc" data-group-id="5465278114-6">Person</span><span class="p" data-group-id="5465278114-6">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5465278114-7">[</span><span class="p" data-group-id="5465278114-8">%</span><span class="nc" data-group-id="5465278114-8">Relation</span><span class="p" data-group-id="5465278114-8">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="5465278114-8">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="5465278114-7">]</span><span class="p" data-group-id="5465278114-6">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="0794692129-4">(</span><span class="p" data-group-id="0794692129-5">%</span><span class="nc" data-group-id="0794692129-5">Person</span><span class="p" data-group-id="0794692129-5">{</span><span class="p" data-group-id="0794692129-5">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="0794692129-4">)</span><span class="w">
+</span><span class="p" data-group-id="0794692129-6">%</span><span class="nc" data-group-id="0794692129-6">Person</span><span class="p" data-group-id="0794692129-6">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0794692129-7">[</span><span class="p" data-group-id="0794692129-8">%</span><span class="nc" data-group-id="0794692129-8">Relation</span><span class="p" data-group-id="0794692129-8">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="0794692129-8">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="0794692129-7">]</span><span class="p" data-group-id="0794692129-6">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="5465278114-9">(</span><span class="p" data-group-id="5465278114-10">[</span><span class="p" data-group-id="5465278114-11">%</span><span class="nc" data-group-id="5465278114-11">Person</span><span class="p" data-group-id="5465278114-11">{</span><span class="p" data-group-id="5465278114-11">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="5465278114-10">]</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="5465278114-9">)</span><span class="w">
-</span><span class="p" data-group-id="5465278114-12">[</span><span class="p" data-group-id="5465278114-13">%</span><span class="nc" data-group-id="5465278114-13">Person</span><span class="p" data-group-id="5465278114-13">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5465278114-14">[</span><span class="p" data-group-id="5465278114-15">%</span><span class="nc" data-group-id="5465278114-15">Relation</span><span class="p" data-group-id="5465278114-15">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="5465278114-15">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="5465278114-14">]</span><span class="p" data-group-id="5465278114-13">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="5465278114-12">]</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="0794692129-9">(</span><span class="p" data-group-id="0794692129-10">[</span><span class="p" data-group-id="0794692129-11">%</span><span class="nc" data-group-id="0794692129-11">Person</span><span class="p" data-group-id="0794692129-11">{</span><span class="p" data-group-id="0794692129-11">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="0794692129-10">]</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="0794692129-9">)</span><span class="w">
+</span><span class="p" data-group-id="0794692129-12">[</span><span class="p" data-group-id="0794692129-13">%</span><span class="nc" data-group-id="0794692129-13">Person</span><span class="p" data-group-id="0794692129-13">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0794692129-14">[</span><span class="p" data-group-id="0794692129-15">%</span><span class="nc" data-group-id="0794692129-15">Relation</span><span class="p" data-group-id="0794692129-15">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="0794692129-15">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="0794692129-14">]</span><span class="p" data-group-id="0794692129-13">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="0794692129-12">]</span></code></pre>
   </section>
 </section>
 <section class="detail" id="preload_in/4">
@@ -660,7 +614,7 @@ When <code class="inline">false</code>, only the values are returned for all pre
     </a>
     <h1 class="signature" translate="no">preload_in(records, field_or_path, preloads, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L554" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L563" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -674,30 +628,6 @@ When <code class="inline">false</code>, only the values are returned for all pre
 inside the given record(s).</p>
   </section>
 </section>
-<section class="detail" id="put!/3">
-
-    <span id="put!/2"></span>
-
-  <div class="detail-header">
-    <a href="#put!/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L491" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-
-  </section>
-</section>
 <section class="detail" id="put/3">
 
     <span id="put/2"></span>
@@ -709,7 +639,7 @@ inside the given record(s).</p>
     </a>
     <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L477" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L482" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -721,12 +651,34 @@ inside the given record(s).</p>
 
 <p>Loads the given predicate(s) for the given record(s) and merges the
 results into the <code class="inline">inferred</code> map field of the record(s), returning them.</p><h2 id="put/3-options" class="section-heading">
-  <a href="#put/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
+  <a href="#put/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Options
 </h2>
 <p>Same as for <a href="#get/3"><code class="inline">get/3</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="put!/3">
+
+    <span id="put!/2"></span>
+
+  <div class="detail-header">
+    <a href="#put!/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
+
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L498" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
   </section>
 </section>
 <section class="detail" id="query_all/3">
@@ -740,7 +692,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L656" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L665" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -751,9 +703,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
   <section class="docstring">
 
 <p>Returns all records matching the given condition.</p><h2 id="query_all/3-options" class="section-heading">
-  <a href="#query_all/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
+  <a href="#query_all/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Options
 </h2>
 <ul><li><code class="inline">:base_query</code> (Ecto.Query) - query to use as a base for retrieving records.
@@ -761,29 +711,25 @@ Can be used for additional conditions, pagination, etc. Default: <code class="in
 (requires <a href="#module-predicate-cache">predicate cache</a>).</li><li><code class="inline">:put_with_meta</code> (boolean) - whether or not the predicates listed in <code class="inline">:put</code> return a map when they have meta data.
 When <code class="inline">false</code>, only the value is returned for each. Default: <code class="inline">true</code>.</li><li><code class="inline">:preload</code> (predicate list) - load all data required to evaluate the given predicate(s) on the
 results (also see <a href="#preload/2"><code class="inline">preload/2</code></a>).</li></ul><h3 id="query_all/3-using-put-and-preload" class="section-heading">
-  <a href="#query_all/3-using-put-and-preload" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">using-put-and-preload</p>
-  </a>
+  <a href="#query_all/3-using-put-and-preload" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Using <code class="inline">:put</code> and <code class="inline">:preload</code>
 </h3>
 <p>In general, as much work as possible is done in the database:</p><ul><li>If possible, the condition is completely translated to an <a href="https://hexdocs.pm/ecto/3.7.1/Ecto.Query.html"><code class="inline">Ecto.Query</code></a> so the database only
 returns matching records.</li><li>Even predicates given via <code class="inline">:put</code> are evaluated in the database and returned as a single value, whenever possible.</li><li>Use <code class="inline">:preload</code> to ensure that data is loaded, which is required to evaluate the given
 predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="section-heading">
-  <a href="#query_all/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">examples</p>
-  </a>
+  <a href="#query_all/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Examples
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="8353335689-1">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="ss">:construction_bectu?</span><span class="p">,</span><span class="w"> </span><span class="ss">preload</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8353335689-2">[</span><span class="ss">:all_fields</span><span class="p" data-group-id="8353335689-2">]</span><span class="p" data-group-id="8353335689-1">)</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="7823227937-1">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="ss">:construction_bectu?</span><span class="p">,</span><span class="w"> </span><span class="ss">preload</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7823227937-2">[</span><span class="ss">:all_fields</span><span class="p" data-group-id="7823227937-2">]</span><span class="p" data-group-id="7823227937-1">)</span><span class="w">
 </span><span class="c1"># SELECT offers o</span><span class="w">
 </span><span class="c1">#   INNER JOIN projects p ON p.id = o.project_id</span><span class="w">
 </span><span class="c1">#   INNER JOIN job_titles j ON j.id = o.job_title_id</span><span class="w">
 </span><span class="c1"># WHERE</span><span class="w">
 </span><span class="c1">#   &quot;p.contruction_bectu?&quot; = TRUE AND</span><span class="w">
 </span><span class="c1">#   j.type &lt;&gt; &#39;standard&#39;</span><span class="w">
-</span><span class="p" data-group-id="8353335689-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-4">[</span><span class="p" data-group-id="8353335689-5">%</span><span class="nc" data-group-id="8353335689-5">Offer</span><span class="p" data-group-id="8353335689-5">{</span><span class="p" data-group-id="8353335689-5">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-6">%</span><span class="nc" data-group-id="8353335689-6">Offer</span><span class="p" data-group-id="8353335689-6">{</span><span class="p" data-group-id="8353335689-6">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="8353335689-4">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-7">[</span><span class="p" data-group-id="8353335689-8">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8353335689-8">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-9">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8353335689-9">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="8353335689-7">]</span><span class="p" data-group-id="8353335689-3">}</span><span class="w">
+</span><span class="p" data-group-id="7823227937-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-4">[</span><span class="p" data-group-id="7823227937-5">%</span><span class="nc" data-group-id="7823227937-5">Offer</span><span class="p" data-group-id="7823227937-5">{</span><span class="p" data-group-id="7823227937-5">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-6">%</span><span class="nc" data-group-id="7823227937-6">Offer</span><span class="p" data-group-id="7823227937-6">{</span><span class="p" data-group-id="7823227937-6">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="7823227937-4">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-7">[</span><span class="p" data-group-id="7823227937-8">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7823227937-8">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-9">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7823227937-9">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="7823227937-7">]</span><span class="p" data-group-id="7823227937-3">}</span><span class="w">
 
-</span><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="8353335689-10">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-11">%{</span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8353335689-12">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="8353335689-12">]</span><span class="p">,</span><span class="w"> </span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8353335689-11">}</span><span class="p" data-group-id="8353335689-10">)</span><span class="w">
+</span><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="7823227937-10">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-11">%{</span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7823227937-12">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="7823227937-12">]</span><span class="p">,</span><span class="w"> </span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7823227937-11">}</span><span class="p" data-group-id="7823227937-10">)</span><span class="w">
 </span><span class="c1"># SELECT offers o</span><span class="w">
 </span><span class="c1">#   INNER JOIN projects p ON p.id = o.project_id</span><span class="w">
 </span><span class="c1">#   INNER JOIN job_titles j ON j.id = o.job_title_id</span><span class="w">
@@ -791,9 +737,9 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
 </span><span class="c1">#   &quot;p.contruction_bectu?&quot; = TRUE AND</span><span class="w">
 </span><span class="c1">#   j.type &lt;&gt; &#39;standard&#39; AND</span><span class="w">
 </span><span class="c1">#   o.id IN (1, 4, 5)</span><span class="w">
-</span><span class="p" data-group-id="8353335689-13">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-14">[</span><span class="p" data-group-id="8353335689-15">%</span><span class="nc" data-group-id="8353335689-15">Offer</span><span class="p" data-group-id="8353335689-15">{</span><span class="p" data-group-id="8353335689-15">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-16">%</span><span class="nc" data-group-id="8353335689-16">Offer</span><span class="p" data-group-id="8353335689-16">{</span><span class="p" data-group-id="8353335689-16">}</span><span class="p" data-group-id="8353335689-14">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-17">[</span><span class="p" data-group-id="8353335689-18">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8353335689-18">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-19">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8353335689-19">}</span><span class="p" data-group-id="8353335689-17">]</span><span class="p" data-group-id="8353335689-13">}</span><span class="w">
+</span><span class="p" data-group-id="7823227937-13">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-14">[</span><span class="p" data-group-id="7823227937-15">%</span><span class="nc" data-group-id="7823227937-15">Offer</span><span class="p" data-group-id="7823227937-15">{</span><span class="p" data-group-id="7823227937-15">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-16">%</span><span class="nc" data-group-id="7823227937-16">Offer</span><span class="p" data-group-id="7823227937-16">{</span><span class="p" data-group-id="7823227937-16">}</span><span class="p" data-group-id="7823227937-14">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-17">[</span><span class="p" data-group-id="7823227937-18">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7823227937-18">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-19">%{</span><span class="ss">construction_bectu?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7823227937-19">}</span><span class="p" data-group-id="7823227937-17">]</span><span class="p" data-group-id="7823227937-13">}</span><span class="w">
 
-</span><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="8353335689-20">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-21">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="8353335689-21">}</span><span class="p" data-group-id="8353335689-20">)</span><span class="w">
+</span><span class="nc">Entity</span><span class="o">.</span><span class="n">query</span><span class="p" data-group-id="7823227937-20">(</span><span class="nc">Offer</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-21">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="7823227937-21">}</span><span class="p" data-group-id="7823227937-20">)</span><span class="w">
 </span><span class="c1"># SELECT offers o</span><span class="w">
 </span><span class="c1">#   INNER JOIN projects p ON p.id = o.project_id</span><span class="w">
 </span><span class="c1"># WHERE</span><span class="w">
@@ -802,7 +748,7 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
 </span><span class="c1">#   OR</span><span class="w">
 </span><span class="c1">#   (p.type = &#39;Television&#39; AND</span><span class="w">
 </span><span class="c1">#    p.bectu_type IN (&#39;BECTU_CUSTOM_OVERTIME&#39;, &#39;NONE&#39;))</span><span class="w">
-</span><span class="p" data-group-id="8353335689-22">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-23">[</span><span class="p" data-group-id="8353335689-24">%</span><span class="nc" data-group-id="8353335689-24">Offer</span><span class="p" data-group-id="8353335689-24">{</span><span class="p" data-group-id="8353335689-24">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-25">%</span><span class="nc" data-group-id="8353335689-25">Offer</span><span class="p" data-group-id="8353335689-25">{</span><span class="p" data-group-id="8353335689-25">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="8353335689-23">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-26">[</span><span class="p" data-group-id="8353335689-27">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="8353335689-27">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8353335689-28">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="8353335689-28">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="8353335689-26">]</span><span class="p" data-group-id="8353335689-22">}</span></code></pre>
+</span><span class="p" data-group-id="7823227937-22">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-23">[</span><span class="p" data-group-id="7823227937-24">%</span><span class="nc" data-group-id="7823227937-24">Offer</span><span class="p" data-group-id="7823227937-24">{</span><span class="p" data-group-id="7823227937-24">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-25">%</span><span class="nc" data-group-id="7823227937-25">Offer</span><span class="p" data-group-id="7823227937-25">{</span><span class="p" data-group-id="7823227937-25">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="7823227937-23">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-26">[</span><span class="p" data-group-id="7823227937-27">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="7823227937-27">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7823227937-28">%{</span><span class="ss">rate_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:flat_rate_ot</span><span class="p" data-group-id="7823227937-28">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="7823227937-26">]</span><span class="p" data-group-id="7823227937-22">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="query_one/3">
@@ -816,7 +762,7 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
     </a>
     <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L672" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L681" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -827,9 +773,7 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
   <section class="docstring">
 
 <p>Returns the first record matching the given condition.</p><h2 id="query_one/3-options" class="section-heading">
-  <a href="#query_one/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
+  <a href="#query_one/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
   Options
 </h2>
 <p>Same as for <a href="#query_all/3"><code class="inline">query_all/3</code></a>.</p>
@@ -846,7 +790,7 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
     </a>
     <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L596" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L605" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -883,7 +827,7 @@ predicate(s) in the application.</li></ul><h2 id="query_all/3-examples" class="s
 
         <p>
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.0) for the
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
         </p>
       </footer>
