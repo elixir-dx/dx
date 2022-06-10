@@ -10,7 +10,7 @@
     <title>Infer — infer v0.3.0</title>
     <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-e645969790.js"></script>
+    <script src="dist/sidebar_items-e944d49f0f.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -111,7 +111,7 @@ directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><strong>s
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><strong>predicates</strong> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <strong>map</strong>
 of the predicates and their resulting values.</li><li><strong>options</strong> (optional) See below.</li></ul><p>Options:</p><ul><li><strong>args</strong> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">put!</span><span class="p" data-group-id="6508240491-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6508240491-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="6508240491-2">]</span><span class="p" data-group-id="6508240491-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">put!</span><span class="p" data-group-id="2994102223-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2994102223-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="2994102223-2">]</span><span class="p" data-group-id="2994102223-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
 and use them only where needed.</li><li><strong>debug</strong> (boolean) makes Infer print additional information to the console as rules are evaluated.
 Should only be used while debugging.</li><li><strong>return_cache</strong> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
@@ -181,27 +181,6 @@ doesn't need to be loaded again. Can be initialized using <code class="inline">L
         </div>
 
           <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a>, but loads additional data if needed.</p></div>
-
-      </div>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#preload/3" translate="no">preload(records, preloads, opts \\ [])</a>
-
-        </div>
-
-          <div class="summary-synopsis"><p>Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).</p></div>
-
-      </div>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#preload_in/4" translate="no">preload_in(records, field_or_path, preloads, opts \\ [])</a>
-
-        </div>
-
-          <div class="summary-synopsis"><p>Preloads data for a record nested under the given field or path (list of fields)
-inside the given record(s).</p></div>
 
       </div>
 
@@ -279,7 +258,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L220" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L156" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -388,75 +367,6 @@ Functions
 <p>Like <a href="#get/3"><code class="inline">get/3</code></a>, but loads additional data if needed.</p>
   </section>
 </section>
-<section class="detail" id="preload/3">
-
-    <span id="preload/2"></span>
-
-  <div class="detail-header">
-    <a href="#preload/3" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">preload(records, preloads, opts \\ [])</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L165" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-<p>Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).</p><h2 id="preload/3-options" class="section-heading">
-  <a href="#preload/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">options</p>
-  </a>
-  Options
-</h2>
-<ul><li><code class="inline">:refresh</code> - whether or not to load data again that's already loaded. Default: <code class="inline">false</code>.</li></ul><h2 id="preload/3-examples" class="section-heading">
-  <a href="#preload/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">examples</p>
-  </a>
-  Examples
-</h2>
-<p>Preload data required to infer the value of the predicate <code class="inline">:has_children?</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Person</span><span class="w"> </span><span class="k" data-group-id="9331228303-1">do</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9331228303-2">%{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9331228303-3">%{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;parent_of&quot;</span><span class="p" data-group-id="9331228303-3">}</span><span class="p" data-group-id="9331228303-2">}</span><span class="w">
-</span><span class="k" data-group-id="9331228303-1">end</span><span class="w">
-
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="9331228303-4">(</span><span class="p" data-group-id="9331228303-5">%</span><span class="nc" data-group-id="9331228303-5">Person</span><span class="p" data-group-id="9331228303-5">{</span><span class="p" data-group-id="9331228303-5">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="9331228303-4">)</span><span class="w">
-</span><span class="p" data-group-id="9331228303-6">%</span><span class="nc" data-group-id="9331228303-6">Person</span><span class="p" data-group-id="9331228303-6">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9331228303-7">[</span><span class="p" data-group-id="9331228303-8">%</span><span class="nc" data-group-id="9331228303-8">Relation</span><span class="p" data-group-id="9331228303-8">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="9331228303-8">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="9331228303-7">]</span><span class="p" data-group-id="9331228303-6">}</span><span class="w">
-
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Infer</span><span class="o">.</span><span class="n">preload</span><span class="p" data-group-id="9331228303-9">(</span><span class="p" data-group-id="9331228303-10">[</span><span class="p" data-group-id="9331228303-11">%</span><span class="nc" data-group-id="9331228303-11">Person</span><span class="p" data-group-id="9331228303-11">{</span><span class="p" data-group-id="9331228303-11">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="9331228303-10">]</span><span class="p">,</span><span class="w"> </span><span class="ss">:has_children?</span><span class="p" data-group-id="9331228303-9">)</span><span class="w">
-</span><span class="p" data-group-id="9331228303-12">[</span><span class="p" data-group-id="9331228303-13">%</span><span class="nc" data-group-id="9331228303-13">Person</span><span class="p" data-group-id="9331228303-13">{</span><span class="ss">relatives</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9331228303-14">[</span><span class="p" data-group-id="9331228303-15">%</span><span class="nc" data-group-id="9331228303-15">Relation</span><span class="p" data-group-id="9331228303-15">{</span><span class="ss">relation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sibling&quot;</span><span class="p" data-group-id="9331228303-15">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="9331228303-14">]</span><span class="p" data-group-id="9331228303-13">}</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="9331228303-12">]</span></code></pre>
-  </section>
-</section>
-<section class="detail" id="preload_in/4">
-
-    <span id="preload_in/3"></span>
-
-  <div class="detail-header">
-    <a href="#preload_in/4" class="detail-link" title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">preload_in(records, field_or_path, preloads, opts \\ [])</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L201" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-<p>Preloads data for a record nested under the given field or path (list of fields)
-inside the given record(s).</p>
-  </section>
-</section>
 <section class="detail" id="put!/3">
 
     <span id="put!/2"></span>
@@ -523,7 +433,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L259" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L195" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -558,7 +468,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L275" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L211" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -588,7 +498,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L243" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L179" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

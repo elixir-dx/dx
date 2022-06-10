@@ -18,7 +18,6 @@ Infer.Evaluation.html
 Infer.Loaders.Dataloader.html
 Infer.Parser.Token.html
 Infer.Parser.html
-Infer.Preloader.html
 Infer.Result.html
 Infer.Rule.html
 Infer.Rules.html
@@ -35,8 +34,8 @@ dist/html/fonts/remixicon.svg
 dist/html/fonts/remixicon.ttf
 dist/html/fonts/remixicon.woff
 dist/html/fonts/remixicon.woff2
-dist/search_items-41b7ca912a.js
-dist/sidebar_items-e645969790.js
+dist/search_items-1afb23aa17.js
+dist/sidebar_items-e944d49f0f.js
 full_reference.html
 index.html
 search.html
