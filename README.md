@@ -1,7 +1,6 @@
 # Infer
 
-[![Guides](https://img.shields.io/badge/hex-docs-darkgreen.svg)](https://infer-beam.github.io/infer/)
-[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://infer-beam.github.io/infer/Infer.html)
+[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://infer-beam.github.io/infer/)
 [![License](https://img.shields.io/github/license/infer-beam/infer.svg)](https://github.com/infer-beam/infer/blob/main/LICENSE)
 [![Last Updated](https://img.shields.io/github/last-commit/infer-beam/infer/main)](https://github.com/infer-beam/infer/tree/main)
 ![CI](https://github.com/infer-beam/infer/actions/workflows/ci.yml/badge.svg)
@@ -9,7 +8,9 @@
 Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto)
 in a central and concise way.
 
-The docs can be found at [https://infer-beam.github.io/infer](https://infer-beam.github.io/infer/).
+## Guides
+
+The guides can be found at [infer-beam.github.io/infer](https://infer-beam.github.io/infer/).
 
 ## Installation
 
@@ -64,7 +65,7 @@ We've been using it in production since March 2021, and increasingly port our bu
 To make it an easy-to-adopt open-source library, the next steps are to:
 
 - [x] extract the code into this repo
-- [ ] re-add tests (because they were domain-specific)
-- [ ] write guides, a reference and an announcement
+- [x] re-add tests (because they were domain-specific)
+- [x] write guides, a reference and an announcement
 - [ ] resolve absinthe-graphql/dataloader#129 and re-add dataloader as a hex dependency
 - [ ] release on hex.pm
