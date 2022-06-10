@@ -114,18 +114,6 @@ end
 The predicate `in_progress?` is `true` if there's any Task associated that has `completed?: true`.
 Otherwise, if there's no Task associated that has `completed?: true`, `in_progress?` is `false`.
 
-Say we want to have a `completed?` predicate on the List, that's `true` if all associated tasks
-are completed. We can use the `all?` primitive, which shifts the condition from an `Enum.any?` to
-an `Enum.all?` kind of check:
-
-```elixir
-defmodule Todo.List do
-  # ...
-  infer completed?: true, when: %{tasks: {:all, %{completed?: true}}}
-  infer completed?: false
-end
-```
-
 Putting it all together, we can extend our `state` predicate on the `Todo.List` schema:
 
 ```elixir
@@ -133,7 +121,6 @@ defmodule Todo.List do
   # ...
 
   infer state: :archived, when: %{archived?: true}
-  infer state: :completed, when: %{tasks: {:all, %{completed?: true}}}
   infer state: :in_progress, when: %{tasks: %{completed?: true}}
   infer state: :ready, when: %{tasks: %{}}
   infer state: :empty
