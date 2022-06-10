@@ -8,10 +8,6 @@
 Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto)
 in a central and concise way.
 
-## Guides
-
-The guides can be found at [infer-beam.github.io/infer](https://infer-beam.github.io/infer/).
-
 ## Installation
 
 Add `infer` to your list of dependencies in `mix.exs`:
@@ -38,25 +34,9 @@ Import the formatter rules in `.formatter.exs`:
 ]
 ```
 
-## Why Infer?
+## Guides
 
-Infer offers a declarative approach to application logic that especially shines in apps with:
-
-- Complex data schemas, especially when rules need to look at data in many multiple or deeply
-  nested associated types/modules
-- Complex application logic, especially with many "edge cases" and other conditional logic
-- Large parts of the data being loaded (e.g. from the database) is only needed to compute final
-  results
-
-Infer helps in these cases, because:
-
-- Application logic is declared in a concise and clean way that's readable even to
-  non-developers (with a short introduction)
-- Application logic can be laid out into modules as it makes sense for the application domain, not the code
-- No execution code needs to be written, just call `Infer` with a single or list of records and
-  the desired results, and it will compute them
-- Infer loads required data as needed (e.g. from the database), in an optimized way that applies
-  filtering, batching and concurrency, and avoids overfetching
+If you're new to Infer, the best place to start are the [Guides](https://infer-beam.github.io/infer/).
 
 ## Status
 
