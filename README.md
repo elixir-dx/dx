@@ -5,8 +5,15 @@
 [![Last Updated](https://img.shields.io/github/last-commit/infer-beam/infer/main)](https://github.com/infer-beam/infer/tree/main)
 ![CI](https://github.com/infer-beam/infer/actions/workflows/ci.yml/badge.svg)
 
-Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto)
-in a central and concise way.
+Infer is an Elixir library that allows adding inferred properties to Ecto schemas,
+defined by rules based on fields, associations or other inferred properties.
+You can then load/query them as if they were Ecto fields or associations using Infer's API.
+
+It allows you to write declarative and easy-to-read domain logic by defining WHAT the
+rules are without having to care about HOW to execute them.
+
+Under the hood, Infer's evaluation engine loads associations as needed concurrently in batches and
+can even translate your logic to Ecto queries directly.
 
 ## Installation
 
