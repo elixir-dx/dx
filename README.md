@@ -1,7 +1,16 @@
 # Infer
 
+[![Module Version](https://img.shields.io/hexpm/v/infer-beam)](https://hex.pm/)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://infer-beam.github.io/infer/Infer.html)
+[![Total Download](https://img.shields.io/hexpm/dd/infer-beam)](https://hex.pm/)
+[![License](https://img.shields.io/github/license/infer-beam/infer.svg)](https://github.com/infer-beam/infer/blob/main/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/infer-beam/infer/main)](https://github.com/infer-beam/infer/tree/main)
+![CI](https://github.com/infer-beam/infer/actions/workflows/ci.yml/badge.svg)
+
 Infer is an inference engine that allows to declare logic based on data schemas (such as Ecto)
 in a central and concise way.
+
+The docs can be found at [https://infer-beam.github.io/infer](https://infer-beam.github.io/infer).
 
 ## Why Infer?
 
