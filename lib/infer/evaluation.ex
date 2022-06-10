@@ -18,7 +18,6 @@ defmodule Infer.Evaluation do
     field(:loader, module(), default: Infer.Loaders.Dataloader)
     field(:args, map(), default: %{})
     field(:debug?, boolean(), default: false)
-    field(:preload, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
     field(:select, any())
   end

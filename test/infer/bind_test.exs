@@ -115,12 +115,6 @@ defmodule Infer.BindTest do
              %{preferred: nil, fallback: list5}
   end
 
-  test "preloads" do
-    assert Infer.Preloader.preload_for_predicates(User, :nested_data_for_author,
-             extra_rules: UserRules
-           ) == [lists: []]
-  end
-
   describe "matching associated predicate" do
     test "returns bound value on root level of the assigns", %{user: user} do
       assert Infer.get!(user, :indirect_data_for_author,

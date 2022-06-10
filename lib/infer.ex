@@ -138,48 +138,6 @@ defmodule Infer do
     |> Result.unwrap!()
   end
 
-  @doc """
-  Ensures that the given record(s) have all data loaded that is required to evaluate the given predicate(s).
-
-  ## Options
-
-  - `:refresh` - whether or not to load data again that's already loaded. Default: `false`.
-
-  ## Examples
-
-  Preload data required to infer the value of the predicate `:has_children?`:
-
-  ```
-  defmodule Person do
-    infer :has_children?, when: %{relatives: %{relation: "parent_of"}}
-  end
-
-  iex> Infer.preload(%Person{}, :has_children?)
-  %Person{relatives: [%Relation{relation: "sibling"}, ...]}
-
-  iex> Infer.preload([%Person{}, ...], :has_children?)
-  [%Person{relatives: [%Relation{relation: "sibling"}, ...]}, ...]
-  ```
-
-  """
-  def preload(records, preloads, opts \\ [])
-
-  def preload([], _preloads, _opts), do: []
-
-  def preload(record_or_records, preloads, opts) do
-    case get(record_or_records, preloads, opts) do
-      {:not_loaded, _data_reqs} -> do_preload(record_or_records, preloads, opts)
-      _else -> record_or_records
-    end
-  end
-
-  defp do_preload(record_or_records, preloads, opts) do
-    type = get_type(record_or_records)
-    preloads = Infer.Preloader.preload_for_predicates(type, List.wrap(preloads), opts)
-
-    type.infer_preload(record_or_records, preloads, opts)
-  end
-
   defp get_type(%Ecto.Query{from: %{source: {_, type}}}), do: type
   defp get_type(%type{}), do: type
   defp get_type([%type{} | _]), do: type
@@ -192,28 +150,6 @@ defmodule Infer do
     else
       raise ArgumentError, "Could not derive type from " <> inspect(type, pretty: true)
     end
-  end
-
-  @doc """
-  Preloads data for a record nested under the given field or path (list of fields)
-  inside the given record(s).
-  """
-  def preload_in(records, field_or_path, preloads, opts \\ [])
-
-  def preload_in(records, field_or_path, preloads, opts) when is_list(records) do
-    records
-    |> Enum.map(&Util.Map.do_get_in(&1, field_or_path))
-    |> preload(preloads, opts)
-    |> Util.Enum.zip(records, &Util.Map.do_put_in(&2, field_or_path, &1))
-  end
-
-  def preload_in(record, field_or_path, preloads, opts) do
-    preloaded_sub_record =
-      record
-      |> Util.Map.do_get_in(field_or_path)
-      |> preload(preloads, opts)
-
-    Util.Map.do_put_in(record, field_or_path, preloaded_sub_record)
   end
 
   @doc "Removes all elements not matching the given condition from the given list."
