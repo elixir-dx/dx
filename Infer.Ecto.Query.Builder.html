@@ -4,17 +4,17 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.28.0">
+    <meta name="generator" content="ExDoc v0.28.3">
     <meta name="project" content="infer v0.3.0">
 
     <title>Infer.Ecto.Query.Builder — infer v0.3.0</title>
-    <link rel="stylesheet" href="dist/elixir-a816d167216329cc463d.css" />
+    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-f0e05c085a.js"></script>
+    <script src="dist/sidebar_items-ec224516c1.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/app-80aa23c1d96b6dc3c064.js"></script>
+    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
 
 
   </head>
@@ -22,8 +22,13 @@
     <script>
 
       try {
-        if (localStorage.getItem('night-mode') === 'true') {
-          document.body.classList.add('night-mode');
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
         }
       } catch (error) { }
     </script>
@@ -32,7 +37,7 @@
 
 
 <section class="sidebar">
-  <button class="sidebar-button sidebar-toggle">
+  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
     <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
   </button>
 
@@ -44,6 +49,7 @@
       <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
     </button>
     <label class="search-label">
+      <p class="sr-only">Search</p>
       <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
     </label>
   </form>
@@ -56,7 +62,7 @@
   <div class="sidebar-header">
 
     <div class="sidebar-projectDetails">
-      <a href="readme.html" class="sidebar-projectName" translate="no">
+      <a href="welcome.html" class="sidebar-projectName" translate="no">
 infer
       </a>
       <strong class="sidebar-projectVersion" translate="no">
@@ -64,7 +70,7 @@ infer
       </strong>
     </div>
     <ul class="sidebar-listNav">
-      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
+      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
 
         <li><a id="modules-list-link" href="#full-list">Modules</a></li>
 
@@ -101,19 +107,27 @@ infer
   <section id="moduledoc">
 <p>Internal data structure to keep track of all context needed to translate complex Infer
 rules to Ecto queries.</p><h2 id="module-context-switches" class="section-heading">
-  <a href="#module-context-switches" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
+  <a href="#module-context-switches" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">context-switches</p>
+  </a>
   Context switches
 </h2>
 <h3 id="module-evaluate-rule-on-other-subject" class="section-heading">
-  <a href="#module-evaluate-rule-on-other-subject" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
+  <a href="#module-evaluate-rule-on-other-subject" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">evaluate-rule-on-other-subject</p>
+  </a>
   Evaluate rule on other subject
 </h3>
 <ul><li>Can not access existing aliases</li><li>Reset path</li><li>Keep only next alias index</li></ul><h3 id="module-subquery-exists" class="section-heading">
-  <a href="#module-subquery-exists" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
+  <a href="#module-subquery-exists" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">subquery-exists</p>
+  </a>
   Subquery (EXISTS)
 </h3>
 <ul><li>Can access existing aliases &amp; path</li><li>Mark existing aliases &amp; path entries as :parent</li><li>Add alias &amp; path entry</li></ul><h3 id="module-join" class="section-heading">
-  <a href="#module-join" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a>
+  <a href="#module-join" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">join</p>
+  </a>
   Join
 </h3>
 <ul><li>Can access existing aliases &amp; path</li><li>Add alias &amp; path entry</li></ul>
@@ -286,10 +300,9 @@ Types
 
   <section class="docstring">
 
-      <h2>Specs</h2>
       <div class="specs">
 
-          <pre translate="no">mapped_alias() :: {<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>(), %{required(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) =&gt; <a href="#t:mapped_alias/0">mapped_alias</a>()}}</pre>
+          <pre translate="no"><span class="attribute">@type</span> mapped_alias() :: {<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>(), %{required(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) =&gt; <a href="#t:mapped_alias/0">mapped_alias</a>()}}</pre>
 
       </div>
 
@@ -315,10 +328,9 @@ Types
 
   <section class="docstring">
 
-      <h2>Specs</h2>
       <div class="specs">
 
-          <pre translate="no">t() :: %Infer.Ecto.Query.Builder{
+          <pre translate="no"><span class="attribute">@type</span> t() :: %Infer.Ecto.Query.Builder{
   aliases: <a href="#t:mapped_alias/0">mapped_alias</a>() | nil,
   eval: <a href="Infer.Evaluation.html#t:t/0">Infer.Evaluation.t</a>() | nil,
   in_subquery?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
@@ -638,7 +650,7 @@ Functions
 
         <p>
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.0) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
         </p>
       </footer>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.28.3">
+    <meta name="project" content="infer v0.3.0">
+
+    <title>References — infer v0.3.0</title>
+    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
+
+    <script src="dist/sidebar_items-ec224516c1.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+
+
+  </head>
+  <body data-type="extras">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+
+<section class="sidebar">
+  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+    <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+  </button>
+
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+    <div class="sidebar-projectDetails">
+      <a href="welcome.html" class="sidebar-projectName" translate="no">
+infer
+      </a>
+      <strong class="sidebar-projectVersion" translate="no">
+        v0.3.0
+      </strong>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="settings display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/docs/basics/04_references.md#L1" title="View Source" class="view-source" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span>References</span>
+</h1>
+
+<p>Often times, we need to compare values in different fields with
+each other, not with fixed values. This is where references come in.</p><p>Say we want to add a <code class="inline">by_owner?</code> predicate to a <code class="inline">Todo.Task</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="0924074127-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="0924074127-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
+  </span><span class="k" data-group-id="0924074127-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">by_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0924074127-3">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0924074127-4">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0924074127-5">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:created_by_id</span><span class="p" data-group-id="0924074127-5">]</span><span class="p" data-group-id="0924074127-4">}</span><span class="p" data-group-id="0924074127-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">by_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="0924074127-1">end</span></code></pre><h3 id="operators" class="section-heading">
+  <a href="#operators" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">operators</p>
+  </a>
+  Operators
+</h3>
+<p>By default, all comparisons need to match exactly. However, other comparisons are possible as well.</p><p>Say we support completing tasks on an already archived list.
+And we want to add a predicate <code class="inline">completed_later?</code> to capture that.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="9899516289-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="9899516289-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
+  </span><span class="k" data-group-id="9899516289-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9899516289-3">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9899516289-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9899516289-4">%{</span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9899516289-5">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9899516289-5">}</span><span class="p" data-group-id="9899516289-4">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9899516289-6">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9899516289-7">{</span><span class="ss">:gt</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9899516289-8">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9899516289-9">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p" data-group-id="9899516289-9">]</span><span class="p" data-group-id="9899516289-8">}</span><span class="p" data-group-id="9899516289-7">}</span><span class="p" data-group-id="9899516289-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="9899516289-1">end</span></code></pre><p>The <code class="inline">Todo.Task</code> must already by <code class="inline">completed?</code> and the <code class="inline">Todo.List</code> <code class="inline">archived?</code>.
+In particular, the <code class="inline">Todo.Task</code> must be <code class="inline">completed_at</code> after the <code class="inline">Todo.List</code> was archived.</p><p>Operators can also compare to fixed values (not references).</p><h4>Supported operators</h4><p>Operators with all aliases:</p><ul><li>Greater than: <code class="inline">:gt</code>, <code class="inline">:&gt;</code>, <code class="inline">:greater_than</code>, <code class="inline">:after</code></li><li>Greater than or equal: <code class="inline">:gte</code>, <code class="inline">:&gt;=</code>, <code class="inline">:greater_than_or_equal</code>, <code class="inline">:on_or_after</code>, <code class="inline">:at_or_after</code></li><li>Less than: <code class="inline">:lt</code>, <code class="inline">:&lt;</code>, <code class="inline">:less_than</code>, <code class="inline">:before</code></li><li>Less than or equal: <code class="inline">:lte</code>, <code class="inline">:&lt;=</code>, <code class="inline">:less_than_or_equal</code>, <code class="inline">:on_or_before</code>, <code class="inline">:at_or_before</code></li></ul>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="03_conditions.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Conditions
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="05_arguments.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Arguments
+        </span>
+      </a>
+
+  </div>
+</div>
+
+      <footer class="footer">
+
+          <p>
+            On Hex.pm:
+
+            <span class="line">
+              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+
+                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/docs/basics/04_references.md">(current file)</a>
+
+            </span>
+
+            <button class="line footer-button display-quick-switch">
+              Search
+            </button>
+          </p>
+
+        <p>
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>

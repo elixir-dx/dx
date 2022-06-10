@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.28.3">
+    <meta name="project" content="infer v0.3.0">
+
+    <title>Conditions — infer v0.3.0</title>
+    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
+
+    <script src="dist/sidebar_items-ec224516c1.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+
+
+  </head>
+  <body data-type="extras">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+
+<section class="sidebar">
+  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+    <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+  </button>
+
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+    <div class="sidebar-projectDetails">
+      <a href="welcome.html" class="sidebar-projectName" translate="no">
+infer
+      </a>
+      <strong class="sidebar-projectVersion" translate="no">
+        v0.3.0
+      </strong>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="settings display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/docs/basics/03_conditions.md#L1" title="View Source" class="view-source" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span>Conditions</span>
+</h1>
+
+<p>We've already seen some conditions nested using maps.</p><h3 id="and" class="section-heading">
+  <a href="#and" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">and</p>
+  </a>
+  And
+</h3>
+<p>Using maps is the go-to way of writing conditions. If you're unsure
+about how to define a condition, use a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a>.</p><p>When using a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a> with multiple elements in a condition, all of its
+elements must match for the whole condition to match. This is
+similar to pattern-matching in Elixir code.</p><p>Say we want a <code class="inline">Todo.List</code> to only be <code class="inline">archivable?</code> if it's not
+archived yet <strong>and</strong> all of its tasks are completed.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="8947817915-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="8947817915-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
+  </span><span class="k" data-group-id="8947817915-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8947817915-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="8947817915-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+        </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8947817915-4">%{</span><span class="w">
+          </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
+          </span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8947817915-5">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8947817915-6">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8947817915-6">}</span><span class="p" data-group-id="8947817915-5">}</span><span class="w">
+        </span><span class="p" data-group-id="8947817915-4">}</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="8947817915-1">end</span></code></pre><h3 id="or" class="section-heading">
+  <a href="#or" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">or</p>
+  </a>
+  Or
+</h3>
+<p>A logical &quot;or&quot; is expressed by an Elixir <a href="https://hexdocs.pm/elixir/List.html"><code class="inline">List</code></a>. This is the first
+major difference to pattern-matching. It might not feel intuitive
+at first, but gets familiar fast and becomes very useful once you
+got used to it.</p><p>Say we want a <code class="inline">Todo.List</code> to be <code class="inline">archivable?</code> if its <code class="inline">:state</code> we
+defined in the previous chapter is either <code class="inline">:completed</code> or <code class="inline">:ready</code>.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="9488322999-1">do</span><span class="w">
+  </span><span class="c1"># ...</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-2">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9488322999-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-3">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-4">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9488322999-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9488322999-5">}</span><span class="p" data-group-id="9488322999-4">}</span><span class="p" data-group-id="9488322999-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:in_progress</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-6">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-7">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9488322999-7">}</span><span class="p" data-group-id="9488322999-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:ready</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-8">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-9">%{</span><span class="p" data-group-id="9488322999-9">}</span><span class="p" data-group-id="9488322999-8">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:empty</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-10">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9488322999-11">[</span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">:ready</span><span class="p" data-group-id="9488322999-11">]</span><span class="p" data-group-id="9488322999-10">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="9488322999-1">end</span></code></pre><p>This is also a good example for defining predicates based on other
+predicates if they reflect how you actually think about them.
+Infer will find an efficient way to evaluate them.</p><h3 id="not" class="section-heading">
+  <a href="#not" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">not</p>
+  </a>
+  Not
+</h3>
+<p>Negations can be expressed by wrapping a condition in a <code class="inline">:not</code> tuple.</p><p>Another way of expressing the <code class="inline">archived?</code> predicate from the first
+guide would thus be:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="1951077796-1">do</span><span class="w">
+  </span><span class="c1"># ...</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1951077796-2">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1951077796-3">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="1951077796-3">}</span><span class="p" data-group-id="1951077796-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+
+  </span><span class="c1"># previously:</span><span class="w">
+  </span><span class="c1"># infer archived?: false, when: %{archived_at: nil}</span><span class="w">
+  </span><span class="c1"># infer archived?: true</span><span class="w">
+</span><span class="k" data-group-id="1951077796-1">end</span></code></pre>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="02_associations.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Associations
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="04_references.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+References
+        </span>
+      </a>
+
+  </div>
+</div>
+
+      <footer class="footer">
+
+          <p>
+            On Hex.pm:
+
+            <span class="line">
+              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+
+                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/docs/basics/03_conditions.md">(current file)</a>
+
+            </span>
+
+            <button class="line footer-button display-quick-switch">
+              Search
+            </button>
+          </p>
+
+        <p>
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>

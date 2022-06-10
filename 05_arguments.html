@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.28.3">
+    <meta name="project" content="infer v0.3.0">
+
+    <title>Arguments — infer v0.3.0</title>
+    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
+
+    <script src="dist/sidebar_items-ec224516c1.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+
+
+  </head>
+  <body data-type="extras">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+
+<section class="sidebar">
+  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+    <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+  </button>
+
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+    <div class="sidebar-projectDetails">
+      <a href="welcome.html" class="sidebar-projectName" translate="no">
+infer
+      </a>
+      <strong class="sidebar-projectVersion" translate="no">
+        v0.3.0
+      </strong>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="settings display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/docs/basics/05_arguments.md#L1" title="View Source" class="view-source" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span>Arguments</span>
+</h1>
+
+<p>To pass in data from the caller context and make it available in the rules, there's the <code class="inline">args</code> option.
+Any <code class="inline">args</code> passed to the <a href="Infer.html"><code class="inline">Infer</code></a> API function will be available in rules as if <code class="inline">args</code> was
+an association on the current current root record.</p><p>Say we implement some authorization, where a user can archive a <code class="inline">Todo.List</code> only if they are an admin, or they are the owner of the list.
+We pass in the currently logged-in user struct, which was already loaded as part of authentication.</p><pre><code class="makeup elixir" translate="no"><span class="nc">Infer</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="4047718402-1">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4047718402-2">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="4047718402-2">]</span><span class="p" data-group-id="4047718402-1">)</span></code></pre><p>The <code class="inline">current_user</code> is then available within <code class="inline">args</code>, including any
+fields, associations and predicates defined on it.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="0208159850-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="0208159850-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
+  </span><span class="k" data-group-id="0208159850-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0208159850-3">%{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0208159850-4">%{</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0208159850-5">%{</span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="0208159850-5">}</span><span class="p" data-group-id="0208159850-4">}</span><span class="p" data-group-id="0208159850-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0208159850-6">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0208159850-7">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0208159850-8">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="0208159850-8">]</span><span class="p" data-group-id="0208159850-7">}</span><span class="p" data-group-id="0208159850-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="0208159850-1">end</span></code></pre>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="04_references.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+References
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="06_thinking_in_infer.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Thinking in Infer
+        </span>
+      </a>
+
+  </div>
+</div>
+
+      <footer class="footer">
+
+          <p>
+            On Hex.pm:
+
+            <span class="line">
+              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+
+                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/docs/basics/05_arguments.md">(current file)</a>
+
+            </span>
+
+            <button class="line footer-button display-quick-switch">
+              Search
+            </button>
+          </p>
+
+        <p>
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>

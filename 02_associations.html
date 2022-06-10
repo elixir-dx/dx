@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.28.3">
+    <meta name="project" content="infer v0.3.0">
+
+    <title>Associations — infer v0.3.0</title>
+    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
+
+    <script src="dist/sidebar_items-ec224516c1.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+
+
+  </head>
+  <body data-type="extras">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+
+<section class="sidebar">
+  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+    <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+  </button>
+
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+    <div class="sidebar-projectDetails">
+      <a href="welcome.html" class="sidebar-projectName" translate="no">
+infer
+      </a>
+      <strong class="sidebar-projectVersion" translate="no">
+        v0.3.0
+      </strong>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="settings display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/docs/basics/02_associations.md#L1" title="View Source" class="view-source" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span>Associations</span>
+</h1>
+
+<p>Infer allows to easily traverse associations to access fields or even
+predicates defined on associated records.</p><p>Say our <code class="inline">Todo.List</code> schema from the previous guide now <code class="inline">has_many</code> tasks:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="2704222731-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="2704222731-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:tasks</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w">
+  </span><span class="k" data-group-id="2704222731-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2704222731-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="2704222731-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2704222731-4">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2704222731-4">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:active</span><span class="w">
+</span><span class="k" data-group-id="2704222731-1">end</span></code></pre><p>In return, we add a Task schema that <code class="inline">belongs_to</code> a List:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="7331827906-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Infer.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
+
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="7331827906-2">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
+
+    </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
+  </span><span class="k" data-group-id="7331827906-2">end</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7331827906-3">%{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="7331827906-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
+</span><span class="k" data-group-id="7331827906-1">end</span></code></pre><h3 id="belongs_to" class="section-heading">
+  <a href="#belongs_to" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">belongs_to</p>
+  </a>
+  belongs_to
+</h3>
+<p>Say we want a Task to be <code class="inline">archived?</code> when the List it belongs to is archived.
+We could write a similar rule on the <code class="inline">Todo.Task</code> schema as we have on the List:</p><pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7585961948-1">%{</span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7585961948-2">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="7585961948-2">}</span><span class="p" data-group-id="7585961948-1">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span></code></pre><p>The <code class="inline">archived?</code> predicate looks at the associated <code class="inline">list</code> (defined using <code class="inline">belongs_to</code>)
+and its field <code class="inline">archived_at</code>, and compares that to <code class="inline">nil</code>.
+If it's <code class="inline">nil</code> then the Task's predicate <code class="inline">archived?</code> is <code class="inline">false</code>, otherwise it's <code class="inline">true</code>.</p><p>However, since we've already defined this logic on the List, we can also use the predicate
+on the associated List instead, and change things around a bit:</p><pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5312922904-1">%{</span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5312922904-2">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="5312922904-2">}</span><span class="p" data-group-id="5312922904-1">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span></code></pre><h4>Usage</h4><p>Like before, we can use <a href="Infer.html#get!/2"><code class="inline">Infer.get!/2</code></a> to evaluate the predicate,
+but only if the association is (pre)loaded:</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="9832349278-1">%</span><span class="nc" data-group-id="9832349278-1">Todo.List</span><span class="p" data-group-id="9832349278-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="9832349278-1">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">insert!</span><span class="p" data-group-id="9832349278-2">(</span><span class="p" data-group-id="9832349278-2">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9832349278-3">%</span><span class="nc" data-group-id="9832349278-3">Todo.Task</span><span class="p" data-group-id="9832349278-3">{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="n">list</span><span class="p" data-group-id="9832349278-3">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="9832349278-4">(</span><span class="ss">:archived?</span><span class="p" data-group-id="9832349278-4">)</span><span class="w">
+</span><span class="no">true</span></code></pre><p>If the association is not (pre)loaded, <a href="Infer.html#get!/2"><code class="inline">Infer.get!/2</code></a> will raise an error:</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="2591828933-1">%</span><span class="nc" data-group-id="2591828933-1">Todo.List</span><span class="p" data-group-id="2591828933-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="2591828933-1">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">insert!</span><span class="p" data-group-id="2591828933-2">(</span><span class="p" data-group-id="2591828933-2">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="2591828933-3">%</span><span class="nc" data-group-id="2591828933-3">Todo.Task</span><span class="p" data-group-id="2591828933-3">{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="n">list</span><span class="p" data-group-id="2591828933-3">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">insert!</span><span class="p" data-group-id="2591828933-4">(</span><span class="p" data-group-id="2591828933-4">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">reload!</span><span class="p" data-group-id="2591828933-5">(</span><span class="p" data-group-id="2591828933-5">)</span><span class="w">  </span><span class="c1"># insert and reload without associations</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="2591828933-6">(</span><span class="ss">:archived?</span><span class="p" data-group-id="2591828933-6">)</span><span class="w">
+</span><span class="gt">** (Infer.Error.NotLoaded) Association list is not loaded on nil. Cannot get path: nil</span></code></pre><p>To allow Infer to load associations as needed, use <a href="Infer.html#load!/2"><code class="inline">Infer.load!/2</code></a> instead:</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="3884325203-1">%</span><span class="nc" data-group-id="3884325203-1">Todo.List</span><span class="p" data-group-id="3884325203-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="3884325203-1">}</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">insert!</span><span class="p" data-group-id="3884325203-2">(</span><span class="p" data-group-id="3884325203-2">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="3884325203-3">%</span><span class="nc" data-group-id="3884325203-3">Todo.Task</span><span class="p" data-group-id="3884325203-3">{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="n">list</span><span class="p" data-group-id="3884325203-3">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">insert!</span><span class="p" data-group-id="3884325203-4">(</span><span class="p" data-group-id="3884325203-4">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="o">.</span><span class="n">reload!</span><span class="p" data-group-id="3884325203-5">(</span><span class="p" data-group-id="3884325203-5">)</span><span class="w">  </span><span class="c1"># insert and reload without associations</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Infer</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="3884325203-6">(</span><span class="ss">:archived?</span><span class="p" data-group-id="3884325203-6">)</span><span class="w">
+</span><span class="c1"># loads the associated list</span><span class="w">
+</span><span class="no">true</span></code></pre><h3 id="has_many" class="section-heading">
+  <a href="#has_many" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">has_many</p>
+  </a>
+  has_many
+</h3>
+<p>We can also define predicates based on a <code class="inline">has_many</code> association.
+Infer generally treats conditions on a list of records like an <code class="inline">Enum.any?</code> condition:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="9554006312-1">do</span><span class="w">
+  </span><span class="c1"># ...</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">in_progress?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9554006312-2">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9554006312-3">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9554006312-3">}</span><span class="p" data-group-id="9554006312-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">in_progress?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
+</span><span class="k" data-group-id="9554006312-1">end</span></code></pre><p>The predicate <code class="inline">in_progress?</code> is <code class="inline">true</code> if there's any Task associated that has <code class="inline">completed?: true</code>.
+Otherwise, if there's no Task associated that has <code class="inline">completed?: true</code>, <code class="inline">in_progress?</code> is <code class="inline">false</code>.</p><p>Putting it all together, we can extend our <code class="inline">state</code> predicate on the <code class="inline">Todo.List</code> schema:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="2246083172-1">do</span><span class="w">
+  </span><span class="c1"># ...</span><span class="w">
+
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2246083172-2">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2246083172-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:in_progress</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2246083172-3">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2246083172-4">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2246083172-4">}</span><span class="p" data-group-id="2246083172-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:ready</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2246083172-5">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2246083172-6">%{</span><span class="p" data-group-id="2246083172-6">}</span><span class="p" data-group-id="2246083172-5">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:empty</span><span class="w">
+</span><span class="k" data-group-id="2246083172-1">end</span></code></pre><p>What does the <code class="inline">:ready</code> rule do?
+It checks whether there's any Task, without any condition on the Task.
+So if the List is not archived, and there are no completed tasks, but there is a Task,
+<code class="inline">:state</code> is <code class="inline">:ready</code>. Otherwise <code class="inline">:state</code> is <code class="inline">:empty</code>.</p><p><em>This might be hard to grasp, but it will hopefully become clearer in the next guide...</em></p>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="01_predicates.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Predicates
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="03_conditions.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Conditions
+        </span>
+      </a>
+
+  </div>
+</div>
+
+      <footer class="footer">
+
+          <p>
+            On Hex.pm:
+
+            <span class="line">
+              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+
+                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/docs/basics/02_associations.md">(current file)</a>
+
+            </span>
+
+            <button class="line footer-button display-quick-switch">
+              Search
+            </button>
+          </p>
+
+        <p>
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+
+  </body>
+</html>
