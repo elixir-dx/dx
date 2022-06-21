@@ -136,6 +136,10 @@ defmodule Infer.Ecto.Query do
     end
   end
 
+  defp map_condition(_builder, {fun, _args}) when is_function(fun) do
+    :error
+  end
+
   defp map_condition(builder, {key, val}) when is_atom(key) do
     case field_info(key, builder) do
       :field ->
