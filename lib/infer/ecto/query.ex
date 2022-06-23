@@ -3,7 +3,7 @@ defmodule Infer.Ecto.Query do
   Functions to dynamically generate Ecto query parts.
   """
 
-  alias Infer.Util
+  alias Infer.{Result, Util}
   alias Infer.Evaluation, as: Eval
   alias __MODULE__.Builder
 
@@ -47,12 +47,17 @@ defmodule Infer.Ecto.Query do
   Returns `{query, true}` if all conditions could be added to the query.
   """
   def apply_condition(queryable, condition, %Eval{} = eval) do
-    {builder, condition} =
-      queryable
-      |> Builder.init(eval)
-      |> apply_condition(condition)
+    queryable
+    |> Builder.init(eval)
+    |> apply_condition(condition)
+    |> case do
+      {:not_loaded, data_reqs} ->
+        eval = Eval.load_data_reqs(eval, data_reqs)
+        apply_condition(queryable, condition, eval)
 
-    {builder.root_query, condition}
+      {builder, condition} ->
+        {builder.root_query, condition}
+    end
   end
 
   # maps a condition and adds it to the current `root_query`
@@ -61,26 +66,37 @@ defmodule Infer.Ecto.Query do
   end
 
   defp apply_condition(builder, {:all, conditions}) do
-    Enum.reduce(conditions, {builder, []}, fn condition, {builder, remaining_conditions} ->
-      case map_condition(builder, condition) do
-        {builder, where} ->
-          query = builder.root_query
-          query = from(q in query, where: ^where)
-          builder = %{builder | root_query: query}
-          {builder, remaining_conditions}
-
-        :error ->
-          {builder, [condition | remaining_conditions]}
-      end
-    end)
+    conditions
+    |> Result.map(&Result.wrap(map_condition(builder, &1)))
     |> case do
-      {builder, []} -> {builder, true}
-      {builder, conditions} -> {builder, {:all, conditions}}
+      {:not_loaded, data_reqs} ->
+        {:not_loaded, data_reqs}
+
+      {:ok, _conditions, _binds} ->
+        Enum.reduce(conditions, {builder, []}, fn condition, {builder, remaining_conditions} ->
+          case map_condition(builder, condition) do
+            {builder, where} ->
+              query = builder.root_query
+              query = from(q in query, where: ^where)
+              builder = %{builder | root_query: query}
+              {builder, remaining_conditions}
+
+            :error ->
+              {builder, [condition | remaining_conditions]}
+          end
+        end)
+        |> case do
+          {builder, []} -> {builder, true}
+          {builder, conditions} -> {builder, {:all, conditions}}
+        end
     end
   end
 
   defp apply_condition(builder, condition) do
     case map_condition(builder, condition) do
+      {:not_loaded, data_reqs} ->
+        {:not_loaded, data_reqs}
+
       {builder, where} ->
         query = builder.root_query
         query = from(q in query, where: ^where)
@@ -100,6 +116,7 @@ defmodule Infer.Ecto.Query do
   defp map_condition(builder, {:not, condition}) do
     case map_condition(builder, condition) do
       :error -> :error
+      {:not_loaded, data_reqs} -> {:not_loaded, data_reqs}
       {builder, where} -> {builder, dynamic(not (^where))}
     end
   end
@@ -112,6 +129,7 @@ defmodule Infer.Ecto.Query do
     Enum.reduce_while(conditions, {builder, true}, fn condition, {builder, acc_query} ->
       case map_condition(builder, condition) do
         :error -> {:halt, :error}
+        {:not_loaded, data_reqs} -> {:halt, {:not_loaded, data_reqs}}
         {builder, where} -> {:cont, {builder, combine_and(where, acc_query)}}
       end
     end)
@@ -121,6 +139,7 @@ defmodule Infer.Ecto.Query do
     Enum.reduce_while(conditions, {builder, false}, fn condition, {builder, acc_query} ->
       case map_condition(builder, condition) do
         :error -> {:halt, :error}
+        {:not_loaded, data_reqs} -> {:halt, {:not_loaded, data_reqs}}
         {builder, where} -> {:cont, {builder, combine_or(where, acc_query)}}
       end
     end)
@@ -133,6 +152,7 @@ defmodule Infer.Ecto.Query do
            builder.eval
          ) do
       {:ok, result, _} -> {builder, result}
+      {:not_loaded, data_reqs} -> {:not_loaded, data_reqs}
     end
   end
 
@@ -167,6 +187,7 @@ defmodule Infer.Ecto.Query do
               end
               |> case do
                 :error -> {:halt, :error}
+                {:not_loaded, data_reqs} -> {:halt, {:not_loaded, data_reqs}}
                 {builder, where} -> {:cont, {builder, combine_or(where, acc_query)}}
               end
             end)

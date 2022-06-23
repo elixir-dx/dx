@@ -2,10 +2,15 @@ defmodule Infer.Test.Repo.Migrations.CreateBaseSchema do
   use Ecto.Migration
 
   def change do
+    create table(:roles) do
+      add :name, :string, null: false
+    end
+
     create table(:users) do
       add :email, :string, null: false
       add :first_name, :string
       add :last_name, :string
+      add :role_id, references(:roles)
     end
 
     create table(:list_templates) do

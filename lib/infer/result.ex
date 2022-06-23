@@ -73,6 +73,14 @@ defmodule Infer.Result do
   def ok(value, binds \\ %{}), do: {:ok, value, binds}
 
   @doc """
+  Wraps a value in a compatible tuple for use with this module, if it's not wrapped already.
+  """
+  def wrap({:not_loaded, data_reqs}), do: {:not_loaded, data_reqs}
+  def wrap({:error, e}), do: {:error, e}
+  def wrap({:ok, term, binds}) when is_map(binds), do: {:ok, term, binds}
+  def wrap(term), do: {:ok, term, %{}}
+
+  @doc """
   If ok, binds the result to the given key and returns the updated tuple.
   Otherwise, returns first argument as is.
   """

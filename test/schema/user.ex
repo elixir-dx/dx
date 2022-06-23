@@ -2,7 +2,7 @@ defmodule Infer.Test.Schema.User do
   use Ecto.Schema
   use Infer.Ecto.Schema, repo: Infer.Test.Repo
 
-  alias Infer.Test.Schema.List
+  alias Infer.Test.Schema.{List, Role}
 
   schema "users" do
     field :email, :string
@@ -11,6 +11,7 @@ defmodule Infer.Test.Schema.User do
     field :last_name, :string
 
     has_many :lists, List, foreign_key: :created_by_id
+    belongs_to :role, Role
   end
 
   infer full_name: {&Enum.join/1, [[{:ref, :first_name}, {:ref, :last_name}]]}
