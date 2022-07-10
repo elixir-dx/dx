@@ -5,12 +5,12 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.28.3">
-    <meta name="project" content="infer v0.3.0">
+    <meta name="project" content="dx v0.3.0">
 
-    <title>Infer.Rule — infer v0.3.0</title>
+    <title>Dx.Parser.Token — dx v0.3.0</title>
     <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-b466915565.js"></script>
+    <script src="dist/sidebar_items-b91d468008.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -63,7 +63,7 @@
 
     <div class="sidebar-projectDetails">
       <a href="welcome.html" class="sidebar-projectName" translate="no">
-infer
+dx
       </a>
       <strong class="sidebar-projectVersion" translate="no">
         v0.3.0
@@ -93,26 +93,16 @@ infer
 </button>
 
 
-    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/rule.ex#L1" title="View Source" class="view-source" rel="help">
+    <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/parser.ex#L7" title="View Source" class="view-source" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">Infer.Rule</span> 
-  <small class="app-vsn" translate="no">(infer v0.3.0)</small>
+  <span translate="no">Dx.Parser.Token</span> 
+  <small class="app-vsn" translate="no">(dx v0.3.0)</small>
 
 </h1>
 
-
-  <section id="moduledoc">
-<p>Represents a rule to apply to an Infer, based on an individual record.</p><h2 id="module-when" class="section-heading">
-  <a href="#module-when" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">when</p>
-  </a>
-  <code class="inline">when</code>
-</h2>
-<p>Nested map with data requirements and matching values.</p><p>Lists mean one of the values must match.</p><p>Negations can be expressed using <code class="inline">{:not, value}</code> or <code class="inline">{:not, [values]}</code>.</p>
-  </section>
 
 
   <section id="summary" class="details-list">
@@ -132,6 +122,39 @@ infer
       <div class="summary-row">
         <div class="summary-signature">
           <a href="#t:t/0" translate="no">t()</a>
+
+        </div>
+
+      </div>
+
+  </div>
+
+  <div class="summary-functions summary">
+    <h2>
+      <a href="#functions">Functions</a>
+    </h2>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#__struct__/0" translate="no">%Dx.Parser.Token{}</a>
+
+        </div>
+
+          <div class="summary-synopsis"><p>Encapsulates all static args to be passed around between functions.</p></div>
+
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#set_aliases/2" translate="no">set_aliases(token, new_aliases)</a>
+
+        </div>
+
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#with_opts/2" translate="no">with_opts(token, opts)</a>
 
         </div>
 
@@ -160,7 +183,7 @@ Types
     </a>
     <h1 class="signature" translate="no">t()</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/rule.ex#L14" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/parser.ex#L14" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -172,14 +195,94 @@ Types
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@type</span> t() :: %Infer.Rule{
-  key: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>() | nil,
-  type: (<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>() | nil) | nil,
-  val: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>() | nil,
-  when: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+          <pre translate="no"><span class="attribute">@type</span> t() :: %Dx.Parser.Token{
+  aliases: %{required(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()) =&gt; <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>()},
+  opts: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>() | nil
 }</pre>
 
       </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+        <span class="sr-only">Link to this section</span>
+      </a>
+Functions
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="__struct__/0">
+
+  <div class="detail-header">
+    <a href="#__struct__/0" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">%Dx.Parser.Token{}</h1>
+
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/parser.ex#L14" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+      <span class="note">(struct)</span>
+
+  </div>
+
+  <section class="docstring">
+
+<p>Encapsulates all static args to be passed around between functions.</p>
+  </section>
+</section>
+<section class="detail" id="set_aliases/2">
+
+  <div class="detail-header">
+    <a href="#set_aliases/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">set_aliases(token, new_aliases)</h1>
+
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/parser.ex#L22" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="with_opts/2">
+
+  <div class="detail-header">
+    <a href="#with_opts/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">with_opts(token, opts)</h1>
+
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/parser.ex#L20" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
 
 
   </section>
@@ -194,10 +297,10 @@ Types
             On Hex.pm:
 
             <span class="line">
-              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
-              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+              <a href="https://hex.pm/packages/dx/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/dx/0.3.0" class="line">Preview</a>
 
-                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/lib/infer/rule.ex">(current file)</a>
+                <a href="https://preview.hex.pm/preview/dx/0.3.0/show/lib/dx/parser.ex">(current file)</a>
 
             </span>
 

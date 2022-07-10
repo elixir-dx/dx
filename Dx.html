@@ -5,12 +5,12 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.28.3">
-    <meta name="project" content="infer v0.3.0">
+    <meta name="project" content="dx v0.3.0">
 
-    <title>Infer — infer v0.3.0</title>
+    <title>Dx — dx v0.3.0</title>
     <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-b466915565.js"></script>
+    <script src="dist/sidebar_items-b91d468008.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -63,7 +63,7 @@
 
     <div class="sidebar-projectDetails">
       <a href="welcome.html" class="sidebar-projectName" translate="no">
-infer
+dx
       </a>
       <strong class="sidebar-projectVersion" translate="no">
         v0.3.0
@@ -93,29 +93,29 @@ infer
 </button>
 
 
-    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L1" title="View Source" class="view-source" rel="help">
+    <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L1" title="View Source" class="view-source" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">Infer</span> 
-  <small class="app-vsn" translate="no">(infer v0.3.0)</small>
+  <span translate="no">Dx</span> 
+  <small class="app-vsn" translate="no">(dx v0.3.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>This is the main entry for using the Infer API.</p><ul><li><a href="#get/3"><code class="inline">get/3</code></a> evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)</li><li><a href="#load/3"><code class="inline">load/3</code></a> is like <code class="inline">get</code>, but loads any additional data as needed</li><li><a href="#put/3"><code class="inline">put/3</code></a> is like <code class="inline">load</code>, but puts the results into the <code class="inline">:inferred</code> field
+<p>This is the main entry for using the Dx API.</p><ul><li><a href="#get/3"><code class="inline">get/3</code></a> evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)</li><li><a href="#load/3"><code class="inline">load/3</code></a> is like <code class="inline">get</code>, but loads any additional data as needed</li><li><a href="#put/3"><code class="inline">put/3</code></a> is like <code class="inline">load</code>, but puts the results into the <code class="inline">:inferred</code> field
 (or virtual schema field) of the subject(s) as a map, and returns the subject(s)</li></ul><p>These functions return a tuple, either <code class="inline">{:ok, result}</code>, <code class="inline">{:error, error}</code>, or <code class="inline">{:not_loaded, data_reqs}</code> (only <code class="inline">get</code>).</p><p>The corresponding <a href="#get!/3"><code class="inline">get!/3</code></a>, <a href="#load!/3"><code class="inline">load!/3</code></a> and <a href="#put!/3"><code class="inline">put!/3</code></a> functions return <code class="inline">result</code>
 directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><strong>subjects</strong> can either be an individual subject (with the given predicates defined on it), or a list of subjects.
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><strong>predicates</strong> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <strong>map</strong>
 of the predicates and their resulting values.</li><li><strong>options</strong> (optional) See below.</li></ul><p>Options:</p><ul><li><strong>args</strong> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">put!</span><span class="p" data-group-id="0401023954-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0401023954-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="0401023954-2">]</span><span class="p" data-group-id="0401023954-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="n">put!</span><span class="p" data-group-id="2509016864-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2509016864-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="2509016864-2">]</span><span class="p" data-group-id="2509016864-1">)</span></code></pre></li><li><strong>extra_rules</strong> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
-and use them only where needed.</li><li><strong>debug</strong> (boolean) makes Infer print additional information to the console as rules are evaluated.
+and use them only where needed.</li><li><strong>debug</strong> (boolean) makes Dx print additional information to the console as rules are evaluated.
 Should only be used while debugging.</li><li><strong>return_cache</strong> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
-<code class="inline">{:ok, result}</code> on success. This <code class="inline">cache</code> can be passed to other Infer functions (see <code class="inline">cache</code> option)</li><li><strong>cache</strong> (<a href="https://hexdocs.pm/dataloader/1.0.9/Dataloader.html"><code class="inline">Dataloader</code></a> struct) can be used to pass in an existing cache, so data already loaded
+<code class="inline">{:ok, result}</code> on success. This <code class="inline">cache</code> can be passed to other Dx functions (see <code class="inline">cache</code> option)</li><li><strong>cache</strong> (<a href="https://hexdocs.pm/dataloader/1.0.10/Dataloader.html"><code class="inline">Dataloader</code></a> struct) can be used to pass in an existing cache, so data already loaded
 doesn't need to be loaded again. Can be initialized using <code class="inline">Loaders.Dataloader.init/0</code>.</li></ul>
   </section>
 
@@ -258,7 +258,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L156" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L156" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -282,7 +282,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L75" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L75" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -306,7 +306,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L48" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L48" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -330,7 +330,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L107" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L107" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -354,7 +354,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L83" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L83" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -378,7 +378,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L136" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L136" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -402,7 +402,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L120" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L120" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -433,7 +433,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L195" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L195" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -468,7 +468,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L211" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L211" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -498,7 +498,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer.ex#L179" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx.ex#L179" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -521,10 +521,10 @@ and evaluating the rules on them.</p>
             On Hex.pm:
 
             <span class="line">
-              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
-              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+              <a href="https://hex.pm/packages/dx/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/dx/0.3.0" class="line">Preview</a>
 
-                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/lib/infer.ex">(current file)</a>
+                <a href="https://preview.hex.pm/preview/dx/0.3.0/show/lib/dx.ex">(current file)</a>
 
             </span>
 

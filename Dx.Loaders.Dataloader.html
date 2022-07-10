@@ -5,12 +5,12 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.28.3">
-    <meta name="project" content="infer v0.3.0">
+    <meta name="project" content="dx v0.3.0">
 
-    <title>Infer.Evaluation — infer v0.3.0</title>
+    <title>Dx.Loaders.Dataloader — dx v0.3.0</title>
     <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-b466915565.js"></script>
+    <script src="dist/sidebar_items-b91d468008.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -63,7 +63,7 @@
 
     <div class="sidebar-projectDetails">
       <a href="welcome.html" class="sidebar-projectName" translate="no">
-infer
+dx
       </a>
       <strong class="sidebar-projectVersion" translate="no">
         v0.3.0
@@ -93,21 +93,19 @@ infer
 </button>
 
 
-    <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/evaluation.ex#L1" title="View Source" class="view-source" rel="help">
+    <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L1" title="View Source" class="view-source" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">Infer.Evaluation</span> 
-  <small class="app-vsn" translate="no">(infer v0.3.0)</small>
+  <span translate="no">Dx.Loaders.Dataloader</span> 
+  <small class="app-vsn" translate="no">(dx v0.3.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>Represents an evaluation run in <a href="Infer.Engine.html"><code class="inline">Infer.Engine</code></a> according to the
-<a href="https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/">token pattern</a>
-in Elixir.</p>
+<p>Uses <a href="https://hexdocs.pm/dataloader/1.0.10/Dataloader.html"><code class="inline">Dataloader</code></a> to load missing data incrementally.</p>
   </section>
 
 
@@ -120,21 +118,6 @@ in Elixir.</p>
       Summary
     </h1>
 
-  <div class="summary-types summary">
-    <h2>
-      <a href="#types">Types</a>
-    </h2>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#t:t/0" translate="no">t()</a>
-
-        </div>
-
-      </div>
-
-  </div>
-
   <div class="summary-functions summary">
     <h2>
       <a href="#functions">Functions</a>
@@ -142,7 +125,7 @@ in Elixir.</p>
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#add_options/2" translate="no">add_options(eval, opts)</a>
+          <a href="#config/1" translate="no">config(atom)</a>
 
         </div>
 
@@ -150,7 +133,7 @@ in Elixir.</p>
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#from_options/1" translate="no">from_options(opts)</a>
+          <a href="#init/0" translate="no">init()</a>
 
         </div>
 
@@ -158,11 +141,17 @@ in Elixir.</p>
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#load_data_reqs/2" translate="no">load_data_reqs(eval, data_reqs)</a>
+          <a href="#load/2" translate="no">load(cache, data_reqs)</a>
 
         </div>
 
-          <div class="summary-synopsis"><p>Loads the given data requirements in an evaluation, and returns it updated.</p></div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#lookup/2" translate="no">lookup(cache, data_req)</a>
+
+        </div>
 
       </div>
 
@@ -170,59 +159,6 @@ in Elixir.</p>
 
   </section>
 
-
-  <section id="types" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#types">
-        <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
-      </a>
-Types
-    </h1>
-    <div class="types-list">
-<section class="detail" id="t:t/0">
-
-  <div class="detail-header">
-    <a href="#t:t/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">t()</h1>
-
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/evaluation.ex#L9" class="view-source" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">@type</span> t() :: %Infer.Evaluation{
-  args: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
-  binds: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil,
-  cache: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>() | nil,
-  debug?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
-  extra_rules: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>()],
-  loader: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>(),
-  negate?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
-  resolve_predicates?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
-  return_cache?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
-  root_subject: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil,
-  select: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>() | nil
-}</pre>
-
-      </div>
-
-
-  </section>
-</section>
-
-    </div>
-  </section>
 
   <section id="functions" class="details-list">
     <h1 class="section-heading">
@@ -233,16 +169,16 @@ Types
 Functions
     </h1>
     <div class="functions-list">
-<section class="detail" id="add_options/2">
+<section class="detail" id="config/1">
 
   <div class="detail-header">
-    <a href="#add_options/2" class="detail-link" title="Link to this function">
+    <a href="#config/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">add_options(eval, opts)</h1>
+    <h1 class="signature" translate="no">config(atom)</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/evaluation.ex#L34" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L85" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -255,16 +191,16 @@ Functions
 
   </section>
 </section>
-<section class="detail" id="from_options/1">
+<section class="detail" id="init/0">
 
   <div class="detail-header">
-    <a href="#from_options/1" class="detail-link" title="Link to this function">
+    <a href="#init/0" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">from_options(opts)</h1>
+    <h1 class="signature" translate="no">init()</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/evaluation.ex#L25" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L52" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -277,16 +213,16 @@ Functions
 
   </section>
 </section>
-<section class="detail" id="load_data_reqs/2">
+<section class="detail" id="load/2">
 
   <div class="detail-header">
-    <a href="#load_data_reqs/2" class="detail-link" title="Link to this function">
+    <a href="#load/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">load_data_reqs(eval, data_reqs)</h1>
+    <h1 class="signature" translate="no">load(cache, data_reqs)</h1>
 
-      <a href="https://github.com/infer-beam/infer/blob/v0.3.0/lib/infer/evaluation.ex#L47" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L78" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -296,7 +232,29 @@ Functions
 
   <section class="docstring">
 
-<p>Loads the given data requirements in an evaluation, and returns it updated.</p>
+
+  </section>
+</section>
+<section class="detail" id="lookup/2">
+
+  <div class="detail-header">
+    <a href="#lookup/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">lookup(cache, data_req)</h1>
+
+      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L14" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
   </section>
 </section>
 
@@ -309,10 +267,10 @@ Functions
             On Hex.pm:
 
             <span class="line">
-              <a href="https://hex.pm/packages/infer/0.3.0" class="line footer-hex-package">Package</a>
-              <a href="https://preview.hex.pm/preview/infer/0.3.0" class="line">Preview</a>
+              <a href="https://hex.pm/packages/dx/0.3.0" class="line footer-hex-package">Package</a>
+              <a href="https://preview.hex.pm/preview/dx/0.3.0" class="line">Preview</a>
 
-                <a href="https://preview.hex.pm/preview/infer/0.3.0/show/lib/infer/evaluation.ex">(current file)</a>
+                <a href="https://preview.hex.pm/preview/dx/0.3.0/show/lib/dx/loaders/dataloader.ex">(current file)</a>
 
             </span>
 
