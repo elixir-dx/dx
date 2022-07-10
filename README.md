@@ -32,7 +32,7 @@ When running Dx within transactions, please also add the following, until absint
 ```elixir
 def deps do
   [
-    {:dataloader, github: "arnodirlam/dataloader", branch: "async-option"}
+    {:dataloader, github: "arnodirlam/dataloader", branch: "async-option", override: true}
   ]
 end
 ```

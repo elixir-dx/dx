@@ -25,7 +25,7 @@ defmodule Dx.MixProject do
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
       links: %{
-        Changelog: @source_url <> "/CHANGELOG.md",
+        Changelog: @source_url <> "/blob/main/CHANGELOG.md",
         GitHub: @source_url
       }
     ]
