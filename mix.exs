@@ -51,7 +51,7 @@ defmodule Dx.MixProject do
     [
       # util
       {:typed_struct, ">= 0.0.0"},
-      {:dataloader, github: "arnodirlam/dataloader", branch: "async-option"},
+      {:dataloader, "~> 1.0.0"},
 
       # adapters
       {:ecto, ">= 3.4.3 and < 4.0.0", optional: true},

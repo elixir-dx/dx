@@ -27,6 +27,16 @@ def deps do
 end
 ```
 
+When running Dx within transactions, please also add the following, until absinthe-graphql/dataloader#129 is closed:
+
+```elixir
+def deps do
+  [
+    {:dataloader, github: "arnodirlam/dataloader", branch: "async-option"}
+  ]
+end
+```
+
 Configure your repo in `config.exs`:
 
 ```elixir
