@@ -2,17 +2,17 @@
 
 ## Augment Ecto schema
 
-`use Infer.Ecto.Schema` enables a module to specify inferences, such as
+`use Dx.Ecto.Schema` enables a module to specify inferences, such as
 
 ```elixir
-use Infer.Ecto.Schema
+use Dx.Ecto.Schema
 
 infer has_children?: true, when: %{relatives: %{relation: "parent_of"}}
 infer has_children?: false
 ```
 
 Unlike full-fledged inference engines (such as [calypte](https://github.com/liveforeverx/calypte)
-or [retex](https://github.com/lorenzosinisi/retex)), all rules in Infer are bound to an individual
+or [retex](https://github.com/lorenzosinisi/retex)), all rules in Dx are bound to an individual
 record type as their subject. This, in turn, allows to utilize Ecto schemas and queries to their full extent.
 
 ## Terminology
@@ -32,14 +32,14 @@ record type as their subject. This, in turn, allows to utilize Ecto schemas and 
 
 ## API overview
 
-- `Infer.get/3` evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)
-- `Infer.load/3` is like `get`, but loads any additional data as needed
-- `Infer.put/3` is like `load`, but puts the results into the `:inferred` field
+- `Dx.get/3` evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)
+- `Dx.load/3` is like `get`, but loads any additional data as needed
+- `Dx.put/3` is like `load`, but puts the results into the `:inferred` field
   (or virtual schema field) of the subject(s) as a map, and returns the subject(s)
 
 These functions return a tuple, either `{:ok, result}`, `{:error, error}`, or `{:not_loaded, data_reqs}` (only `get`).
 
-The corresponding `Infer.get!/3`, `Infer.load!/3` and `Infer.put!/3` functions return `result`
+The corresponding `Dx.get!/3`, `Dx.load!/3` and `Dx.put!/3` functions return `result`
 directly, or otherwise raise an exception.
 
 Arguments:
@@ -56,12 +56,12 @@ Options:
 - **args** (list or map) can be used to pass in data from the caller's context that can be used in
   rules (see _Arguments_ below). A classic example is the `current_user`, e.g.
   ```elixir
-  Infer.put!(project, :can_edit?, args: [user: current_user])
+  Dx.put!(project, :can_edit?, args: [user: current_user])
   ```
 - **extra_rules** (module or list of modules) can be used to add context-specific rules that are
   not defined directly on the subject. This can be used to structure rules into their own modules
   and use them only where needed.
-- **debug?** (boolean) makes Infer print additional information to the console as rules are evaluated.
+- **debug?** (boolean) makes Dx print additional information to the console as rules are evaluated.
   Should only be used while debugging.
 
 ## Conditions
@@ -108,13 +108,13 @@ For example:
 ```elixir
 infer :can_edit?, when: %{roles: ["project_manager", "admin"]}
 
-iex> %Person{roles: ["worker", "assistant"]} |> Infer.get!(:can_edit?)
+iex> %Person{roles: ["worker", "assistant"]} |> Dx.get!(:can_edit?)
 nil
 
-iex> %Person{roles: ["assistant", "project_manager"]} |> Infer.get!(:can_edit?)
+iex> %Person{roles: ["assistant", "project_manager"]} |> Dx.get!(:can_edit?)
 true
 
-iex> %Person{roles: ["admin"]} |> Infer.get!(:can_edit?)
+iex> %Person{roles: ["admin"]} |> Dx.get!(:can_edit?)
 true
 ```
 
@@ -124,7 +124,7 @@ The same applies to complex conditions.
 
 The assigned value of a predicate is generally assigned as is.
 
-A few special tuples, however, will be replaced by Infer (see _Features_ below)
+A few special tuples, however, will be replaced by Dx (see _Features_ below)
 
 Example:
 
@@ -183,7 +183,7 @@ infer result3: {:ref, [:list, [:a, :b]]}  # => [%{a: 1, b: 2}, %{a: 9, b: 8}]
 
 ## Arguments
 
-Passing `:args` as an option to any of the Infer API functions enables referencing the passed data
+Passing `:args` as an option to any of the Dx API functions enables referencing the passed data
 in conditions and values using `{:ref, [:args, ...]}`.
 
 ## Overriding existing fields
@@ -254,7 +254,7 @@ Syntax:
 
 Any function can be called to map the given arguments to other values.
 The function arguments must be passed as a list, except if it's only one.
-Arguments can be fixed values or other Infer features (passed as is), such as references.
+Arguments can be fixed values or other Dx features (passed as is), such as references.
 
 ```elixir
 infer day_of_week: {&Date.day_of_week/1, {:ref, :date}}
@@ -263,7 +263,7 @@ infer duration: {&Timex.diff/3, [{:ref, :start_datetime}, {:ref, :end_datetime},
 ```
 
 Only pure functions with low overhead should be used.
-Infer might call them very often during evaluation (once after each loading of data).
+Dx might call them very often during evaluation (once after each loading of data).
 
 ## Querying
 

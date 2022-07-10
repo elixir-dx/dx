@@ -1,4 +1,4 @@
-defmodule Infer.Test.Repo.Migrations.CreateBaseSchema do
+defmodule Dx.Test.Repo.Migrations.CreateBaseSchema do
   use Ecto.Migration
 
   def change do

@@ -1,14 +1,14 @@
 import Config
 
-config :infer, Infer.Test.Repo,
+config :dx, Dx.Test.Repo,
   hostname: "localhost",
   username: "postgres",
   password: "postgres",
-  database: "infer_test",
+  database: "dx_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   priv: "test/schema"
 
-config :infer, ecto_repos: [Infer.Test.Repo],
-  repo: Infer.Test.Repo
+config :dx, ecto_repos: [Dx.Test.Repo],
+  repo: Dx.Test.Repo
 
 config :logger, level: :warn

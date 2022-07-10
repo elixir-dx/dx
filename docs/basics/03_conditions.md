@@ -17,7 +17,7 @@ archived yet **and** all of its tasks are completed.
 ```elixir
 defmodule Todo.List do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Todo.Repo
+  use Dx.Ecto.Schema, repo: Todo.Repo
 
   schema "lists" do
     field :archived_at, :utc_datetime
@@ -65,7 +65,7 @@ end
 
 This is also a good example for defining predicates based on other
 predicates if they reflect how you actually think about them.
-Infer will find an efficient way to evaluate them.
+Dx will find an efficient way to evaluate them.
 
 ### Not
 

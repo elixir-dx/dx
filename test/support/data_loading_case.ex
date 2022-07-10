@@ -1,4 +1,4 @@
-defmodule Infer.Test.DataLoadingCase do
+defmodule Dx.Test.DataLoadingCase do
   @moduledoc """
   This module defines the setup for tests that assert on
   certain Ecto queries being executed (or not).
@@ -11,12 +11,12 @@ defmodule Infer.Test.DataLoadingCase do
 
   defmacro __using__(opts) do
     quote do
-      use Infer.Test.DataCase, unquote(opts)
+      use Dx.Test.DataCase, unquote(opts)
 
       # subscribe to ecto queries
       setup %{async: async} do
         if async,
-          do: raise(ArgumentError, "Infer.Test.DataLoadingCase can not be used with async: true")
+          do: raise(ArgumentError, "Dx.Test.DataLoadingCase can not be used with async: true")
 
         test_process = self()
         handler_id = "ecto-queries-test"
@@ -29,7 +29,7 @@ defmodule Infer.Test.DataLoadingCase do
             nil
         end
 
-        :ok = :telemetry.attach(handler_id, [:infer, :test, :repo, :query], callback, nil)
+        :ok = :telemetry.attach(handler_id, [:dx, :test, :repo, :query], callback, nil)
 
         on_exit(fn ->
           :telemetry.detach(handler_id)

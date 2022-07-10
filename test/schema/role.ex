@@ -1,8 +1,8 @@
-defmodule Infer.Test.Schema.Role do
+defmodule Dx.Test.Schema.Role do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Infer.Test.Repo
+  use Dx.Ecto.Schema, repo: Dx.Test.Repo
 
-  alias Infer.Test.Schema.User
+  alias Dx.Test.Schema.User
 
   schema "roles" do
     field :name, :string

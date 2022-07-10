@@ -11,7 +11,7 @@ locals_without_parens = [
   inputs: [
     "*.{ex,exs}",
     "lib/**/*.{ex,exs}",
-    "test/{infer,support}/**/*.{ex,exs}",
+    "test/{dx,support}/**/*.{ex,exs}",
     "test/*.{ex,exs}"
   ],
   import_deps: [:ecto],

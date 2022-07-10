@@ -8,7 +8,7 @@ Say we want to add a `by_owner?` predicate to a `Todo.Task`:
 ```elixir
 defmodule Todo.Task do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Todo.Repo
+  use Dx.Ecto.Schema, repo: Todo.Repo
 
   schema "tasks" do
     field :completed_at, :utc_datetime
@@ -32,7 +32,7 @@ And we want to add a predicate `completed_later?` to capture that.
 ```elixir
 defmodule Todo.Task do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Todo.Repo
+  use Dx.Ecto.Schema, repo: Todo.Repo
 
   schema "tasks" do
     field :completed_at, :utc_datetime

@@ -1,8 +1,8 @@
-defmodule Infer.Test.Schema.Task do
+defmodule Dx.Test.Schema.Task do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Infer.Test.Repo
+  use Dx.Ecto.Schema, repo: Dx.Test.Repo
 
-  alias Infer.Test.Schema.{List, User}
+  alias Dx.Test.Schema.{List, User}
 
   schema "tasks" do
     field :title, :string

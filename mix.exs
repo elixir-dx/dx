@@ -1,12 +1,12 @@
-defmodule Infer.MixProject do
+defmodule Dx.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/infer-beam/infer"
+  @source_url "https://github.com/dx-beam/dx"
   @version "0.3.0"
 
   def project do
     [
-      app: :infer,
+      app: :dx,
       version: @version,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
@@ -25,7 +25,7 @@ defmodule Infer.MixProject do
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
       links: %{
-        Changelog: "https://hexdocs.pm/infer/changelog.html",
+        Changelog: "https://hexdocs.pm/dx/changelog.html",
         GitHub: @source_url
       }
     ]
@@ -60,7 +60,7 @@ defmodule Infer.MixProject do
       # dev & test
       {:postgrex, "~> 0.14", only: :test, runtime: false},
       {:timex, "~> 3.6", only: :test, runtime: false},
-      {:refinery, "~> 0.1.0", github: "infer-beam/refinery", only: :test},
+      {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end

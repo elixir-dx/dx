@@ -8,5 +8,5 @@ In the following sections, we'll learn...
 - using [references](04_references.md) to compare multiple fields or predicates with each other
 - passing in [arguments](05_arguments.md) from the outside context in which rules are evaluated
 
-Finally, we close with a chapter on [Thinking in Infer](06_thinking_in_infer.md), learn to apply
+Finally, we close with a chapter on [Thinking in Dx](06_thinking_in_dx.md), learn to apply
 all the lessons learnt.

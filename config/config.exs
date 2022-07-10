@@ -10,11 +10,11 @@ import Config
 
 # You can configure your application as:
 #
-#     config :infer, key: :value
+#     config :dx, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:infer, :key)
+#     Application.get_env(:dx, :key)
 #
 # You can also configure a 3rd-party app:
 #

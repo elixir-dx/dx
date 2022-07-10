@@ -1,28 +1,28 @@
-# Infer
+# Dx
 
-[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://infer-beam.github.io/infer/)
-[![License](https://img.shields.io/github/license/infer-beam/infer.svg)](https://github.com/infer-beam/infer/blob/main/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/infer-beam/infer/main)](https://github.com/infer-beam/infer/tree/main)
-![CI](https://github.com/infer-beam/infer/actions/workflows/ci.yml/badge.svg)
+[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://dx-beam.github.io/dx/)
+[![License](https://img.shields.io/github/license/dx-beam/dx.svg)](https://github.com/dx-beam/dx/blob/main/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/dx-beam/dx/main)](https://github.com/dx-beam/dx/tree/main)
+![CI](https://github.com/dx-beam/dx/actions/workflows/ci.yml/badge.svg)
 
-Infer is an Elixir library that allows adding inferred properties to Ecto schemas,
+Dx is an Elixir library that allows adding inferred properties to Ecto schemas,
 defined by rules based on fields, associations or other inferred properties.
-You can then load/query them as if they were Ecto fields or associations using Infer's API.
+You can then load/query them as if they were Ecto fields or associations using Dx's API.
 
 It allows you to write declarative and easy-to-read domain logic by defining WHAT the
 rules are without having to care about HOW to execute them.
 
-Under the hood, Infer's evaluation engine loads associations as needed concurrently in batches and
+Under the hood, Dx's evaluation engine loads associations as needed concurrently in batches and
 can even translate your logic to Ecto queries directly.
 
 ## Installation
 
-Add `infer` to your list of dependencies in `mix.exs`:
+Add `dx` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:infer, github: "infer-beam/infer"}
+    {:dx, github: "dx-beam/dx"}
   ]
 end
 ```
@@ -30,24 +30,24 @@ end
 Configure your repo in `config.exs`:
 
 ```elixir
-config :infer, repo: MyApp.Repo
+config :dx, repo: MyApp.Repo
 ```
 
 Import the formatter rules in `.formatter.exs`:
 
 ```elixir
 [
-  import_deps: [:infer]
+  import_deps: [:dx]
 ]
 ```
 
 ## Guides
 
-If you're new to Infer, the best place to start are the [Guides](https://infer-beam.github.io/infer/).
+If you're new to Dx, the best place to start are the [Guides](https://dx-beam.github.io/dx/).
 
 ## Status
 
-Infer was started at Team Engine, where we've been developing it internally since January 2021.
+Dx was started at Team Engine, where we've been developing it internally since January 2021.
 We've been using it in production since March 2021, and increasingly port our business logic to it.
 To make it an easy-to-adopt open-source library, the next steps are to:
 
@@ -55,11 +55,11 @@ To make it an easy-to-adopt open-source library, the next steps are to:
 - [x] re-add tests (because they were domain-specific)
 - [x] write guides, a reference and an announcement
 - [ ] resolve absinthe-graphql/dataloader#129 and re-add dataloader as a hex dependency
-- [ ] find another name, because `infer` is [already taken](https://hex.pm/packages/infer) on hex.pm
+- [x] find another name, because `infer` is [already taken](https://hex.pm/packages/infer) on hex.pm
 - [ ] release on hex.pm
 
 ## Special thanks
 
 This project is sponsored and kindly supported by [Team Engine](https://www.teamengine.co.uk/).
 
-If you'd like to join us working on Infer and [Refinery](https://github.com/infer-beam/refinery) as a contractor, please [reach out](https://tinyurl.com/engine-infer-dev2).
+If you'd like to join us working on Dx and [Refinery](https://github.com/dx-beam/refinery) as a contractor, please [reach out](https://tinyurl.com/engine-infer-dev2).

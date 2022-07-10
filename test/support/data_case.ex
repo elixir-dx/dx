@@ -1,4 +1,4 @@
-defmodule Infer.Test.DataCase do
+defmodule Dx.Test.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,8 +16,8 @@ defmodule Infer.Test.DataCase do
 
   using do
     quote do
-      alias Infer.Test.Repo
-      alias Infer.Test.Schema.{List, ListCalendarOverride, ListTemplate, Role, Task, User}
+      alias Dx.Test.Repo
+      alias Dx.Test.Schema.{List, ListCalendarOverride, ListTemplate, Role, Task, User}
 
       import Test.Support.Factories
       import Test.Support.DateTimeHelpers
@@ -25,10 +25,10 @@ defmodule Infer.Test.DataCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Infer.Test.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Dx.Test.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Infer.Test.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Dx.Test.Repo, {:shared, self()})
     end
 
     :ok

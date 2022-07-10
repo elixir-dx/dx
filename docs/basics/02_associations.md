@@ -1,6 +1,6 @@
 # Associations
 
-Infer allows to easily traverse associations to access fields or even
+Dx allows to easily traverse associations to access fields or even
 predicates defined on associated records.
 
 Say our `Todo.List` schema from the previous guide now `has_many` tasks:
@@ -8,7 +8,7 @@ Say our `Todo.List` schema from the previous guide now `has_many` tasks:
 ```elixir
 defmodule Todo.List do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Todo.Repo
+  use Dx.Ecto.Schema, repo: Todo.Repo
 
   schema "lists" do
     field :archived_at, :utc_datetime
@@ -29,7 +29,7 @@ In return, we add a Task schema that `belongs_to` a List:
 ```elixir
 defmodule Todo.Task do
   use Ecto.Schema
-  use Infer.Ecto.Schema, repo: Todo.Repo
+  use Dx.Ecto.Schema, repo: Todo.Repo
 
   schema "tasks" do
     field :completed_at, :utc_datetime
@@ -66,33 +66,33 @@ on the associated List instead, and change things around a bit:
 
 #### Usage
 
-Like before, we can use `Infer.get!/2` to evaluate the predicate,
+Like before, we can use `Dx.get!/2` to evaluate the predicate,
 but only if the association is (pre)loaded:
 
 ```elixir
 iex> list = %Todo.List{archived_at: ~U[2022-02-02 22:22:22Z]} |> Todo.Repo.insert!()
 ...> %Todo.Task{completed_at: nil, list: list}
-...> |> Infer.get!(:archived?)
+...> |> Dx.get!(:archived?)
 true
 ```
 
-If the association is not (pre)loaded, `Infer.get!/2` will raise an error:
+If the association is not (pre)loaded, `Dx.get!/2` will raise an error:
 
 ```elixir
 iex> list = %Todo.List{archived_at: ~U[2022-02-02 22:22:22Z]} |> Todo.Repo.insert!()
 ...> %Todo.Task{completed_at: nil, list: list}
 ...> |> Todo.Repo.insert!() |> Todo.Repo.reload!()  # insert and reload without associations
-...> |> Infer.load!(:archived?)
-** (Infer.Error.NotLoaded) Association list is not loaded on nil. Cannot get path: nil
+...> |> Dx.load!(:archived?)
+** (Dx.Error.NotLoaded) Association list is not loaded on nil. Cannot get path: nil
 ```
 
-To allow Infer to load associations as needed, use `Infer.load!/2` instead:
+To allow Dx to load associations as needed, use `Dx.load!/2` instead:
 
 ```elixir
 iex> list = %Todo.List{archived_at: ~U[2022-02-02 22:22:22Z]} |> Todo.Repo.insert!()
 ...> %Todo.Task{completed_at: nil, list: list}
 ...> |> Todo.Repo.insert!() |> Todo.Repo.reload!()  # insert and reload without associations
-...> |> Infer.load!(:archived?)
+...> |> Dx.load!(:archived?)
 # loads the associated list
 true
 ```
@@ -100,7 +100,7 @@ true
 ### has_many
 
 We can also define predicates based on a `has_many` association.
-Infer generally treats conditions on a list of records like an `Enum.any?` condition:
+Dx generally treats conditions on a list of records like an `Enum.any?` condition:
 
 ```elixir
 defmodule Todo.List do
