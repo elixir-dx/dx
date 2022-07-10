@@ -1,6 +1,7 @@
 # Dx
 
-[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://dx-beam.github.io/dx/)
+[![Hex.pm](https://img.shields.io/hexpm/v/dx)](https://hex.pm/packages/dx)
+[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/dx/Dx.html)
 [![License](https://img.shields.io/github/license/dx-beam/dx.svg)](https://github.com/dx-beam/dx/blob/main/LICENSE)
 [![Last Updated](https://img.shields.io/github/last-commit/dx-beam/dx/main)](https://github.com/dx-beam/dx/tree/main)
 ![CI](https://github.com/dx-beam/dx/actions/workflows/ci.yml/badge.svg)
@@ -66,7 +67,7 @@ To make it an easy-to-adopt open-source library, the next steps are to:
 - [x] write guides, a reference and an announcement
 - [ ] resolve absinthe-graphql/dataloader#129 and re-add dataloader as a hex dependency
 - [x] find another name, because `infer` is [already taken](https://hex.pm/packages/infer) on hex.pm
-- [ ] release on hex.pm
+- [x] release on hex.pm
 
 ## Special thanks
 
