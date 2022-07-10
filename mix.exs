@@ -25,7 +25,7 @@ defmodule Dx.MixProject do
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
       links: %{
-        Changelog: "https://hexdocs.pm/dx/changelog.html",
+        Changelog: @source_url <> "/CHANGELOG.md",
         GitHub: @source_url
       }
     ]
