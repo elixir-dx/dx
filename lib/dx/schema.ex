@@ -62,24 +62,41 @@ defmodule Dx.Schema do
         name, {type, _result_type} when is_atom(name) ->
           {expanded, result_type} = expand_atom(name, type, eval)
 
-          {expanded, {type, result_type}}
+          {expanded, {result_type, result_type}}
       end)
 
     {path, result_type}
+  end
+
+  defp expand_atom(name, {:array, type}, eval) do
+    {expanded, type} = expand_atom(name, type, eval)
+    {expanded, {:array, type}}
+  end
+
+  defp expand_atom(name, [type, nil], eval) do
+    {expanded, type} = expand_atom(name, type, eval)
+    {expanded, Type.merge(type, nil)}
   end
 
   defp expand_atom(name, type, eval) do
     case Dx.Util.rules_for_predicate(name, type, eval) do
       [] ->
         case Dx.Util.Ecto.association_details(type, name) do
-          %Ecto.Association.Has{} = assoc ->
+          # can be Ecto.Association.Has or Ecto.Association.BelongsTo
+          %_{} = assoc ->
             meta =
               assoc
               |> Map.from_struct()
               |> Map.take([:ordered, :unique])
               |> Map.put(:name, name)
 
-            {{:assoc, assoc.cardinality, assoc.queryable, meta}, assoc.queryable}
+            type =
+              case assoc.cardinality do
+                :one -> [assoc.queryable, nil]
+                :many -> {:array, assoc.queryable}
+              end
+
+            {{:assoc, assoc.cardinality, assoc.queryable, meta}, type}
 
           _other ->
             case Dx.Util.Ecto.field_details(type, name) do

@@ -74,5 +74,17 @@ defmodule Dx.SchemaTest do
 
       assert type == :boolean
     end
+
+    test "has_many type", %{eval: eval} do
+      {_expanded, type} = Dx.Schema.expand_result({:ref, :tasks}, List, eval)
+
+      assert type == {:array, Task}
+    end
+
+    test "belongs_to type", %{eval: eval} do
+      {_expanded, type} = Dx.Schema.expand_mapping(:list, Task, eval)
+
+      assert type == [List, nil]
+    end
   end
 end
