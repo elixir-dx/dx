@@ -51,8 +51,6 @@ defmodule Dx.Schema.Type do
 
   alias Dx.Util
 
-  @base_types ~w[integer float string atom boolean]a
-
   @doc """
   ## Examples
 
