@@ -25,8 +25,13 @@ defmodule Dx.SchemaTest do
       infer state: :empty
     end
 
-    test "produces correct plan" do
+    setup do
       eval = Dx.Evaluation.from_options(extra_rules: Rules)
+
+      [eval: eval]
+    end
+
+    test "produces correct plan", %{eval: eval} do
       {expanded, type} = Dx.Schema.expand_result({:ref, :state}, List, eval)
 
       assert expanded ==
@@ -62,6 +67,12 @@ defmodule Dx.SchemaTest do
                 ]}
 
       assert type == {:atom, [:archived, :in_progress, :ready, :empty]}
+    end
+
+    test "combines booleans", %{eval: eval} do
+      {_expanded, type} = Dx.Schema.expand_result({:ref, :archived?}, List, eval)
+
+      assert type == :boolean
     end
   end
 end

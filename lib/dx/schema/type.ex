@@ -105,6 +105,9 @@ defmodule Dx.Schema.Type do
       iex> merge({:atom, :foo}, {:atom, :bar})
       {:atom, [:foo, :bar]}
 
+      iex> merge({:boolean, true}, {:boolean, false})
+      :boolean
+
       iex> merge(:atom, {:atom, [:foo, :bar]})
       {:atom, [:foo, :bar]}
 
@@ -136,6 +139,10 @@ defmodule Dx.Schema.Type do
 
   defp do_merge({type, condition}, type, _union) do
     {type, condition}
+  end
+
+  defp do_merge({:boolean, _}, {:boolean, _}, _union) do
+    :boolean
   end
 
   defp do_merge({type, left}, {type, right}, union) do
