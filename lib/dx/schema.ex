@@ -12,7 +12,7 @@ defmodule Dx.Schema do
     expand_atom(name, type, eval)
   end
 
-  def expand_mapping(name, type, eval, _) do
+  def expand_mapping(name, type, eval) do
     expand_result(name, type, eval)
   end
 
@@ -39,7 +39,7 @@ defmodule Dx.Schema do
   end
 
   def expand_result({:ref, path}, type, eval) do
-    {path, type} = expand_ref_path(path, type, eval)
+    {path, type} = expand_ref_path(List.wrap(path), type, eval)
     {{:ref, path}, type}
   end
 
@@ -56,16 +56,11 @@ defmodule Dx.Schema do
     {other, Type.of(other)}
   end
 
-  def expand_ref_path(path, type, eval) do
-    {path, {_type, result_type}} =
-      Enum.map_reduce(List.wrap(path), {type, []}, fn
-        name, {type, _result_type} when is_atom(name) ->
-          {expanded, result_type} = expand_atom(name, type, eval)
-
-          {expanded, {result_type, result_type}}
-      end)
-
-    {path, result_type}
+  defp expand_ref_path(path, type, eval) do
+    Enum.map_reduce(path, type, fn
+      name, type when is_atom(name) ->
+        expand_atom(name, type, eval)
+    end)
   end
 
   defp expand_atom(name, {:array, type}, eval) do
