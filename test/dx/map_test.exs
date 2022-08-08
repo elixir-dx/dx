@@ -9,7 +9,7 @@ defmodule Dx.MapTest do
              [
                {&Date.add/2, [{:ref, :due_on}, -1]},
                {&Date.add/2, [{:ref, :due_on}, -7]}
-             ]}
+             ], type: {:array, Date}}
 
     infer prev_tasks_1:
             {:map, :prev_dates, :due_on,

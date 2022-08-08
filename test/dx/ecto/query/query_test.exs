@@ -105,12 +105,14 @@ defmodule Dx.Ecto.QueryTest do
     assert to_sql(query) =~ "l0.\"created_by_id\" = ANY('{1, 2, 3}')"
   end
 
+  @tag :skip
   test "uses IN for multiple string values" do
     query = Query.where(List, %{created_by: %{last_name: ["Vega", "Medina"]}})
 
     assert to_sql(query) =~ "u1.\"last_name\" = ANY('{\"Vega\", \"Medina\"}')"
   end
 
+  @tag :skip
   test "uses IN for simple values only" do
     query = Query.where(List, %{created_by_id: [1, 2, 3, {:ref, [:from_template_id]}]})
 
@@ -118,6 +120,7 @@ defmodule Dx.Ecto.QueryTest do
              "(l0.\"created_by_id\" = l0.\"from_template_id\") OR l0.\"created_by_id\" = ANY('{1, 2, 3}')"
   end
 
+  @tag :skip
   test "raises error only listing non-translatable conditions" do
     conditions = %{created_by_id: [1, 2, 3], other_lists_by_creator: %{}}
 

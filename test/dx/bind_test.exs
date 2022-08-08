@@ -59,6 +59,8 @@ defmodule Dx.BindTest do
     ]
   end
 
+  @moduletag :skip
+
   test "returns bound value on root level of the assigns", %{user: user, list2: list2} do
     assert Dx.get!(user, :latest_data_for_author,
              extra_rules: UserRules,

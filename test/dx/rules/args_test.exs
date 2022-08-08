@@ -33,11 +33,11 @@ defmodule Dx.Rules.ArgsTest do
       assert Dx.get!(list, :active?, extra_rules: [Rules], args: [active?: false]) == false
       assert Dx.get!(list, :active?, extra_rules: [Rules], args: [active?: "yep"]) == false
 
-      assert_raise(KeyError, fn ->
+      assert_raise(ArgumentError, fn ->
         Dx.get!(list, :active?, extra_rules: [Rules], args: [passive?: true])
       end)
 
-      assert_raise(KeyError, fn ->
+      assert_raise(ArgumentError, fn ->
         Dx.get!(list, :active?, extra_rules: [Rules])
       end)
     end
@@ -51,7 +51,7 @@ defmodule Dx.Rules.ArgsTest do
       assert Dx.get!(list, :has_user_verified?, extra_rules: [Rules], args: [user: other_user]) ==
                false
 
-      assert_raise(KeyError, fn ->
+      assert_raise(ArgumentError, fn ->
         Dx.get!(list, :has_user_verified?, extra_rules: [Rules])
       end)
     end
@@ -70,7 +70,7 @@ defmodule Dx.Rules.ArgsTest do
       assert Dx.get!(list, :created_by?, extra_rules: [Rules], args: [user: other_user]) ==
                false
 
-      assert_raise(KeyError, fn ->
+      assert_raise(ArgumentError, fn ->
         Dx.get!(list, :created_by?, extra_rules: [Rules])
       end)
     end

@@ -7,36 +7,48 @@ defmodule Dx.Engine do
   alias Dx.Evaluation, as: Eval
 
   @doc """
-  Returns the result of evaluating a predicate.
+  Returns the result of evaluating a plan.
   """
-  @spec resolve_predicate(atom(), struct(), Eval.t()) :: Result.v()
-  def resolve_predicate(predicate, %type{} = subject, %Eval{} = eval) do
-    predicate
-    |> Util.rules_for_predicate(type, eval)
-    |> match_rules(subject, predicate, eval)
+  def execute(plan, subject, eval) do
+    eval = %{eval | root_subject: subject}
+    # map_result(plan, eval)
+    resolve(plan, subject, eval)
   end
 
   @doc """
   Returns the result of evaluating a field or predicate.
   """
   @spec resolve(atom(), map(), Eval.t()) :: Result.v()
-  def resolve(field, subject, %Eval{resolve_predicates?: false} = eval) do
-    fetch(subject, field, eval)
+  def resolve({:assoc, _, _, %{name: name}}, subject, %Eval{} = eval) do
+    fetch(subject, name, eval)
   end
 
-  def resolve(field_or_predicate, %type{} = subject, %Eval{} = eval) do
-    eval = %{eval | resolve_predicates?: true}
+  def resolve({:field, name}, subject, %Eval{} = eval) do
+    fetch(subject, name, eval)
+  end
 
-    field_or_predicate
-    |> Util.rules_for_predicate(type, eval)
-    |> case do
-      [] -> fetch(subject, field_or_predicate, eval)
-      rules -> match_rules(rules, subject, field_or_predicate, eval)
-    end
+  def resolve({:predicate, _, _} = predicate, subject, eval) do
+    match_rules(predicate, subject, eval)
+  end
+
+  def resolve(field, map, %Eval{} = eval) when is_atom(field) do
+    fetch(map, field, eval)
   end
 
   def resolve(field, map, %Eval{} = eval) do
-    fetch(map, field, eval)
+    map_result(field, %{eval | root_subject: map})
+  end
+
+  def resolve_source({:assoc, _, _, %{name: name}}, %Eval{} = eval) do
+    fetch(eval.root_subject, name, eval)
+  end
+
+  def resolve_source({:field, name}, %Eval{} = eval) do
+    fetch(eval.root_subject, name, eval)
+  end
+
+  def resolve_source({:predicate, _, _} = predicate, eval) do
+    match_rules(predicate, eval.root_subject, eval)
   end
 
   def resolve_source(field_or_predicate, eval) when is_atom(field_or_predicate) do
@@ -58,15 +70,14 @@ defmodule Dx.Engine do
   #   - {:ok, true} -> stop here and return rule assigns
   #   - {:not_loaded, data_reqs} -> collect and move on, return {:not_loaded, all_data_reqs} at the end
   #   - {:error, e} -> return right away
-  @spec match_rules(list(Rule.t()), any(), atom(), Eval.t()) :: Result.v()
-  defp match_rules(rules, subject, predicate, %Eval{} = eval) do
+  @spec match_rules(list(Rule.t()), any(), Eval.t()) :: Result.v()
+  defp match_rules({:predicate, %{name: predicate}, rules}, subject, %Eval{} = eval) do
     eval = %{eval | root_subject: subject}
 
     result =
-      Result.find(rules, &match_next(&1, subject, eval), fn {_condition, val}, binds ->
+      Result.find(rules, &match_next(&1, subject, eval), fn {result, _condition}, binds ->
         eval = %{eval | binds: binds}
-
-        map_result(val, eval)
+        map_result(result, eval)
       end)
 
     if eval.debug? == :trace do
@@ -88,7 +99,11 @@ defmodule Dx.Engine do
     result
   end
 
-  defp match_next({condition, _val}, subject, eval) do
+  defp match_next({_result, true}, _subject, _eval) do
+    Result.ok(true)
+  end
+
+  defp match_next({_result, condition}, subject, eval) do
     evaluate_condition(condition, subject, eval)
   end
 
@@ -393,8 +408,9 @@ defmodule Dx.Engine do
       other ->
         Result.ok(other)
     end
-  rescue
-    e in KeyError -> {:error, e}
+
+    # rescue
+    #   e in KeyError -> {:error, e}
   end
 
   defp resolve_path(val, [], _eval), do: Result.ok(val)

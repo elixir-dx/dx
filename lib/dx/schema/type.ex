@@ -10,6 +10,7 @@ defmodule Dx.Schema.Type do
 
   | _Type_     | _Example_ |
   |------------|-----------|
+  | `:any`     |           |
   | `:integer` | `7`       |
   | `:float`   | `3.14`    |
   | `:boolean` | `true`    |
@@ -43,7 +44,7 @@ defmodule Dx.Schema.Type do
   |---------------------------------------------------------|-----------------------------------|
   | `{:integer, [1, 2, 3]}`                                 | `2`                               |
   | `{:integer, {:gte, 0}}`                                 | `0`                               |
-  | `{:integer, {:all_of, [{:gte, 0}, {:lt, 7}]}}`          | `6`                               |
+  | `{:integer, {:all, [{:gte, 0}, {:lt, 7}]}}`          | `6`                               |
   | `{:subset, MyApp.Struct, [:foo]}`                       | `%MyApp.Struct{foo: 1}`           |
   | `{:subset, MyApp.Struct, [:foo, :bar], %{bar: :float}}` | `%MyApp.Struct{foo: 1, bar: 1.7}` |
 
@@ -82,11 +83,15 @@ defmodule Dx.Schema.Type do
   def of(nil), do: nil
   def of(atom) when is_atom(atom), do: {:atom, atom}
   def of(%type{}), do: type
+  def of(function) when is_function(function), do: :any
 
   @doc """
   Merges two types, returning a type that is a superset of both.
 
   ## Examples
+
+      iex> merge(:string, :any)
+      :any
 
       iex> merge([], :integer)
       :integer
@@ -125,6 +130,14 @@ defmodule Dx.Schema.Type do
 
   defp do_merge(left, [], _union) do
     left
+  end
+
+  defp do_merge(:any, _right, _union) do
+    :any
+  end
+
+  defp do_merge(_left, :any, _union) do
+    :any
   end
 
   defp do_merge(same, same, _union) do

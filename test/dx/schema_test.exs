@@ -9,6 +9,28 @@ defmodule Dx.SchemaTest do
 
       infer completed?: false, when: %{completed_at: nil}
       infer completed?: true
+
+      infer prev_dates:
+              {&Date.range/2,
+               [
+                 {&Date.add/2, [{:ref, :due_on}, -1]},
+                 {&Date.add/2, [{:ref, :due_on}, -7]}
+               ], type: {:array, Date}}
+
+      infer prev_tasks_1:
+              {:map, :prev_dates, :due_on,
+               {:query_one, Task,
+                due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
+
+      infer prev_tasks_2:
+              {:map, :prev_dates, {:bind, :due_on},
+               {:query_one, Task,
+                due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
+
+      infer prev_tasks_3:
+              {:map, :prev_dates, {:bind, :due_on, %{}},
+               {:query_one, Task,
+                due_on: {:bound, :due_on}, created_by_id: {:ref, :created_by_id}}}
     end
 
     defmodule Rules do
@@ -26,7 +48,7 @@ defmodule Dx.SchemaTest do
     end
 
     setup do
-      eval = Dx.Evaluation.from_options(extra_rules: Rules)
+      eval = Dx.Evaluation.from_options(extra_rules: Rules, root_type: List)
 
       [eval: eval]
     end
@@ -43,26 +65,40 @@ defmodule Dx.SchemaTest do
                        {:predicate, %{name: :archived?},
                         [
                           {true, {{:field, :archived_at}, {:not, nil}}},
-                          {false, true}
+                          {false, {:all, []}}
                         ]},
                        true
                      },
                      in_progress: {
-                       {:assoc, :many, Task, %{name: :tasks, ordered: false, unique: true}},
+                       {:assoc, :many, Task,
+                        %{
+                          name: :tasks,
+                          ordered: false,
+                          unique: true,
+                          owner_key: :id,
+                          related_key: :list_id
+                        }},
                        {
                          {:predicate, %{name: :completed?},
                           [
                             {false, {{:field, :completed_at}, nil}},
-                            {true, true}
+                            {true, {:all, []}}
                           ]},
                          true
                        }
                      },
                      ready: {
-                       {:assoc, :many, Task, %{name: :tasks, ordered: false, unique: true}},
-                       true
+                       {:assoc, :many, Task,
+                        %{
+                          name: :tasks,
+                          ordered: false,
+                          unique: true,
+                          owner_key: :id,
+                          related_key: :list_id
+                        }},
+                       {:all, []}
                      },
-                     empty: true
+                     empty: {:all, []}
                    ]}
                 ]}
 
@@ -85,6 +121,31 @@ defmodule Dx.SchemaTest do
       {_expanded, type} = Dx.Schema.expand_mapping(:list, Task, eval)
 
       assert type == [List, nil]
+    end
+
+    test "map primitive", %{eval: eval} do
+      {expanded, type} = Dx.Schema.expand_mapping(:prev_tasks_1, Task, eval)
+
+      assert expanded ==
+               {:predicate, %{name: :prev_tasks_1},
+                [
+                  {{:map,
+                    {:predicate, %{name: :prev_dates},
+                     [
+                       {{&Date.range/2,
+                         [
+                           {&Date.add/2, [{:ref, [{:field, :due_on}]}, -1]},
+                           {&Date.add/2, [{:ref, [{:field, :due_on}]}, -7]}
+                         ]}, {:all, []}}
+                     ]}, :due_on,
+                    {:query_one, Task,
+                     [
+                       {{:field, :due_on}, {:bound, :due_on}},
+                       {{:field, :created_by_id}, {:ref, [{:field, :created_by_id}]}}
+                     ]}}, {:all, []}}
+                ]}
+
+      assert type == [Task, nil]
     end
   end
 end

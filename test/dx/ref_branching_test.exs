@@ -35,6 +35,7 @@ defmodule Dx.RefBranchingTest do
     assert Dx.load!([list], {:ref, [:tasks, :title]}) == [Enum.map(tasks, & &1.title)]
   end
 
+  @tag :skip
   test "Ref on fields within list returns a nested list of these fields' values", %{
     list: list,
     tasks: tasks
@@ -43,6 +44,7 @@ defmodule Dx.RefBranchingTest do
              Enum.map(tasks, &Map.take(&1, [:title, :due_on]))
   end
 
+  @tag :skip
   test "Ref on fields map within list returns a nested list of these fields' values", %{
     list: list,
     tasks: tasks
@@ -51,6 +53,7 @@ defmodule Dx.RefBranchingTest do
              Enum.map(tasks, &Map.take(&1, [:title, :due_on]))
   end
 
+  @tag :skip
   test "Ref on nested fields map within list returns a nested list of these fields' values", %{
     list: list,
     tasks: tasks

@@ -37,7 +37,7 @@ defmodule Dx do
     doesn't need to be loaded again. Can be initialized using `Loaders.Dataloader.init/0`.
   """
 
-  alias Dx.{Engine, Result, Util}
+  alias Dx.{Engine, Result, Schema, Util}
   alias Dx.Evaluation, as: Eval
 
   @doc """
@@ -46,9 +46,15 @@ defmodule Dx do
   Does not load any additional data.
   """
   def get(records, predicates, opts \\ []) do
-    eval = Eval.from_options(opts)
+    type = type(records)
+    eval = Eval.from_options(opts) |> Map.put(:root_type, type)
 
-    do_get(records, predicates, eval)
+    {expanded, _type} =
+      predicates
+      |> expand()
+      |> Schema.expand_mapping(type, eval)
+
+    do_get(records, expanded, eval)
     |> Result.to_simple_if(not eval.return_cache?)
   end
 
@@ -57,16 +63,12 @@ defmodule Dx do
   end
 
   defp do_get(record, predicates, eval) when is_list(predicates) do
-    Result.map(predicates, &Engine.resolve_predicate(&1, record, eval))
+    Result.map(predicates, &Engine.execute(&1, record, eval))
     |> Result.transform(&Util.Map.zip(predicates, &1))
   end
 
-  defp do_get(record, predicate, eval) when is_atom(predicate) do
-    Engine.resolve_predicate(predicate, record, eval)
-  end
-
   defp do_get(record, result, eval) do
-    Engine.map_result(result, %{eval | root_subject: record})
+    Engine.execute(result, record, eval)
   end
 
   @doc """
@@ -81,11 +83,29 @@ defmodule Dx do
   Like `get/3`, but loads additional data if needed.
   """
   def load(records, predicates, opts \\ []) do
-    eval = Eval.from_options(opts)
+    type = type(records)
+    eval = Eval.from_options(opts) |> Map.put(:root_type, type)
 
-    do_load(records, predicates, eval)
+    {expanded, _type} =
+      predicates
+      |> expand()
+      |> Schema.expand_mapping(type, eval)
+
+    do_load(records, expanded, eval)
     |> Result.to_simple_if(not eval.return_cache?)
   end
+
+  defp expand(predicates) when is_list(predicates) do
+    predicates
+    |> Map.new(&{&1, {:ref, &1}})
+  end
+
+  defp expand(other) do
+    other
+  end
+
+  defp type([%type{} | _]), do: type
+  defp type(%type{}), do: type
 
   defp do_load(records, predicates, eval) do
     load_all_data_reqs(eval, fn eval ->

@@ -24,6 +24,16 @@ defmodule Dx.RefTest do
           when: %{args: %{context: %{title: nil}}}
   end
 
+  describe "expanded" do
+    @tag :skip
+    test "expands predicate" do
+      eval = Dx.Evaluation.from_options(extra_rules: Rules)
+      {expanded, type} = Dx.Schema.expand_mapping(:list_archived_at, Task, eval)
+      assert expanded == nil
+      assert type == nil
+    end
+  end
+
   setup do
     task = build(Task, %{list: %{archived_at: ~U[2021-10-31 19:59:03Z]}})
 
@@ -34,6 +44,7 @@ defmodule Dx.RefTest do
     assert Dx.get!(task, :list_archived_at, extra_rules: Rules) == ~U[2021-10-31 19:59:03Z]
   end
 
+  @tag :skip
   test "returns other predicate result as part of the assigns", %{task: task} do
     assert Dx.get!(task, :applicable_template,
              extra_rules: Rules,

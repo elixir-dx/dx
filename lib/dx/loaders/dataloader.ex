@@ -31,19 +31,19 @@ defmodule Dx.Loaders.Dataloader do
     [:assoc, key, subject]
   end
 
-  defp args_for({:query_one, type, [main_condition | other_conditions], opts}) do
+  defp args_for({:query_one, type, [{{:field, field}, val} | other_conditions], opts}) do
     opts = opts |> where(other_conditions)
-    [:assoc, {:one, type, opts}, [main_condition]]
+    [:assoc, {:one, type, opts}, [{field, val}]]
   end
 
-  defp args_for({:query_first, type, [main_condition | other_conditions], opts}) do
+  defp args_for({:query_first, type, [{{:field, field}, val} | other_conditions], opts}) do
     opts = opts |> where(other_conditions) |> Keyword.put(:limit, 1)
-    [:assoc, {:one, type, opts}, [main_condition]]
+    [:assoc, {:one, type, opts}, [{field, val}]]
   end
 
-  defp args_for({:query_all, type, [main_condition | other_conditions], opts}) do
+  defp args_for({:query_all, type, [{{:field, field}, val} | other_conditions], opts}) do
     opts = opts |> where(other_conditions)
-    [:assoc, {:many, type, opts}, [main_condition]]
+    [:assoc, {:many, type, opts}, [{field, val}]]
   end
 
   defp where(opts, []), do: opts
@@ -58,7 +58,7 @@ defmodule Dx.Loaders.Dataloader do
 
     source =
       Dataloader.Ecto.new(repo,
-        query: &Dx.Ecto.Query.from_options/2,
+        query: &Dx.Ecto.Query.execute_options/2,
         async: run_concurrently?
       )
 
