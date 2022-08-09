@@ -186,11 +186,17 @@ defmodule Dx.Schema do
 
   defp do_expand_ref_path([list | path], type, eval, acc) when is_list(list) do
     {expanded, types} =
-      Enum.reduce(list, {%{}, %{}}, fn name, {map, types} when is_atom(name) ->
-        {expanded, type} = expand_atom(name, type, eval)
-        map = Map.put(map, name, expanded)
-        types = Map.put(types, name, type)
-        {map, types}
+      Enum.reduce(list, {%{}, %{}}, fn
+        name, {map, types} when is_atom(name) ->
+          {expanded, type} = expand_atom(name, type, eval)
+          map = Map.put(map, name, expanded)
+          types = Map.put(types, name, type)
+          {map, types}
+
+        other, _ ->
+          raise ArgumentError,
+                "A nested list in a {:ref, ...} can only contain atoms. Got " <>
+                  inspect(other, pretty: true)
       end)
 
     do_expand_ref_path(path, {:map, types}, eval, [expanded | acc])
