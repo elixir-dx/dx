@@ -17,12 +17,12 @@ defmodule Dx.Schema do
   end
 
   def expand_result(%type{} = struct, parent_type, eval) do
-    expanded =
+    {expanded, _} =
       struct
       |> Map.from_struct()
       |> expand_result(parent_type, eval)
 
-    struct(type, expanded)
+    {struct(type, expanded), type}
   end
 
   def expand_result(mapping, type, eval) when is_map(mapping) do

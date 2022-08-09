@@ -26,7 +26,7 @@ defmodule Dx.Schema.Type do
   | `{:tuple, {:atom, :string}}`                 | `{:ok, "foo"}`                  |
   | `{:map, {:atom, :float}}` *                  | `%{foo: 1.1, bar: 2.7}`         |
   | `{:map, {:atom, :float}, %{foo: :string}}` * | `%{foo: "bar", bar: 2.7}`       |
-  | `{:map, %{foo: :string}}` *                  | `%{foo: "bar"}`                 |
+  | `{:map, %{foo: :string}}`                    | `%{foo: "bar"}`                 |
   | `MyApp.Struct`                               | `%MyApp.Struct{foo: 1, bar: 2}` |
 
   ### Union types
@@ -40,13 +40,14 @@ defmodule Dx.Schema.Type do
 
   ### Subset types
 
-  | _Type_                                                  | _Example_                         |
-  |---------------------------------------------------------|-----------------------------------|
-  | `{:integer, [1, 2, 3]}`                                 | `2`                               |
-  | `{:integer, {:gte, 0}}`                                 | `0`                               |
-  | `{:integer, {:all, [{:gte, 0}, {:lt, 7}]}}`          | `6`                               |
-  | `{:subset, MyApp.Struct, [:foo]}`                       | `%MyApp.Struct{foo: 1}`           |
-  | `{:subset, MyApp.Struct, [:foo, :bar], %{bar: :float}}` | `%MyApp.Struct{foo: 1, bar: 1.7}` |
+  | _Type_                                                     | _Example_                         |
+  |------------------------------------------------------------|-----------------------------------|
+  | `{:integer, [1, 2, 3]}`                                    | `2`                               |
+  | `{:integer, {:gte, 0}}` *                                  | `0`                               |
+  | `{:integer, {:all, [{:gte, 0}, {:lt, 7}]}}` *              | `6`                               |
+  | `{:struct, MyApp.Struct, [:foo]}` *                        | `%MyApp.Struct{foo: 1}`           |
+  | `{:struct, MyApp.Struct, [:foo, :bar], %{bar: :float}}` *  | `%MyApp.Struct{foo: 1, bar: 1.7}` |
+  | `{:struct, MyApp.Struct, %{foo: :integer, bar: :float}}` * | `%MyApp.Struct{foo: 1, bar: 1.7}` |
 
   """
 
@@ -75,6 +76,9 @@ defmodule Dx.Schema.Type do
 
       iex> of(%Ecto.Query{})
       Ecto.Query
+
+      iex> of(%{foo: nil, bar: 1})
+      {:map, %{foo: nil, bar: {:integer, 1}}}
   """
   def of(integer) when is_integer(integer), do: {:integer, integer}
   def of(float) when is_float(float), do: {:float, float}
@@ -84,6 +88,7 @@ defmodule Dx.Schema.Type do
   def of(atom) when is_atom(atom), do: {:atom, atom}
   def of(%type{}), do: type
   def of(function) when is_function(function), do: :any
+  def of(map) when is_map(map), do: {:map, Map.new(map, fn {k, v} -> {k, of(v)} end)}
 
   @doc """
   Merges two types, returning a type that is a superset of both.

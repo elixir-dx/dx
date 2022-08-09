@@ -44,7 +44,6 @@ defmodule Dx.RefTest do
     assert Dx.get!(task, :list_archived_at, extra_rules: Rules) == ~U[2021-10-31 19:59:03Z]
   end
 
-  @tag :skip
   test "returns other predicate result as part of the assigns", %{task: task} do
     assert Dx.get!(task, :applicable_template,
              extra_rules: Rules,
