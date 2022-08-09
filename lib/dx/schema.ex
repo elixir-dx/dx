@@ -172,6 +172,30 @@ defmodule Dx.Schema do
     do_expand_ref_path(path, type, eval, [name, :args | acc])
   end
 
+  defp do_expand_ref_path([map | path], type, eval, acc) when is_map(map) do
+    {expanded, types} =
+      Enum.reduce(map, {%{}, %{}}, fn {key, val}, {map, types} ->
+        {expanded, type} = expand_ref_path(val, type, eval)
+        map = Map.put(map, key, expanded)
+        types = Map.put(types, key, type)
+        {map, types}
+      end)
+
+    do_expand_ref_path(path, {:map, types}, eval, [expanded | acc])
+  end
+
+  defp do_expand_ref_path([list | path], type, eval, acc) when is_list(list) do
+    {expanded, types} =
+      Enum.reduce(list, {%{}, %{}}, fn name, {map, types} when is_atom(name) ->
+        {expanded, type} = expand_atom(name, type, eval)
+        map = Map.put(map, name, expanded)
+        types = Map.put(types, name, type)
+        {map, types}
+      end)
+
+    do_expand_ref_path(path, {:map, types}, eval, [expanded | acc])
+  end
+
   defp do_expand_ref_path([name | path], type, eval, acc) when is_atom(name) do
     {expanded, type} = expand_atom(name, type, eval)
     do_expand_ref_path(path, type, eval, [expanded | acc])
