@@ -174,7 +174,7 @@ defmodule Dx.Ecto.Query do
   defp map_condition(builder, {key, val}) do
     case key do
       {:field, key} ->
-        left = Builder.field(builder, key)
+        left = Builder.field(builder, {:field, key})
 
         case val do
           vals when is_list(vals) ->
