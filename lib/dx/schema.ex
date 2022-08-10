@@ -217,12 +217,12 @@ defmodule Dx.Schema do
     {expanded, Type.merge(type, nil)}
   end
 
-  defp expand_atom(:args, type, eval) do
+  defp expand_atom(:args, _type, eval) do
     types = Map.new(eval.args, fn {key, val} -> {key, Type.of(val)} end)
     {:args, {:map, types}}
   end
 
-  defp expand_atom(name, {:map, types}, eval) when is_atom(name) do
+  defp expand_atom(name, {:map, types}, _eval) when is_atom(name) do
     type =
       case Map.fetch(types, name) do
         {:ok, type} ->

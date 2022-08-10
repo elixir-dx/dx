@@ -3,7 +3,7 @@ defmodule Dx.Ecto.Query do
   Functions to dynamically generate Ecto query parts.
   """
 
-  alias Dx.{Result, Util}
+  alias Dx.Result
   alias Dx.Evaluation, as: Eval
   alias __MODULE__.Builder
 
