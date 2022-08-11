@@ -47,14 +47,8 @@ defmodule Dx.SchemaTest do
       infer state: :empty
     end
 
-    setup do
-      eval = Dx.Evaluation.from_options(extra_rules: Rules, root_type: List)
-
-      [eval: eval]
-    end
-
-    test "produces correct plan", %{eval: eval} do
-      {expanded, type} = Dx.Schema.expand_result({:ref, :state}, List, eval)
+    test "produces correct plan" do
+      {expanded, type} = expand_result({:ref, :state}, List, extra_rules: Rules)
 
       assert expanded ==
                {:ref,
@@ -105,26 +99,26 @@ defmodule Dx.SchemaTest do
       assert type == {:atom, [:archived, :in_progress, :ready, :empty]}
     end
 
-    test "combines booleans", %{eval: eval} do
-      {_expanded, type} = Dx.Schema.expand_result({:ref, :archived?}, List, eval)
+    test "combines booleans" do
+      {_expanded, type} = expand_result({:ref, :archived?}, List, extra_rules: Rules)
 
       assert type == :boolean
     end
 
-    test "has_many type", %{eval: eval} do
-      {_expanded, type} = Dx.Schema.expand_result({:ref, :tasks}, List, eval)
+    test "has_many type" do
+      {_expanded, type} = expand_result({:ref, :tasks}, List, extra_rules: Rules)
 
       assert type == {:array, Task}
     end
 
-    test "belongs_to type", %{eval: eval} do
-      {_expanded, type} = Dx.Schema.expand_mapping(:list, Task, eval)
+    test "belongs_to type" do
+      {_expanded, type} = expand_mapping(:list, Task, extra_rules: Rules)
 
       assert type == [List, nil]
     end
 
-    test "map primitive", %{eval: eval} do
-      {expanded, type} = Dx.Schema.expand_mapping(:prev_tasks_1, Task, eval)
+    test "map primitive" do
+      {expanded, type} = expand_mapping(:prev_tasks_1, Task, extra_rules: Rules)
 
       assert expanded ==
                {:predicate, %{name: :prev_tasks_1},

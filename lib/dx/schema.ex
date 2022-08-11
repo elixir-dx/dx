@@ -73,7 +73,7 @@ defmodule Dx.Schema do
     {each_key, eval} =
       case each_key do
         {:bind, key, conditions} when is_atom(key) ->
-          conditions = expand_condition(conditions, type, eval)
+          {conditions, _binds} = expand_condition(conditions, type, eval)
           each_key = {:bind, key, conditions}
           eval = put_in(eval.binds[key], each_type)
           {each_key, eval}
@@ -129,19 +129,19 @@ defmodule Dx.Schema do
   def expand_result(tuple, type, eval) when is_tuple(tuple) do
     case tuple do
       {query_type, type, conditions} when query_type in [:query_one, :query_first] ->
-        conditions = expand_condition(conditions, type, eval)
+        {conditions, _binds} = expand_condition(conditions, type, eval)
         {{query_type, type, conditions}, Type.merge(type, nil)}
 
       {query_type, type, conditions, opts} when query_type in [:query_one, :query_first] ->
-        conditions = expand_condition(conditions, type, eval)
+        {conditions, _binds} = expand_condition(conditions, type, eval)
         {{query_type, type, conditions, opts}, Type.merge(type, nil)}
 
       {:query_all, type, conditions} ->
-        conditions = expand_condition(conditions, type, eval)
+        {conditions, _binds} = expand_condition(conditions, type, eval)
         {{:query_all, type, conditions}, {:array, type}}
 
       {:query_all, type, conditions, opts} ->
-        conditions = expand_condition(conditions, type, eval)
+        {conditions, _binds} = expand_condition(conditions, type, eval)
         {{:query_all, type, conditions, opts}, {:array, type}}
 
       tuple ->
@@ -274,8 +274,9 @@ defmodule Dx.Schema do
         {expanded_rules, predicate_type} =
           Enum.map_reduce(rules, [], fn
             {condition, result}, types ->
+              {condition, binds} = expand_condition(condition, type, eval)
+              eval = %{eval | binds: Map.merge(eval.binds, binds)}
               {result, result_type} = expand_result(result, type, eval)
-              condition = expand_condition(condition, type, eval)
               {{result, condition}, Type.merge(types, result_type)}
 
             result, types ->
@@ -288,15 +289,11 @@ defmodule Dx.Schema do
   end
 
   def expand_condition(map, type, eval) when is_map(map) do
-    case map_size(map) do
-      0 -> {:all, []}
-      1 -> map |> Enum.to_list() |> hd() |> expand_condition(type, eval)
-      _ -> {:all, Enum.map(map, &expand_condition(&1, type, eval))}
-    end
+    expand_condition({:all, Enum.to_list(map)}, type, eval)
   end
 
   def expand_condition({:all, []}, _type, _eval) do
-    {:all, []}
+    {{:all, []}, %{}}
   end
 
   def expand_condition({:all, [condition]}, type, eval) do
@@ -304,42 +301,62 @@ defmodule Dx.Schema do
   end
 
   def expand_condition({:all, conditions}, type, eval) do
-    {:all, Enum.map(conditions, &expand_condition(&1, type, eval))}
+    {conditions, binds} = expand_condition(Enum.to_list(conditions), type, eval)
+    {{:all, conditions}, binds}
   end
 
   def expand_condition(list, type, eval) when is_list(list) do
-    Enum.map(list, &expand_condition(&1, type, eval))
+    Enum.map_reduce(list, %{}, fn condition, binds ->
+      {condition, new_binds} = expand_condition(condition, type, eval)
+      {condition, Map.merge(binds, new_binds)}
+    end)
+  end
+
+  def expand_condition({:bind, bind_key, condition}, type, eval) do
+    {condition, binds} = expand_condition(condition, type, eval)
+    {{:bind, bind_key, condition}, Map.put(binds, bind_key, type)}
   end
 
   def expand_condition({:bound, key}, _type, eval) do
-    get_bound(key, eval)
+    {get_bound(key, eval), %{}}
   end
 
   def expand_condition({left, {:bind, bind_key, right}}, type, eval) do
-    eval = put_in(eval.binds[bind_key], type)
-    right = expand_condition(right, type, eval)
-    {left, right}
+    {left, left_type} =
+      case expand_mapping(left, type, eval) do
+        {left, {:array, elem_type}} -> {left, elem_type}
+        other -> other
+      end
+
+    eval = put_in(eval.binds[bind_key], left_type)
+    {right, binds} = expand_condition(right, left_type, eval)
+    {{left, {:bind, bind_key, right}}, Map.put(binds, bind_key, left_type)}
   end
 
   def expand_condition({key, other}, type, eval) when key in @primitives_1 do
-    other = expand_condition(other, type, eval)
-    {key, other}
+    {other, binds} = expand_condition(other, type, eval)
+    {{key, other}, binds}
   end
 
   def expand_condition({left, right}, type, eval) when is_map(right) do
     {left, left_type} = expand_mapping(left, type, eval)
-    right = expand_condition(right, left_type, eval)
-    {left, right}
+    {right, binds} = expand_condition(right, left_type, eval)
+    {{left, right}, binds}
   end
 
   def expand_condition({left, right}, type, eval) do
     {left, _type} = expand_mapping(left, type, eval)
     {right, _type} = expand_result(right, eval.root_type, eval)
-    {left, right}
+    {{left, right}, %{}}
+  end
+
+  def expand_condition(name, type, eval) when is_atom(name) do
+    {expanded, _type} = expand_atom(name, type, eval)
+    {expanded, %{}}
   end
 
   def expand_condition(other, _type, _eval) do
-    other
+    {other, %{}}
   end
 
   defp get_bound(key, eval) do

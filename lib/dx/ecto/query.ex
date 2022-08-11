@@ -34,7 +34,7 @@ defmodule Dx.Ecto.Query do
     type = queryable
     eval = Eval.from_options(opts) |> Map.put(:root_type, type)
 
-    expanded =
+    {expanded, _binds} =
       condition
       |> Dx.Schema.expand_condition(type, eval)
 

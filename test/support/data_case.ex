@@ -21,6 +21,7 @@ defmodule Dx.Test.DataCase do
 
       import Test.Support.Factories
       import Test.Support.DateTimeHelpers
+      import Test.Support.SchemaHelpers
     end
   end
 
