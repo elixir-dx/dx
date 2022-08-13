@@ -388,12 +388,6 @@ defmodule Dx.Engine do
     Result.all?(conditions, &evaluate_condition(&1, subject, eval))
   end
 
-  # boolean predicate shorthand
-  def evaluate_condition({:predicate, _meta, _rules} = predicate, subject, eval) do
-    resolve(predicate, subject, eval)
-    |> Result.transform(&(&1 == true))
-  end
-
   def evaluate_condition(other, subject, _eval) do
     Result.ok(subject == other)
   end

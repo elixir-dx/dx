@@ -350,13 +350,19 @@ defmodule Dx.Schema do
     {{left, right}, %{}}
   end
 
+  # boolean shorthand
   def expand_condition(name, type, eval) when is_atom(name) do
     {expanded, _type} = expand_atom(name, type, eval)
-    {expanded, %{}}
+    {{expanded, true}, %{}}
   end
 
-  def expand_condition(other, _type, _eval) do
-    {other, %{}}
+  def expand_condition(other, type, _eval) do
+    raise ArgumentError, """
+    Unknown condition syntax:
+
+    #{inspect(other, pretty: true)}
+    Evaluated for type: #{inspect(type)}
+    """
   end
 
   defp get_bound(key, eval) do

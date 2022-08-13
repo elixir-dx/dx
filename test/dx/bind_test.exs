@@ -132,8 +132,9 @@ defmodule Dx.BindTest do
                        unique: true
                      }},
                     {:bind, :result,
-                     {:predicate, %{name: :by_author?},
-                      [true: {{:field, :created_by_id}, {:ref, [:args, :created_by_id]}}]}}}}}
+                     {{:predicate, %{name: :by_author?},
+                       [true: {{:field, :created_by_id}, {:ref, [:args, :created_by_id]}}]},
+                      true}}}}}
                ]},
               User} =
                expand_mapping(:indirect_data_for_author, User,
