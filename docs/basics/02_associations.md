@@ -82,7 +82,7 @@ If the association is not (pre)loaded, `Dx.get!/2` will raise an error:
 iex> list = %Todo.List{archived_at: ~U[2022-02-02 22:22:22Z]} |> Todo.Repo.insert!()
 ...> %Todo.Task{completed_at: nil, list: list}
 ...> |> Todo.Repo.insert!() |> Todo.Repo.reload!()  # insert and reload without associations
-...> |> Dx.load!(:archived?)
+...> |> Dx.get!(:archived?)
 ** (Dx.Error.NotLoaded) Association list is not loaded on nil. Cannot get path: nil
 ```
 
