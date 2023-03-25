@@ -1,6 +1,5 @@
 defmodule Dx.Defd do
   defmacro load(call, opts \\ []) do
-    IO.inspect(call, label: :defd)
     env = __CALLER__
     {name, args} = decompose_call!(:def, call, env)
     defd_name = defd_name(name)
@@ -22,19 +21,24 @@ defmodule Dx.Defd do
     assert_no_guards!(kind, call, env)
     # Note name here is not necessarily an atom due to unquote(name) support
     {name, args} = decompose_call!(kind, call, env)
-    defd_name = defd_name(name)
+    arity = length(args)
+
+    defaults =
+      for {{:\\, meta, [_, default]}, i} <- Enum.with_index(args),
+          do: {i, {meta, Macro.escape(default)}},
+          into: []
 
     quote do
-      unquote(kind)(unquote(name)(unquote_splicing(args))) do
-        warn(unquote(env), """
-        Use Dx.load as entrypoint.
-        """)
+      unquote(__MODULE__).__define__(
+        __MODULE__,
+        unquote(kind),
+        unquote(name),
+        unquote(arity),
+        %{unquote_splicing(defaults)}
+      )
 
-        Dx.Defd.load(unquote(name)(unquote_splicing(args)))
-      end
-
-      unquote(kind)(unquote(defd_name)(unquote_splicing(args))) do
-        {:ok, unquote(block)}
+      unquote(kind)(unquote(call)) do
+        unquote(block)
       end
     end
   end
@@ -65,14 +69,39 @@ defmodule Dx.Defd do
 
   defp assert_no_guards!(_kind, _call, _env), do: :ok
 
+  # Internal attributes
+  @defd_exports_key :__defd_exports__
+
+  @doc false
+  def __define__(module, kind, name, arity, defaults) do
+    exports =
+      if exports = Module.get_attribute(module, @defd_exports_key) do
+        exports
+      else
+        Module.put_attribute(module, :before_compile, __MODULE__)
+        %{}
+      end
+
+    current_export = %{
+      kind: kind,
+      defaults: defaults
+    }
+
+    exports = Map.put(exports, {name, arity}, current_export)
+
+    Module.put_attribute(module, @defd_exports_key, exports)
+    :ok
+  end
+
   defp compile_error!(env, description) do
     raise CompileError, line: env.line, file: env.file, description: description
   end
 
-  defmacro warn(env, message) do
-    IO.warn(message, env)
-    :ok
-  end
-
   defp defd_name(name), do: :"__defd:#{name}__"
+
+  @doc false
+  defmacro __before_compile__(env) do
+    defd_exports = Module.get_attribute(env.module, @defd_exports_key)
+    Dx.Defd.Compiler.__compile__(env, defd_exports)
+  end
 end
