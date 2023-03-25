@@ -93,7 +93,7 @@ defmodule Dx do
     end)
   end
 
-  defp load_all_data_reqs(eval, fun) do
+  def load_all_data_reqs(eval, fun) do
     case fun.(eval) do
       {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
       {:ok, result, _binds} -> {:ok, result, eval.cache}
