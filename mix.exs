@@ -8,7 +8,7 @@ defmodule Dx.MixProject do
     [
       app: :dx,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       package: package(),
@@ -82,8 +82,8 @@ defmodule Dx.MixProject do
   defp aliases do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.reset", "test"]
+      "ecto.reset": ["ecto.drop", "ecto.setup"]
+      # test: ["ecto.reset", "test"]
     ]
   end
 end
