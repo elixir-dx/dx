@@ -15,6 +15,37 @@ defmodule Dx.Util.Enum do
   end
 
   @doc """
+  Finds an element in `enum` for which `matcher` returns a truthy value.
+  If an element is found, runs `updater` on it and replaces it in the `enum`.
+  If no element is found, appends `append` at the end of `enum`.
+
+  ## Examples
+
+      iex> update_or_append([1, 2, 3, 4], &(&1 > 2), &(&1 + 2), 0)
+      [1, 2, 5, 4]
+
+      iex> update_or_append([1, 2, 3, 4], &(&1 > 4), &(&1 + 2), 0)
+      [1, 2, 3, 4, 0]
+  """
+  def update_or_append(enum, matcher, updater, append) do
+    do_update_or_append(enum, matcher, updater, append, [])
+  end
+
+  defp do_update_or_append([], _match, _update, append, acc) do
+    [append | acc]
+    |> Enum.reverse()
+  end
+
+  defp do_update_or_append([elem | rest], match, update, append, acc) do
+    if match.(elem) do
+      elem = update.(elem)
+      Enum.reverse(acc, [elem | rest])
+    else
+      do_update_or_append(rest, match, update, append, [elem | acc])
+    end
+  end
+
+  @doc """
   Finds an element in `enum` for which `updater` does not return `:error`.
   If an element is found, replaces it with the `updater` result in the `enum`.
   If no element is found, appends `append` at the end of `enum`.
