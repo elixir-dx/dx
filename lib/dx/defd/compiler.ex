@@ -9,6 +9,7 @@ defmodule Dx.Defd.Compiler do
       line: line,
       function: nil,
       defds: defds,
+      args: %{},
       rewrite_underscore?: false
     }
 
@@ -27,7 +28,7 @@ defmodule Dx.Defd.Compiler do
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
     %{defaults: defaults} = def_meta
 
-    {{kind, meta, args, ast}, state} = get_and_normalize_defd(def, state)
+    {{kind, _meta, args, ast}, state} = get_and_normalize_defd(def, state)
 
     defd_name = defd_name(name)
 
@@ -49,14 +50,14 @@ defmodule Dx.Defd.Compiler do
           Use Dx.load as entrypoint.
           """)
 
-          Dx.Defd.load(unquote(name)(unquote_splicing(args)))
+          Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
         end
       end
 
     impl =
       quote line: state.line do
         Kernel.unquote(kind)(unquote(defd_name)(unquote_splicing(defd_args))) do
-          {:ok, unquote(ast)}
+          unquote(ast)
         end
       end
 
@@ -82,7 +83,11 @@ defmodule Dx.Defd.Compiler do
 
       [{meta, args, [], ast}] ->
         # {args, state} = normalize_args(args, meta, state)
-        # {ast, state} = normalize(ast, %{state | rewrite_underscore?: false})
+        {ast, state} =
+          with_args(args, state, fn state ->
+            normalize(ast, %{state | rewrite_underscore?: false})
+          end)
+
         {{kind, meta, args, ast}, state}
 
       [_, _ | _] ->
@@ -92,6 +97,41 @@ defmodule Dx.Defd.Compiler do
           "cannot compile #{type_str} #{name}/#{arity} with multiple clauses"
         )
     end
+  end
+
+  # merge given args into state.args for calling fun,
+  # then reset state.args to its original value
+  defp with_args(args, state, fun) do
+    temp_state = Map.update!(state, :args, &Map.merge(&1, args_map(args)))
+
+    case fun.(temp_state) do
+      {ast, updated_state} -> {ast, %{updated_state | args: state.args}}
+    end
+  end
+
+  defp args_map(args) do
+    Enum.reduce(args, %{}, fn
+      {arg_name, _meta, nil} = arg, acc when is_atom(arg_name) -> Map.put(acc, arg_name, arg)
+    end)
+  end
+
+  defguardp is_simple(val)
+            when is_integer(val) or is_float(val) or is_atom(val) or is_binary(val) or
+                   is_boolean(val) or is_nil(val) or is_struct(val)
+
+  def normalize(ast, state) when is_simple(ast) do
+    ast = {:ok, ast}
+    {ast, state}
+  end
+
+  def normalize({arg_name, _meta, nil} = arg, state) when is_atom(arg_name) do
+    if Map.has_key?(state.args, arg_name) do
+      {{:ok, arg}, state}
+    end
+  end
+
+  def normalize(ast, state) do
+    {ast, state}
   end
 
   ## Helpers
