@@ -1,16 +1,28 @@
 defmodule Dx.Defd do
+  alias Dx.Defd.Util
+
   defmacro load(call, opts \\ []) do
-    env = __CALLER__
-    {name, args} = decompose_call!(:def, call, env)
-    defd_name = defd_name(name)
+    defd_call = call_to_defd(call)
 
     quote do
       eval = Dx.Evaluation.from_options(unquote(opts))
 
       Dx.load_all_data_reqs(eval, fn _eval ->
-        unquote(defd_name)(unquote_splicing(args))
+        unquote(defd_call)
       end)
     end
+  end
+
+  defp call_to_defd({{:., meta, [module, name]}, meta2, args}) do
+    defd_name = Util.defd_name(name)
+
+    {{:., meta, [module, defd_name]}, meta2, args}
+  end
+
+  defp call_to_defd({name, meta, args}) do
+    defd_name = Util.defd_name(name)
+
+    {defd_name, meta, args}
   end
 
   defmacro defd(call, do: block) do
@@ -96,8 +108,6 @@ defmodule Dx.Defd do
   defp compile_error!(env, description) do
     raise CompileError, line: env.line, file: env.file, description: description
   end
-
-  defp defd_name(name), do: :"__defd:#{name}__"
 
   @doc false
   defmacro __before_compile__(env) do

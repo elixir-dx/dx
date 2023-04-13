@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Compiler do
+  alias Dx.Defd.Util
+
   @doc false
   def __compile__(%Macro.Env{module: module, file: file, line: line}, exports) do
     defds = compile_prepare_arities(exports)
@@ -30,7 +32,7 @@ defmodule Dx.Defd.Compiler do
 
     {{kind, _meta, args, ast}, state} = get_and_normalize_defd(def, state)
 
-    defd_name = defd_name(name)
+    defd_name = Util.defd_name(name)
 
     defd_args =
       Enum.with_index(args, fn arg, i ->
@@ -130,6 +132,65 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
+  def normalize({fun_name, meta, args} = fun, state)
+      when is_atom(fun_name) and is_list(args) do
+    arity = length(args)
+
+    cond do
+      {fun_name, arity} in state.defds ->
+        defd_name = Util.defd_name(fun_name)
+        fun = {defd_name, meta, args}
+        {fun, state}
+
+      Util.has_function?(state.module, fun_name, arity) ->
+        warn(meta, state, """
+        #{fun_name}/#{arity} is not defined with defd.
+        """)
+
+        {fun, state}
+
+      true ->
+        {fun, state}
+    end
+  end
+
+  def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
+      when is_atom(fun_name) and is_list(args) do
+    arity = length(args)
+
+    cond do
+      Util.is_defd?(module, fun_name, arity) ->
+        defd_name = Util.defd_name(fun_name)
+        fun = {{:., meta, [module, defd_name]}, meta2, args}
+        {fun, state}
+
+      Util.has_function?(module, fun_name, arity) ->
+        warn(meta2, state, """
+        #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
+        """)
+
+        {fun, state}
+
+      Code.ensure_loaded?(module) ->
+        compile_error!(
+          meta,
+          state,
+          "undefined function #{fun_name}/#{arity} (expected #{inspect(module)} to define such a function, but none are available)"
+        )
+
+        {fun, state}
+
+      true ->
+        compile_error!(
+          meta,
+          state,
+          "undefined function #{fun_name}/#{arity} (module #{inspect(module)} does not exist)"
+        )
+
+        {fun, state}
+    end
+  end
+
   def normalize(ast, state) do
     {ast, state}
   end
@@ -141,5 +202,10 @@ defmodule Dx.Defd.Compiler do
     raise CompileError, line: line, file: state.file, description: description
   end
 
-  defp defd_name(name), do: :"__defd:#{name}__"
+  defp warn(meta, state, message) do
+    line = meta[:line] || state.line
+    {name, arity} = state.function
+    entry = {state.module, name, arity, [file: String.to_charlist(state.file), line: line]}
+    IO.warn(message, [entry])
+  end
 end
