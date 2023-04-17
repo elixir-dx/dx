@@ -160,7 +160,10 @@ defmodule Dx.Result do
   def unwrap!({:ok, result}), do: result
   def unwrap!({:ok, result, _binds}), do: result
   def unwrap!({:not_loaded, _data_reqs}), do: raise(Dx.Error.NotLoaded)
-  def unwrap!({:error, {e, stacktrace}}), do: reraise(e, stacktrace)
+
+  def unwrap!({:error, {e, stacktrace}}) when is_exception(e) and is_list(stacktrace),
+    do: reraise(e, stacktrace)
+
   def unwrap!({:error, e}) when is_exception(e), do: raise(e)
   def unwrap!({:error, :timeout}), do: raise(Dx.Error.Timeout)
   def unwrap!({:error, e}), do: raise(Dx.Error.Generic, cause: e)
