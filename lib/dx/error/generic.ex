@@ -1,4 +1,4 @@
-defmodule Dx.Error do
+defmodule Dx.Error.Generic do
   defexception [:cause]
 
   def message(error) do

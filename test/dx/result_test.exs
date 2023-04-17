@@ -15,8 +15,8 @@ defmodule Dx.ResultTest do
     end)
   end
 
-  test "raises other non-exceptions as Dx.Error" do
-    assert_raise(Dx.Error, fn ->
+  test "raises other non-exceptions as Dx.Error.Generic" do
+    assert_raise(Dx.Error.Generic, fn ->
       Dx.Result.unwrap!({:error, :not_an_exception})
     end)
   end
