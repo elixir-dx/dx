@@ -145,6 +145,17 @@ defmodule Dx.Result do
   @doc """
   When given `{:ok, value, binds}` or `{:ok, value}`, returns `value`.
   Otherwise, raises an exception.
+
+  ## Examples
+
+      iex> Dx.Result.unwrap!({:error, %ArgumentError{}})
+      ** (ArgumentError) argument error
+
+      iex> Dx.Result.unwrap!({:error, :timeout})
+      ** (Dx.Error.Timeout) A timeout occurred while loading the data required.
+
+      iex> Dx.Result.unwrap!({:error, :not_an_exception})
+      ** (Dx.Error.Generic) Error occurred: :not_an_exception
   """
   def unwrap!({:ok, result}), do: result
   def unwrap!({:ok, result, _binds}), do: result
@@ -152,7 +163,7 @@ defmodule Dx.Result do
   def unwrap!({:error, {e, stacktrace}}), do: reraise(e, stacktrace)
   def unwrap!({:error, e}) when is_exception(e), do: raise(e)
   def unwrap!({:error, :timeout}), do: raise(Dx.Error.Timeout)
-  def unwrap!({:error, e}), do: raise(Dx.Error, cause: e)
+  def unwrap!({:error, e}), do: raise(Dx.Error.Generic, cause: e)
 
   @doc """
   Returns `{:ok, true}` if `fun` evaluates to `{:ok, true}` for all elements in `enum`.
