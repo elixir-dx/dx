@@ -56,14 +56,16 @@ defmodule Dx.Loaders.Dataloader do
     #   -> https://github.com/absinthe-graphql/dataloader/issues/129#issuecomment-965492108
     run_concurrently? = not db_conn_checked_out?(repo)
 
-    default_opts = [get_policy: :tuples, async: run_concurrently?]
-    opts = Keyword.merge(default_opts, opts[:dataloader] || [])
-    default_ecto_opts = [query: &Dx.Ecto.Query.from_options/2, async: run_concurrently?]
-    ecto_opts = Keyword.merge(default_ecto_opts, opts[:dataloader_ecto] || [])
+    ecto_opts = [
+      query: &Dx.Ecto.Query.from_options/2,
+      async: run_concurrently?,
+      repo_opts: opts[:repo_options] || [],
+      timeout: opts[:timeout] || Dataloader.default_timeout()
+    ]
 
     source = Dataloader.Ecto.new(repo, ecto_opts)
 
-    Dataloader.new(opts)
+    Dataloader.new(get_policy: :tuples, async: run_concurrently?)
     |> Dataloader.add_source(:assoc, source)
   end
 

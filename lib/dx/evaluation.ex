@@ -16,6 +16,7 @@ defmodule Dx.Evaluation do
 
     # Options
     field(:loader, module(), default: Dx.Loaders.Dataloader)
+    field(:loader_options, Keyword.t(), default: [])
     field(:args, map(), default: %{})
     field(:debug?, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
@@ -23,12 +24,10 @@ defmodule Dx.Evaluation do
   end
 
   def from_options(opts) do
-    {opts, loader_opts} = Keyword.pop(opts, :loader_options, [])
-
     %__MODULE__{}
     |> add_options(opts)
     |> case do
-      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init(loader_opts))
+      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init(eval.loader_options))
       other -> other
     end
   end
@@ -39,7 +38,7 @@ defmodule Dx.Evaluation do
       {:debug, debug}, eval -> %{eval | debug?: debug}
       {:return_cache, return_cache}, eval -> %{eval | return_cache?: return_cache}
       {:args, args}, eval -> %{eval | args: Map.new(args)}
-      {key, val}, eval -> Map.replace!(eval, key, val)
+      {key, val}, eval -> %{eval | key => val}
     end)
   end
 
