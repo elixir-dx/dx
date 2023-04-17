@@ -23,7 +23,7 @@ defmodule Dx.Evaluation do
   end
 
   def from_options(opts) do
-    {opts, loader_opts} = Keyword.pop(opts, :loader, [])
+    {opts, loader_opts} = Keyword.pop(opts, :loader_options, [])
 
     %__MODULE__{}
     |> add_options(opts)
