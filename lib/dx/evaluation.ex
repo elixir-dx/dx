@@ -23,10 +23,12 @@ defmodule Dx.Evaluation do
   end
 
   def from_options(opts) do
+    {opts, loader_opts} = Keyword.pop(opts, :loader, [])
+
     %__MODULE__{}
     |> add_options(opts)
     |> case do
-      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init())
+      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init(loader_opts))
       other -> other
     end
   end
