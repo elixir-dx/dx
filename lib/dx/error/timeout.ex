@@ -2,6 +2,6 @@ defmodule Dx.Error.Timeout do
   defexception []
 
   def message(_error) do
-    "Timeout occurred"
+    "A timeout occurred while loading the data required."
   end
 end
