@@ -72,6 +72,14 @@ defmodule Dx.QueryOneTest do
 
       refute_received {:ecto_query, %{source: "list_calendar_overrides"}}
     end
+
+    test "raises Dx.Error.Timeout if configurable dataloader timeout is exceeded", %{tasks: [task | _]} do
+      loader_opts = [timeout: 0]
+
+      assert_raise Dx.Error.Timeout, fn ->
+        Dx.load!(task, :calendar_override, extra_rules: Rules, loader_options: loader_opts)
+      end
+    end
   end
 
   describe "query_first" do
@@ -145,14 +153,6 @@ defmodule Dx.QueryOneTest do
                        %{source: "list_calendar_overrides", result: {:ok, %{num_rows: 4}}}}
 
       refute_received {:ecto_query, %{source: "list_calendar_overrides"}}
-    end
-
-    test "raises Dx.Error.Timeout if configurable dataloader timeout is exceeded", %{tasks: tasks} do
-      loader_opts = [timeout: 0]
-
-      assert_raise Dx.Error.Timeout, fn ->
-        Dx.load!(tasks, :calendar_overrides, extra_rules: Rules, loader_options: loader_opts)
-      end
     end
   end
 end
