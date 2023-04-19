@@ -2,7 +2,10 @@ defmodule Dx.Loaders.Dataloader do
   @moduledoc """
   Uses `Dataloader` to load missing data incrementally.
 
-  ## Supported `loader_options` (passed to `dataloader`)
+  ## Supported options
+  
+  These options are passed to `Dataloader.Ecto.new/2`:
+
   - `timeout`: Timeout in milliseconds for `Dataloader` to wait for all data to be loaded. Defaults to 5000.
   - `repo_options`: Options passed to the `Ecto.Repo` when loading data. Defaults to `[]`.
   """
