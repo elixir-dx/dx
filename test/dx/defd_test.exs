@@ -88,6 +88,24 @@ defmodule Dx.DefdTest do
 
                  defp do_add(a, b), do: a + b
                end
+
+               assert load(Sample0.add(1, 2)) == {:ok, 3}
+             end) =~ "do_add/2 is not defined with defd"
+    end
+
+    test "non-defd local function wrapped in call/1" do
+      refute ExUnit.CaptureIO.capture_io(:stderr, fn ->
+               defmodule Sample0 do
+                 import Dx.Defd
+
+                 defd add(a, b) do
+                   call(do_add(a, b))
+                 end
+
+                 defp do_add(a, b), do: a + b
+               end
+
+               assert load(Sample0.add(1, 2)) == {:ok, 3}
              end) =~ "do_add/2 is not defined with defd"
     end
 
@@ -104,7 +122,27 @@ defmodule Dx.DefdTest do
                    Other1.do_add(a, b)
                  end
                end
+
+               assert load(Sample1.add(1, 2)) == {:ok, 3}
              end) =~ "Other1.do_add/2 is not defined with defd"
+    end
+
+    test "non-defd function in other module wrapped in call/1" do
+      refute ExUnit.CaptureIO.capture_io(:stderr, fn ->
+               defmodule Other1 do
+                 def do_add(a, b), do: a + b
+               end
+
+               defmodule Sample1 do
+                 import Dx.Defd
+
+                 defd add(a, b) do
+                   call(Other1.do_add(a, b))
+                 end
+               end
+
+               assert load(Sample1.add(1, 2)) == {:ok, 3}
+             end) =~ "do_add/2 is not defined with defd"
     end
 
     test "undefined local function" do

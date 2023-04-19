@@ -14,6 +14,7 @@ defmodule Dx.Defd.Compiler do
       defds: defds,
       args: %{},
       eval_var: eval_var,
+      in_call?: false,
       rewrite_underscore?: false
     }
 
@@ -134,6 +135,11 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
+  def normalize({:call, _meta, [ast]}, state) do
+    {ast, new_state} = normalize(ast, %{state | in_call?: true})
+    {ast, %{new_state | in_call?: state.in_call?}}
+  end
+
   def normalize({fun_name, meta, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
@@ -147,12 +153,18 @@ defmodule Dx.Defd.Compiler do
         end)
 
       Util.has_function?(state.module, fun_name, arity) ->
-        warn(meta, state, """
-        #{fun_name}/#{arity} is not defined with defd.
-        """)
+        if not state.in_call? do
+          warn(meta, state, """
+          #{fun_name}/#{arity} is not defined with defd.
+
+          Either define it using defd (preferred) or wrap the call in the call/1 function:
+
+              call(#{fun_name}(...))
+          """)
+        end
 
         normalize_call_args(args, state, fn args ->
-          {fun_name, meta, args}
+          {:ok, {fun_name, meta, args}}
         end)
 
       true ->
@@ -173,12 +185,18 @@ defmodule Dx.Defd.Compiler do
         end)
 
       Util.has_function?(module, fun_name, arity) ->
-        warn(meta2, state, """
-        #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
-        """)
+        if not state.in_call? do
+          warn(meta2, state, """
+          #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
+
+          Either define it using defd (preferred) or wrap the call in the call/1 function:
+
+              call(#{inspect(module)}.#{fun_name}(...))
+          """)
+        end
 
         normalize_call_args(args, state, fn args ->
-          {{:., meta, [module, fun_name]}, meta2, args}
+          {:ok, {{:., meta, [module, fun_name]}, meta2, args}}
         end)
 
       Code.ensure_loaded?(module) ->
