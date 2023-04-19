@@ -66,7 +66,7 @@ defmodule Dx.Loaders.Dataloader do
     ecto_opts = [
       query: &Dx.Ecto.Query.from_options/2,
       async: run_concurrently?,
-      repo_opts: opts[:repo_options] || [],
+      repo_opts: opts[:repo_options] || opts[:repo_opts] || [],
       timeout: opts[:timeout] || Dataloader.default_timeout()
     ]
 
