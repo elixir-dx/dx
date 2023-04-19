@@ -11,7 +11,7 @@ defmodule Dx.Loaders.Dataloader do
   # 2. pass translatable part to lookup (unchanged)
   # 3. later: optimize batching
   # 4. on successful lookup, if not all translated, return {:partial, result, condition} for Dx.Engine
-  def lookup(cache, data_req) do
+  def lookup(cache, data_req, third_elem \\ true) do
     case apply(Dataloader, :get, [cache | args_for(data_req)]) do
       {:error, "Unable to find " <> _} ->
         # try to translate to query here
@@ -20,7 +20,7 @@ defmodule Dx.Loaders.Dataloader do
         {:not_loaded, MapSet.new([data_req])}
 
       {:ok, result} ->
-        Result.ok(result)
+        if third_elem, do: Result.ok(result), else: Dx.Defd.Result.ok(result)
 
       other ->
         other

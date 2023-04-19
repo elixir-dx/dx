@@ -1,5 +1,5 @@
 defmodule Dx.DefdTest do
-  use ExUnit.Case, async: true
+  use Dx.Test.DataCase, async: true
 
   import Dx.Defd
 
@@ -156,6 +156,66 @@ defmodule Dx.DefdTest do
                               end
                             end
              end) == ""
+    end
+  end
+
+  describe "data loading" do
+    defd simple_assoc(list) do
+      list.tasks
+    end
+
+    defd assoc_chain(task) do
+      task.list.created_by
+    end
+
+    defd assoc_chain_field(task) do
+      task.list.created_by.email
+    end
+
+    defd created_by(record) do
+      record.created_by
+    end
+
+    defd assoc_chain_args(task) do
+      simple_arg(created_by(task)).email
+    end
+
+    setup do
+      user = create(User)
+      list = create(List, %{created_by: user}) |> Repo.reload!()
+      task = create(Task, %{list: list, created_by: user}) |> Repo.reload!()
+
+      [user: user, list: list, task: task]
+    end
+
+    test "loads record.association if not loaded", %{
+      list: %{id: list_id} = list,
+      task: %{id: task_id},
+      user: %{id: user_id}
+    } do
+      assert {:ok, [%Task{id: ^task_id, list_id: ^list_id, created_by_id: ^user_id}]} =
+               load(simple_assoc(list))
+    end
+
+    test "loads association chain if not loaded", %{
+      task: task,
+      user: %{id: user_id}
+    } do
+      assert {:ok, %User{id: ^user_id}} = load(assoc_chain(task))
+    end
+
+    test "loads association chain field if not loaded", %{
+      task: task,
+      user: %{email: user_email}
+    } do
+      assert {:ok, ^user_email} = load(assoc_chain_field(task))
+    end
+
+    test "loads association chain as arguments", %{
+      task: task,
+      user: %{email: user_email}
+    } do
+      assert {:ok, ^user_email} = load(assoc_chain_args(task))
     end
   end
 end

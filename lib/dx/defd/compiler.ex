@@ -1,8 +1,9 @@
 defmodule Dx.Defd.Compiler do
+  alias Dx.Defd.Ast
   alias Dx.Defd.Util
 
   @doc false
-  def __compile__(%Macro.Env{module: module, file: file, line: line}, exports) do
+  def __compile__(%Macro.Env{module: module, file: file, line: line}, exports, eval_var) do
     defds = compile_prepare_arities(exports)
 
     state = %{
@@ -12,6 +13,7 @@ defmodule Dx.Defd.Compiler do
       function: nil,
       defds: defds,
       args: %{},
+      eval_var: eval_var,
       rewrite_underscore?: false
     }
 
@@ -40,7 +42,7 @@ defmodule Dx.Defd.Compiler do
           %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
           %{} -> arg
         end
-      end)
+      end) ++ [state.eval_var]
 
     all_args = Macro.generate_arguments(arity, __MODULE__)
     Module.delete_definition(state.module, def)
@@ -139,15 +141,19 @@ defmodule Dx.Defd.Compiler do
     cond do
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
-        fun = {defd_name, meta, args}
-        {fun, state}
+
+        normalize_call_args(args, state, fn args ->
+          {defd_name, meta, args ++ [state.eval_var]}
+        end)
 
       Util.has_function?(state.module, fun_name, arity) ->
         warn(meta, state, """
         #{fun_name}/#{arity} is not defined with defd.
         """)
 
-        {fun, state}
+        normalize_call_args(args, state, fn args ->
+          {fun_name, meta, args}
+        end)
 
       true ->
         {fun, state}
@@ -155,21 +161,25 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
-      when is_atom(fun_name) and is_list(args) do
+      when is_atom(module) and is_atom(fun_name) and is_list(args) do
     arity = length(args)
 
     cond do
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
-        fun = {{:., meta, [module, defd_name]}, meta2, args}
-        {fun, state}
+
+        normalize_call_args(args, state, fn args ->
+          {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
+        end)
 
       Util.has_function?(module, fun_name, arity) ->
         warn(meta2, state, """
         #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
         """)
 
-        {fun, state}
+        normalize_call_args(args, state, fn args ->
+          {{:., meta, [module, fun_name]}, meta2, args}
+        end)
 
       Code.ensure_loaded?(module) ->
         compile_error!(
@@ -191,8 +201,28 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
+  # Access.get/2
+  def normalize({{:., _meta, [ast, fun_name]}, _meta2, []}, state)
+      when is_atom(fun_name) do
+    {ast, state} = normalize(ast, state)
+
+    fun =
+      quote do
+        Dx.Defd.Util.fetch(unquote(ast), unquote(fun_name), unquote(state.eval_var))
+      end
+
+    {fun, state}
+  end
+
   def normalize(ast, state) do
     {ast, state}
+  end
+
+  def normalize_call_args(args, state, fun) do
+    {args, state} = Enum.map_reduce(args, state, &normalize/2)
+    ast = args |> Enum.map(&Ast.unwrap/1) |> fun.()
+
+    Ast.ensure_args_loaded(ast, args, state)
   end
 
   ## Helpers

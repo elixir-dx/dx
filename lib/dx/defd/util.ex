@@ -3,6 +3,8 @@ defmodule Dx.Defd.Util do
   Utility functions used in multiple Defd-related modules.
   """
 
+  alias Dx.Defd.Result
+
   @defd_exports_key :__defd_exports__
 
   def defd_name(name), do: :"__defd:#{name}__"
@@ -14,7 +16,7 @@ defmodule Dx.Defd.Util do
 
       :error ->
         Code.ensure_loaded(module)
-        function_exported?(module, defd_name(fun_name), arity)
+        function_exported?(module, defd_name(fun_name), arity + 1)
     end
   end
 
@@ -43,5 +45,26 @@ defmodule Dx.Defd.Util do
         _else ->
           reraise e, __STACKTRACE__
       end
+  end
+
+  def fetch!(map, key, eval) do
+    {:ok, val} = fetch(map, key, eval)
+    val
+  end
+
+  def fetch({:ok, map}, key, eval) do
+    case Map.fetch!(map, key) do
+      %Ecto.Association.NotLoaded{} ->
+        eval.loader.lookup(eval.cache, {:assoc, map, key}, false)
+
+      other ->
+        Result.ok(other)
+    end
+  rescue
+    e in KeyError -> {:error, {e, __STACKTRACE__}}
+  end
+
+  def fetch(other, _key, _eval) do
+    other
   end
 end

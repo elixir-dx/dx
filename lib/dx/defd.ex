@@ -1,13 +1,15 @@
 defmodule Dx.Defd do
   alias Dx.Defd.Util
 
+  @eval_var Macro.var(:eval, Dx.Defd.Compiler)
+
   defmacro load(call, opts \\ []) do
     defd_call = call_to_defd(call)
 
     quote do
       eval = Dx.Evaluation.from_options(unquote(opts))
 
-      Dx.load_all_data_reqs(eval, fn _eval ->
+      Dx.load_all_data_reqs(eval, fn unquote(@eval_var) ->
         unquote(defd_call)
       end)
     end
@@ -15,12 +17,14 @@ defmodule Dx.Defd do
 
   defp call_to_defd({{:., meta, [module, name]}, meta2, args}) do
     defd_name = Util.defd_name(name)
+    args = args ++ [@eval_var]
 
     {{:., meta, [module, defd_name]}, meta2, args}
   end
 
   defp call_to_defd({name, meta, args}) do
     defd_name = Util.defd_name(name)
+    args = args ++ [@eval_var]
 
     {defd_name, meta, args}
   end
@@ -112,6 +116,6 @@ defmodule Dx.Defd do
   @doc false
   defmacro __before_compile__(env) do
     defd_exports = Module.get_attribute(env.module, @defd_exports_key)
-    Dx.Defd.Compiler.__compile__(env, defd_exports)
+    Dx.Defd.Compiler.__compile__(env, defd_exports, @eval_var)
   end
 end
