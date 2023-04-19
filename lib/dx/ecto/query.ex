@@ -3,7 +3,7 @@ defmodule Dx.Ecto.Query do
   Functions to dynamically generate Ecto query parts.
   """
 
-  alias Dx.{Result, Util}
+  alias Dx.Result
   alias Dx.Evaluation, as: Eval
   alias __MODULE__.Builder
 
@@ -29,7 +29,22 @@ defmodule Dx.Ecto.Query do
   @doc """
   Add predicate-based filters to a queryable and return it.
   """
+
   def where(queryable, condition, opts \\ []) when is_list(opts) do
+    type = queryable
+    eval = Eval.from_options(opts) |> Map.put(:root_type, type)
+
+    {expanded, _binds} =
+      condition
+      |> Dx.Schema.expand_condition(type, eval)
+
+    case apply_condition(queryable, expanded, eval) do
+      {queryable, true} -> queryable
+      {queryable, condition} -> raise TranslationError, queryable: queryable, condition: condition
+    end
+  end
+
+  def execute_where(queryable, condition, opts \\ []) when is_list(opts) do
     eval = Eval.from_options(opts)
 
     case apply_condition(queryable, condition, eval) do
@@ -121,10 +136,6 @@ defmodule Dx.Ecto.Query do
     end
   end
 
-  defp map_condition(builder, conditions) when is_map(conditions) do
-    map_condition(builder, {:all, conditions})
-  end
-
   defp map_condition(builder, {:all, conditions}) do
     Enum.reduce_while(conditions, {builder, true}, fn condition, {builder, acc_query} ->
       case map_condition(builder, condition) do
@@ -160,10 +171,10 @@ defmodule Dx.Ecto.Query do
     :error
   end
 
-  defp map_condition(builder, {key, val}) when is_atom(key) do
-    case field_info(key, builder) do
-      :field ->
-        left = Builder.field(builder, key)
+  defp map_condition(builder, {key, val}) do
+    case key do
+      {:field, key} ->
+        left = Builder.field(builder, {:field, key})
 
         case val do
           vals when is_list(vals) ->
@@ -183,7 +194,7 @@ defmodule Dx.Ecto.Query do
             Enum.reduce_while(grouped_vals, {builder, false}, fn val, {builder, acc_query} ->
               case val do
                 vals when is_list(vals) -> {builder, compare(left, :eq, vals, builder)}
-                val -> map_condition(builder, {key, val})
+                val -> map_condition(builder, {{:field, key}, val})
               end
               |> case do
                 :error -> {:halt, :error}
@@ -210,19 +221,19 @@ defmodule Dx.Ecto.Query do
             end
         end
 
-      {:predicate, rules} ->
+      {:predicate, _meta, rules} ->
         case rules_for_value(rules, val, builder) do
           :error -> :error
           condition -> map_condition(builder, condition)
         end
 
-      {:assoc, :one, _assoc} ->
+      {:assoc, :one, _type, _assoc} ->
         Builder.with_join(builder, key, fn builder ->
           map_condition(builder, val)
         end)
 
-      {:assoc, :many, assoc} ->
-        %{queryable: queryable, related_key: related_key, owner_key: owner_key} = assoc
+      {:assoc, :many, queryable, assoc} ->
+        %{related_key: related_key, owner_key: owner_key} = assoc
 
         as = Builder.current_alias(builder)
 
@@ -261,8 +272,8 @@ defmodule Dx.Ecto.Query do
   end
 
   defp do_ref(builder, [field | path]) do
-    case field_info(field, builder) do
-      {:assoc, :one, _assoc} -> Builder.with_join(builder, field, &do_ref(&1, path))
+    case field do
+      {:assoc, :one, _type, _assoc} -> Builder.with_join(builder, field, &do_ref(&1, path))
       _other -> :error
     end
   end
@@ -321,38 +332,6 @@ defmodule Dx.Ecto.Query do
   defp compare(left, op, val, %{negate?: true}) when op in @gt_ops,
     do: dynamic(^left <= ^val)
 
-  defp field_info(predicate, %Builder{} = builder) do
-    type = Builder.current_type(builder)
-
-    case Util.rules_for_predicate(predicate, type, builder.eval) do
-      [] ->
-        case Util.Ecto.association_details(type, predicate) do
-          %_{cardinality: :one} = assoc ->
-            {:assoc, :one, assoc}
-
-          %_{cardinality: :many} = assoc ->
-            {:assoc, :many, assoc}
-
-          _other ->
-            case Util.Ecto.field_details(type, predicate) do
-              nil ->
-                raise ArgumentError,
-                      """
-                      Unknown field #{inspect(predicate)} on #{inspect(type)}.
-                      Path:  #{inspect(builder.path)}
-                      Types: #{inspect(builder.types)}
-                      """
-
-              _other ->
-                :field
-            end
-        end
-
-      rules ->
-        {:predicate, rules}
-    end
-  end
-
   # maps a comparison of "predicate equals value" to a Dx condition
   defp rules_for_value(rules, val, %{negate?: false}) do
     vals = List.wrap(val)
@@ -360,7 +339,7 @@ defmodule Dx.Ecto.Query do
     rules
     |> Enum.reverse()
     |> Enum.reduce_while(false, fn
-      {condition, val}, acc when is_simple(val) ->
+      {val, condition}, acc when is_simple(val) ->
         if val in vals do
           {:cont, [condition, acc]}
         else
@@ -459,9 +438,26 @@ defmodule Dx.Ecto.Query do
     end
   end
 
+  def apply_expanded_options(queryable, opts) do
+    Enum.reduce(opts, {queryable, []}, fn
+      {:where, conditions}, {query, opts} -> {execute_where(query, conditions), opts}
+      {:limit, limit}, {query, opts} -> {limit(query, limit), opts}
+      {:order_by, order}, {query, opts} -> {order_by(query, order), opts}
+      other, {query, opts} -> {query, [other | opts]}
+    end)
+    |> case do
+      {queryable, opts} -> {queryable, Enum.reverse(opts)}
+    end
+  end
+
   @doc "Apply all options to the given `queryable`, raise on any unknown option."
   def from_options(queryable, opts) do
     {queryable, []} = apply_options(queryable, opts)
+    queryable
+  end
+
+  def execute_options(queryable, opts) do
+    {queryable, []} = apply_expanded_options(queryable, opts)
     queryable
   end
 

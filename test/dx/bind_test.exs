@@ -92,7 +92,7 @@ defmodule Dx.BindTest do
   end
 
   test "fails when using unbound key", %{user: user} do
-    assert_raise(KeyError, fn ->
+    assert_raise(ArgumentError, fn ->
       Dx.get!(user, :failing_data_for_author, extra_rules: UserRules, args: [created_by_id: 2])
     end)
   end
@@ -117,6 +117,31 @@ defmodule Dx.BindTest do
 
   describe "matching associated predicate" do
     test "returns bound value on root level of the assigns", %{user: user} do
+      import Test.Support.SchemaHelpers
+
+      assert {{:predicate, %{name: :indirect_data_for_author},
+               [
+                 {{:bound, :result},
+                  {:bind, :result,
+                   {{:assoc, :many, Dx.Test.Schema.List,
+                     %{
+                       name: :lists,
+                       ordered: false,
+                       owner_key: :id,
+                       related_key: :created_by_id,
+                       unique: true
+                     }},
+                    {:bind, :result,
+                     {{:predicate, %{name: :by_author?},
+                       [true: {{:field, :created_by_id}, {:ref, [:args, :created_by_id]}}]},
+                      true}}}}}
+               ]},
+              User} =
+               expand_mapping(:indirect_data_for_author, User,
+                 extra_rules: UserRules,
+                 args: [created_by_id: 2]
+               )
+
       assert Dx.get!(user, :indirect_data_for_author,
                extra_rules: UserRules,
                args: [created_by_id: 2]

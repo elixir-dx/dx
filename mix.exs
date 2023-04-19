@@ -48,21 +48,38 @@ defmodule Dx.MixProject do
   defp test_apps(_), do: []
 
   defp deps do
-    [
-      # util
-      {:typed_struct, ">= 0.0.0"},
-      {:dataloader, "~> 1.0.0"},
+    ecto_deps() ++
+      [
+        # util
+        {:typed_struct, ">= 0.0.0"},
+        {:dataloader, "~> 1.0.0"},
 
-      # adapters
-      {:ecto, ">= 3.4.3 and < 4.0.0", optional: true},
-      {:ecto_sql, "~> 3.0", optional: true},
+        # dev & test
+        {:postgrex, "~> 0.14", only: :test, runtime: false},
+        {:timex, "~> 3.6", only: :test, runtime: false},
+        {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
+        {:ex_doc, "~> 0.24", only: :dev, runtime: false}
+        # {:elixir_sense, github: "elixir-lsp/elixir_sense", only: [:dev, :test]}
+      ]
+  end
 
-      # dev & test
-      {:postgrex, "~> 0.14", only: :test, runtime: false},
-      {:timex, "~> 3.6", only: :test, runtime: false},
-      {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
-    ]
+  defp ecto_deps do
+    case System.get_env("ECTO") do
+      "." <> _ = path ->
+        [
+          {:ecto, path: Path.join(path, "ecto"), override: true},
+          {:ecto_sql, path: Path.join(path, "ecto_sql")}
+        ]
+
+      nil ->
+        [{:ecto, ">= 3.4.3 and < 4.0.0", optional: true}, {:ecto_sql, "~> 3.0", optional: true}]
+
+      github_user ->
+        [
+          {:ecto, github: github_user <> "/ecto", override: true},
+          {:ecto_sql, github: github_user <> "/ecto_sql"}
+        ]
+    end
   end
 
   def docs do
@@ -82,8 +99,8 @@ defmodule Dx.MixProject do
   defp aliases do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.reset", "test"]
+      "ecto.reset": ["ecto.drop", "ecto.setup"]
+      # test: ["ecto.reset", "test"]
     ]
   end
 end

@@ -1,7 +1,7 @@
 defmodule Dx.RefTest do
   use ExUnit.Case, async: true
 
-  alias Dx.Test.Schema.Task
+  alias Dx.Test.Schema.{List, Task}
 
   import Test.Support.Factories
 
@@ -22,6 +22,32 @@ defmodule Dx.RefTest do
             desc: "Steps to be done"
           },
           when: %{args: %{context: %{title: nil}}}
+  end
+
+  describe "expanded" do
+    test "expands predicate" do
+      eval = Dx.Evaluation.from_options(extra_rules: Rules)
+      {expanded, type} = Dx.Schema.expand_mapping(:list_archived_at, Task, eval)
+
+      assert expanded ==
+               {:predicate, %{name: :list_archived_at},
+                [
+                  {{:ref,
+                    [
+                      {:assoc, :one, List,
+                       %{
+                         name: :list,
+                         ordered: false,
+                         owner_key: :list_id,
+                         related_key: :id,
+                         unique: true
+                       }},
+                      {:field, :archived_at}
+                    ]}, {:all, []}}
+                ]}
+
+      assert type == [:utc_datetime, nil]
+    end
   end
 
   setup do

@@ -70,14 +70,16 @@ defmodule Dx.Ecto.Query.Builder do
   def root_type(%Builder{aliases: {_, type, _}}), do: type
 
   def field(builder, key, maybe_parent? \\ false)
-  def field(%{path: [{:parent, as} | _]}, key, _), do: dynamic(field(parent_as(^as), ^key))
 
-  def field(%{path: [as | _], in_subquery?: true}, key, true),
+  def field(%{path: [{:parent, as} | _]}, {:field, key}, _),
     do: dynamic(field(parent_as(^as), ^key))
 
-  def field(%{path: [as | _]}, key, _), do: dynamic(field(as(^as), ^key))
+  def field(%{path: [as | _], in_subquery?: true}, {:field, key}, true),
+    do: dynamic(field(parent_as(^as), ^key))
 
-  def field(%{path: [], aliases: {as, _, _}}, key, _), do: dynamic(field(as(^as), ^key))
+  def field(%{path: [as | _]}, {:field, key}, _), do: dynamic(field(as(^as), ^key))
+
+  def field(%{path: [], aliases: {as, _, _}}, {:field, key}, _), do: dynamic(field(as(^as), ^key))
 
   def current_alias(%{path: [as | _]}), do: as
   def current_alias(%{path: [], aliases: {as, _, _}}), do: as
@@ -181,16 +183,13 @@ defmodule Dx.Ecto.Query.Builder do
     {builder, as}
   end
 
-  def add_aliased_join(builder, key) do
+  def add_aliased_join(builder, assoc) do
     {builder, as} = next_alias(builder)
     left = current_alias(builder)
 
-    type =
-      case Dx.Util.Ecto.association_details(current_type(builder), key) do
-        %_{related: type} -> type
-      end
+    {:assoc, _, type, %{name: name}} = assoc
 
-    builder = update_query(builder, &aliased_join(&1, left, key, as))
+    builder = update_query(builder, &aliased_join(&1, left, name, as))
     %{builder | path: [as | builder.path], types: [type | builder.types]}
   end
 

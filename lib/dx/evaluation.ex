@@ -7,17 +7,21 @@ defmodule Dx.Evaluation do
   use TypedStruct
 
   typedstruct do
+    # Schema
+    field(:root_type, Dx.Type.t())
+    field(:binds, map(), default: %{})
+
+    # Engine
     field(:root_subject, map())
     field(:cache, any())
-    field(:return_cache?, boolean(), default: false)
-    field(:binds, map())
     field(:negate?, boolean(), default: false)
-    field(:resolve_predicates?, boolean(), default: true)
 
     # Options
     field(:loader, module(), default: Dx.Loaders.Dataloader)
     field(:args, map(), default: %{})
+    field(:resolve_predicates?, boolean(), default: true)
     field(:debug?, boolean(), default: false)
+    field(:return_cache?, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
     field(:select, any())
   end

@@ -29,10 +29,40 @@ defmodule Dx.Ecto.QueryTest do
 
   defp to_sql(query), do: Query.to_sql(Repo, query)
 
+  describe "expanded" do
+    test "condition on field" do
+      assert %{created_by_id: 7} |> expand_condition(List) ==
+               {{:field, :created_by_id}, 7}
+    end
+
+    test "non-translatable" do
+      assert %{created_by_id: [1, 2, 3], other_lists_by_creator: %{}}
+             |> expand_condition(List, extra_rules: Rules) ==
+               {
+                 :all,
+                 [
+                   {{:field, :created_by_id}, [1, 2, 3]},
+                   {{:predicate, %{name: :other_lists_by_creator},
+                     [
+                       {{:query_all, Dx.Test.Schema.List,
+                         [{{:field, :created_by_id}, {:ref, [field: :created_by_id]}}]},
+                        {:all, []}}
+                     ]}, {:all, []}}
+                 ]
+               }
+    end
+  end
+
   test "condition on field" do
     query = Query.where(List, %{created_by_id: 7})
 
     assert to_sql(query) =~ "\"created_by_id\" = 7"
+  end
+
+  test "condition on association field" do
+    query = Query.where(List, %{created_by: %{last_name: "Vega"}})
+
+    assert to_sql(query) =~ "\"last_name\" = 'Vega'"
   end
 
   test "condition on predicate" do
@@ -121,10 +151,7 @@ defmodule Dx.Ecto.QueryTest do
   test "raises error only listing non-translatable conditions" do
     conditions = %{created_by_id: [1, 2, 3], other_lists_by_creator: %{}}
 
-    errmsg = """
-    Could not translate some conditions to SQL:
-    {:all, [other_lists_by_creator: %{}]}\
-    """
+    errmsg = ~r/Could not translate some conditions to SQL:/
 
     assert_raise(Query.TranslationError, errmsg, fn ->
       Query.where(List, conditions, extra_rules: Rules)

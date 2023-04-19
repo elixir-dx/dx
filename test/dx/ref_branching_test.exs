@@ -43,6 +43,14 @@ defmodule Dx.RefBranchingTest do
              Enum.map(tasks, &Map.take(&1, [:title, :due_on]))
   end
 
+  test "Raise error on triple-nested list in ref path", %{list: list} do
+    msg = ~r/Got \[:title\]/
+
+    assert_raise ArgumentError, msg, fn ->
+      Dx.load!(list, {:ref, [:tasks, [[:title], :due_on]]})
+    end
+  end
+
   test "Ref on fields map within list returns a nested list of these fields' values", %{
     list: list,
     tasks: tasks
