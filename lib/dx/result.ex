@@ -151,9 +151,6 @@ defmodule Dx.Result do
       iex> Dx.Result.unwrap!({:error, %ArgumentError{}})
       ** (ArgumentError) argument error
 
-      iex> Dx.Result.unwrap!({:error, :timeout})
-      ** (Dx.Error.Timeout) A timeout occurred while loading the data required.
-
       iex> Dx.Result.unwrap!({:error, :not_an_exception})
       ** (Dx.Error.Generic) Error occurred: :not_an_exception
   """
@@ -165,7 +162,6 @@ defmodule Dx.Result do
     do: reraise(e, stacktrace)
 
   def unwrap!({:error, e}) when is_exception(e), do: raise(e)
-  def unwrap!({:error, :timeout}), do: raise(Dx.Error.Timeout)
   def unwrap!({:error, e}), do: raise(Dx.Error.Generic, cause: e)
 
   @doc """

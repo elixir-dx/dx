@@ -100,6 +100,7 @@ defmodule Dx do
     case fun.(eval) do
       {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
       {:ok, result, _binds} -> {:ok, result, eval.cache}
+      {:error, :timeout} -> {:error, %Dx.Error.Timeout{configured_timeout: eval.loader_options[:timeout]}}
       other -> other
     end
   end
