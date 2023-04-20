@@ -73,7 +73,9 @@ defmodule Dx.QueryOneTest do
       refute_received {:ecto_query, %{source: "list_calendar_overrides"}}
     end
 
-    test "raises Dx.Error.Timeout if configurable dataloader timeout is exceeded", %{tasks: [task | _]} do
+    test "raises Dx.Error.Timeout if configurable dataloader timeout is exceeded", %{
+      tasks: [task | _]
+    } do
       loader_opts = [timeout: 0]
 
       assert_raise Dx.Error.Timeout, fn ->
