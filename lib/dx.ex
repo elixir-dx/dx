@@ -34,7 +34,10 @@ defmodule Dx do
   - **return_cache** (boolean) makes non-bang functions return `{:ok, result, cache}` instead of
     `{:ok, result}` on success. This `cache` can be passed to other Dx functions (see `cache` option)
   - **cache** (`Dataloader` struct) can be used to pass in an existing cache, so data already loaded
-    doesn't need to be loaded again. Can be initialized using `Loaders.Dataloader.init/0`.
+    doesn't need to be loaded again. Can be initialized using `Dx.Loaders.Dataloader.init/1`.
+  - **loader** allows choosing a loader module. Defaults to `Dx.Loaders.Dataloader`.
+  - **loader_options** are passed to `loader.init/1` function. See `Dx.Loaders.Dataloader` for options
+    supported by the default loader.
   """
 
   alias Dx.{Engine, Result, Util}
@@ -95,9 +98,17 @@ defmodule Dx do
 
   defp load_all_data_reqs(eval, fun) do
     case fun.(eval) do
-      {:not_loaded, data_reqs} -> Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
-      {:ok, result, _binds} -> {:ok, result, eval.cache}
-      other -> other
+      {:not_loaded, data_reqs} ->
+        Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
+
+      {:ok, result, _binds} ->
+        {:ok, result, eval.cache}
+
+      {:error, :timeout} ->
+        {:error, %Dx.Error.Timeout{configured_timeout: eval.loader_options[:timeout]}}
+
+      other ->
+        other
     end
   end
 

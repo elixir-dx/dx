@@ -1,6 +1,13 @@
 defmodule Dx.Loaders.Dataloader do
   @moduledoc """
   Uses `Dataloader` to load missing data incrementally.
+
+  ## Supported options
+
+  These options are passed to `Dataloader.Ecto.new/2`:
+
+  - **timeout** Timeout in milliseconds for `Dataloader` to wait for all data to be loaded. Defaults to 15_000.
+  - **repo_options** Options passed to the `Ecto.Repo` when loading data. Defaults to `[]`.
   """
 
   alias Dx.Result
@@ -49,18 +56,21 @@ defmodule Dx.Loaders.Dataloader do
   defp where(opts, []), do: opts
   defp where(opts, conditions), do: Keyword.put(opts, :where, {:all, conditions})
 
-  def init() do
+  def init(opts \\ []) do
     repo = config(:repo)
 
     # workaround for dataloader incompatibility with transactions
     #   -> https://github.com/absinthe-graphql/dataloader/issues/129#issuecomment-965492108
     run_concurrently? = not db_conn_checked_out?(repo)
 
-    source =
-      Dataloader.Ecto.new(repo,
-        query: &Dx.Ecto.Query.from_options/2,
-        async: run_concurrently?
-      )
+    ecto_opts = [
+      query: &Dx.Ecto.Query.from_options/2,
+      async: run_concurrently?,
+      repo_opts: opts[:repo_options] || opts[:repo_opts] || [],
+      timeout: opts[:timeout] || Dataloader.default_timeout()
+    ]
+
+    source = Dataloader.Ecto.new(repo, ecto_opts)
 
     Dataloader.new(get_policy: :tuples, async: run_concurrently?)
     |> Dataloader.add_source(:assoc, source)
