@@ -452,6 +452,7 @@ defmodule Dx.Ecto.Query do
       {:where, conditions}, {query, opts} -> {where(query, conditions), opts}
       {:limit, limit}, {query, opts} -> {limit(query, limit), opts}
       {:order_by, order}, {query, opts} -> {order_by(query, order), opts}
+      {:sleep, duration}, {query, opts} -> {sleep(query, duration), opts}
       other, {query, opts} -> {query, [other | opts]}
     end)
     |> case do
@@ -483,6 +484,10 @@ defmodule Dx.Ecto.Query do
       end)
 
     from(q in queryable, order_by: ^fields)
+  end
+
+  def sleep(queryable, duration) do
+    from(q in queryable, select: fragment("pg_sleep(?)", ^duration))
   end
 
   def inspect(query, repo) do
