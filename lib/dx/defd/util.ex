@@ -9,6 +9,18 @@ defmodule Dx.Defd.Util do
 
   def defd_name(name), do: :"__defd:#{name}__"
 
+  def maybe_call_defd(module, fun_name, args, eval) do
+    Code.ensure_loaded(module)
+    defd_name = defd_name(fun_name)
+    arity = length(args)
+
+    if function_exported?(module, defd_name, arity) do
+      apply(module, defd_name, args ++ [eval])
+    else
+      {:ok, apply(module, fun_name, args)}
+    end
+  end
+
   def is_defd?(module, fun_name, arity) do
     case get_defd_exports(module) do
       {:ok, exports} ->

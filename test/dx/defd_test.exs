@@ -255,5 +255,104 @@ defmodule Dx.DefdTest do
     } do
       assert {:ok, ^user_email} = load(assoc_chain_args(task))
     end
+
+    test "calls dynamic function in variable" do
+      defmodule DynFunTest do
+        import Dx.Defd
+
+        defd nested_fun(map) do
+          map.nested.fun.()
+        end
+      end
+
+      assert DynFunTest.nested_fun(%{nested: %{fun: fn -> "Hi there!" end}})
+             |> load() == {:ok, "Hi there!"}
+    end
+
+    test "calls function in dynamic module" do
+      defmodule DynModOther do
+        def run() do
+          "Hi there!"
+        end
+      end
+
+      defmodule DynModTest do
+        import Dx.Defd
+
+        defd nested_fun(map) do
+          map.nested.fun.run()
+        end
+      end
+
+      assert DynModTest.nested_fun(%{nested: %{fun: DynModOther}})
+             |> load() == {:ok, "Hi there!"}
+    end
+
+    test "loads associations on results of dynamic function call",
+         %{task: task, user: %{email: user_email}} do
+      defmodule DynFunResultTest do
+        import Dx.Defd
+
+        defd nested_fun(map) do
+          map.nested.fun.().created_by.email
+        end
+      end
+
+      assert DynFunResultTest.nested_fun(%{nested: %{fun: fn -> task end}})
+             |> load() == {:ok, user_email}
+    end
+
+    test "loads associations referenced in anonymous function",
+         %{list: list, user: %{email: user_email}} do
+      defmodule AnonFunAssoc do
+        import Dx.Defd
+
+        defd indirect_enum_map(list) do
+          call(
+            defp_enum_map(list.tasks, fn _task ->
+              list.created_by.email
+            end)
+          )
+        end
+
+        defp defp_enum_map(enum, fun), do: Enum.map(enum, fun)
+      end
+
+      assert load(AnonFunAssoc.indirect_enum_map(list)) == {:ok, [user_email]}
+    end
+
+    test "preserves anonymous function argument references",
+         %{list: list, user: user} do
+      defmodule AnonFunLocalTest do
+        import Dx.Defd
+
+        defd indirect_enum_map(list) do
+          call(
+            defp_enum_map(list.tasks, fn task ->
+              task.created_by_id == list.created_by.id
+            end)
+          )
+        end
+
+        defp defp_enum_map(enum, fun), do: Enum.map(enum, fun)
+      end
+
+      assert load(AnonFunLocalTest.indirect_enum_map(list)) == {:ok, [true]}
+    end
+
+    test "loads duplicate reference once",
+         %{list: list, user: user} do
+      defmodule DoubleRefTest do
+        import Dx.Defd
+
+        defd double_mail(list) do
+          call(concat(list.created_by.email, list.created_by.email))
+        end
+
+        defp concat(a, b), do: a <> b
+      end
+
+      assert load(DoubleRefTest.double_mail(list)) == {:ok, user.email <> user.email}
+    end
   end
 end

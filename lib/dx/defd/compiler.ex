@@ -15,6 +15,10 @@ defmodule Dx.Defd.Compiler do
       args: %{},
       eval_var: eval_var,
       in_call?: false,
+      in_external?: false,
+      in_fn?: false,
+      is_loader?: false,
+      data_reqs: %{},
       rewrite_underscore?: false
     }
 
@@ -92,6 +96,7 @@ defmodule Dx.Defd.Compiler do
           with_args(args, state, fn state ->
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
+          |> prepend_data_reqs()
 
         {{kind, meta, args, ast}, state}
 
@@ -102,6 +107,23 @@ defmodule Dx.Defd.Compiler do
           "cannot compile #{type_str} #{name}/#{arity} with multiple clauses"
         )
     end
+  end
+
+  defp prepend_data_reqs({ast, state}) do
+    {loads, vars} = Enum.unzip(state.data_reqs)
+
+    ast =
+      if loads == [] do
+        ast
+      else
+        quote do
+          unquote(loads)
+          |> Dx.Defd.Result.map()
+          |> Dx.Defd.Result.then(fn unquote(vars) -> unquote(ast) end)
+        end
+      end
+
+    {ast, %{state | data_reqs: %{}}}
   end
 
   # merge given args into state.args for calling fun,
@@ -129,15 +151,37 @@ defmodule Dx.Defd.Compiler do
     {ast, state}
   end
 
-  def normalize({arg_name, _meta, nil} = arg, state) when is_atom(arg_name) do
-    if Map.has_key?(state.args, arg_name) do
-      {{:ok, arg}, state}
+  def normalize({var_name, _meta, nil} = var, state) when is_atom(var_name) do
+    if state.in_fn? do
+      {var, state}
+    else
+      {{:ok, var}, state}
     end
   end
 
   def normalize({:call, _meta, [ast]}, state) do
     {ast, new_state} = normalize(ast, %{state | in_call?: true})
     {ast, %{new_state | in_call?: state.in_call?}}
+  end
+
+  def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
+    {body, new_state} = normalize(body, %{state | in_fn?: true})
+    ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
+    {ast, %{new_state | in_fn?: state.in_fn?}}
+  end
+
+  # fun.()
+  def normalize({{:., meta, [module]}, meta2, args}, state) do
+    {module, state} = normalize(module, state)
+    module = Ast.unwrap(module)
+
+    {ast, new_state} =
+      normalize_call_args(args, %{state | in_external?: true}, fn args ->
+        {{:., meta, [module]}, meta2, args}
+      end)
+      |> maybe_wrap_external()
+
+    {ast, %{new_state | in_external?: state.in_external?}}
   end
 
   def normalize({fun_name, meta, args} = fun, state)
@@ -163,9 +207,13 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        normalize_call_args(args, state, fn args ->
-          {:ok, {fun_name, meta, args}}
-        end)
+        {ast, new_state} =
+          normalize_call_args(args, %{state | in_external?: true}, fn args ->
+            {fun_name, meta, args}
+          end)
+          |> maybe_wrap_external()
+
+        {ast, %{new_state | in_external?: state.in_external?}}
 
       true ->
         {fun, state}
@@ -173,10 +221,56 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
-      when is_atom(module) and is_atom(fun_name) and is_list(args) do
+      when is_atom(fun_name) and is_list(args) do
     arity = length(args)
 
     cond do
+      # Access.get/2
+      meta2[:no_parens] ->
+        case maybe_capture_loader(fun, state) do
+          {:ok, loader_ast, state} ->
+            state =
+              Map.update!(state, :data_reqs, fn data_reqs ->
+                Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
+              end)
+
+            var = state.data_reqs[loader_ast]
+            ast = if state.in_external? and state.in_fn?, do: var, else: {:ok, var}
+
+            {ast, state}
+
+          :error ->
+            if state.in_fn? do
+              {module, state} = normalize(module, state)
+
+              fun = {{:., meta, [module, fun_name]}, meta2, []}
+
+              {fun, state}
+            else
+              {module, state} = normalize(module, state)
+
+              fun =
+                quote do
+                  Dx.Defd.Util.fetch(unquote(module), unquote(fun_name), unquote(state.eval_var))
+                end
+
+              {fun, state}
+            end
+        end
+
+      # function call on dynamically computed module
+      not is_atom(module) ->
+        normalize_call_args(args, state, fn args ->
+          quote do
+            Dx.Defd.Util.maybe_call_defd(
+              unquote(module),
+              unquote(fun_name),
+              unquote(args),
+              unquote(state.eval_var)
+            )
+          end
+        end)
+
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
 
@@ -195,9 +289,13 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        normalize_call_args(args, state, fn args ->
-          {:ok, {{:., meta, [module, fun_name]}, meta2, args}}
-        end)
+        {ast, new_state} =
+          normalize_call_args(args, %{state | in_external?: true}, fn args ->
+            {{:., meta, [module, fun_name]}, meta2, args}
+          end)
+          |> maybe_wrap_external()
+
+        {ast, %{new_state | in_external?: state.in_external?}}
 
       Code.ensure_loaded?(module) ->
         compile_error!(
@@ -219,20 +317,54 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
-  # Access.get/2
-  def normalize({{:., _meta, [ast, fun_name]}, _meta2, []}, state)
-      when is_atom(fun_name) do
-    {ast, state} = normalize(ast, state)
+  def normalize({_, meta, _} = ast, state) do
+    compile_error!(meta, state, """
+    This syntax is not supported yet:
 
-    fun =
-      quote do
-        Dx.Defd.Util.fetch(unquote(ast), unquote(fun_name), unquote(state.eval_var))
-      end
-
-    {fun, state}
+    #{inspect(ast, pretty: true)}
+    """)
   end
 
-  def normalize(ast, state) do
+  def maybe_wrap_external({ast, state = %{in_fn?: true}}), do: {ast, state}
+  def maybe_wrap_external({ast, state}), do: {{:ok, ast}, state}
+
+  # Access.get/2
+  def maybe_capture_loader({{:., _meta, [ast, fun_name]}, meta2, []}, state)
+      when is_atom(fun_name) do
+    if meta2[:no_parens] do
+      case maybe_capture_loader(ast, state) do
+        {:ok, ast, state} ->
+          fun =
+            quote do
+              Dx.Defd.Util.fetch(unquote(ast), unquote(fun_name), unquote(state.eval_var))
+            end
+
+          {:ok, fun, state}
+
+        :error ->
+          :error
+      end
+    else
+      :error
+    end
+  end
+
+  def maybe_capture_loader({arg_name, _meta, nil} = arg, state) when is_atom(arg_name) do
+    if Map.has_key?(state.args, arg_name) do
+      {:ok, {:ok, arg}, state}
+    else
+      :error
+    end
+  end
+
+  def maybe_capture_loader(_ast, _state) do
+    :error
+  end
+
+  def normalize_call_args(args, state = %{in_fn?: true}, fun) do
+    {args, state} = Enum.map_reduce(args, state, &normalize/2)
+    ast = args |> fun.()
+
     {ast, state}
   end
 
