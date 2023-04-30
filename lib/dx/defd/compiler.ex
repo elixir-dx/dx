@@ -110,18 +110,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   defp prepend_data_reqs({ast, state}) do
-    {loads, vars} = Enum.unzip(state.data_reqs)
-
-    ast =
-      if loads == [] do
-        ast
-      else
-        quote do
-          unquote(loads)
-          |> Dx.Defd.Result.map()
-          |> Dx.Defd.Result.then(fn unquote(vars) -> unquote(ast) end)
-        end
-      end
+    {ast, state} = Ast.ensure_loaded(ast, state.data_reqs, state)
 
     {ast, %{state | data_reqs: %{}}}
   end
@@ -363,16 +352,28 @@ defmodule Dx.Defd.Compiler do
 
   def normalize_call_args(args, state = %{in_fn?: true}, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
-    ast = args |> fun.()
+    call_args = args |> fun.()
 
-    {ast, state}
+    {call_args, state}
   end
 
   def normalize_call_args(args, state, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
-    ast = args |> Enum.map(&Ast.unwrap/1) |> fun.()
 
-    Ast.ensure_args_loaded(ast, args, state)
+    {args, defd_reqs} =
+      Enum.map_reduce(args, %{}, fn
+        {:ok, ast}, reqs ->
+          {ast, reqs}
+
+        loader, reqs ->
+          reqs = Map.put_new(reqs, loader, Macro.unique_var(:data, __MODULE__))
+          var = reqs[loader]
+          {var, reqs}
+      end)
+
+    call_args = args |> fun.()
+
+    Ast.ensure_loaded(call_args, defd_reqs, state)
   end
 
   ## Helpers

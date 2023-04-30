@@ -66,6 +66,68 @@ defmodule Dx.Defd.Result do
     |> transform(&Enum.reverse/1)
   end
 
+  @doc """
+  Returns `{:ok, mapped_results}` if all elements map to `{:ok, result}`.
+  Otherwise, returns `{:error, e}` on error, or `{:not_loaded, data_reqs}` with all data requirements.
+
+  ## Examples
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:ok, 2},
+      ...>   {:ok, 3},
+      ...> ]
+      ...> |> Dx.Defd.Result.collect_reverse()
+      {:ok, [3, 2, 1]}
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:not_loaded, [:x]},
+      ...>   {:ok, 3},
+      ...>   {:not_loaded, [:y]},
+      ...> ]
+      ...> |> Dx.Defd.Result.collect_reverse()
+      {:not_loaded, [:y, :x]}
+
+      iex> [
+      ...>   {:ok, 1},
+      ...>   {:error, :x},
+      ...>   {:ok, 3},
+      ...>   {:not_loaded, [:y]},
+      ...> ]
+      ...> |> Dx.Defd.Result.collect_reverse()
+      {:error, :x}
+  """
+  def collect_reverse(enum) do
+    do_collect(enum, {:ok, []})
+  end
+
+  defp do_collect([], acc) do
+    acc
+  end
+
+  defp do_collect([{:error, e} | _tail], _acc) do
+    {:error, e}
+  end
+
+  defp do_collect([{:not_loaded, r1} | tail], {:not_loaded, r2}) do
+    acc = {:not_loaded, Dx.Util.deep_merge(r1, r2)}
+    do_collect(tail, acc)
+  end
+
+  defp do_collect([{:not_loaded, _reqs} = reqs | tail], _acc) do
+    do_collect(tail, reqs)
+  end
+
+  defp do_collect([{:ok, result} | tail], {:ok, results}) do
+    acc = {:ok, [result | results]}
+    do_collect(tail, acc)
+  end
+
+  defp do_collect([{:ok, _result} | tail], acc) do
+    do_collect(tail, acc)
+  end
+
   defp combine(mode, acc, elem, extra \\ nil)
 
   defp combine(_mode, _acc, {:error, e}, _), do: {:halt, {:error, e}}
