@@ -59,21 +59,13 @@ defmodule Dx.Defd.Util do
       end
   end
 
-  def fetch(map, key, eval) do
-    case Map.fetch!(map, key) do
+  def fetch(map, val, key, eval) do
+    case val do
       %Ecto.Association.NotLoaded{} ->
         eval.loader.lookup(eval.cache, {:assoc, map, key}, false)
 
       other ->
         Result.ok(other)
     end
-  end
-
-  def maybe_fetch({:ok, map}, key, eval) do
-    fetch(map, key, eval)
-  end
-
-  def maybe_fetch(other, _key, _eval) do
-    other
   end
 end

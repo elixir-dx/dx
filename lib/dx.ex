@@ -99,6 +99,35 @@ defmodule Dx do
       {:ok, result, _binds} -> {:ok, result, eval.cache}
       other -> other
     end
+  rescue
+    e ->
+      # Remove Dx's inner stacktrace and convert defd function names
+      filter_and_reraise(e, __STACKTRACE__)
+  end
+
+  defp filter_and_reraise(exception, stacktrace) do
+    stacktrace =
+      stacktrace
+      |> Enum.flat_map(fn
+        {__MODULE__, _, _, _} ->
+          []
+
+        {mod, fun_name, arity, meta} = entry ->
+          case Atom.to_string(fun_name) do
+            "__defd:" <> suffix ->
+              def_name =
+                suffix
+                |> String.trim_trailing("__")
+                |> String.to_existing_atom()
+
+              [{mod, def_name, arity - 1, meta}]
+
+            _ ->
+              [entry]
+          end
+      end)
+
+    reraise exception, stacktrace
   end
 
   @doc """

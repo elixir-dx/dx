@@ -257,7 +257,7 @@ defmodule Dx.Defd.Compiler do
               if state.in_fn? do
                 {{:., meta, [module, fun_name]}, meta2, []}
               else
-                Ast.fetch(module, fun_name, state.eval_var)
+                Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
               end
 
             {fun, state}
@@ -334,12 +334,12 @@ defmodule Dx.Defd.Compiler do
   def maybe_wrap_external({ast, state}), do: {{:ok, ast}, state}
 
   # Access.get/2
-  def maybe_capture_loader({{:., _meta, [ast, fun_name]}, meta2, []}, state)
+  def maybe_capture_loader({{:., meta, [ast, fun_name]}, meta2, []}, state)
       when is_atom(fun_name) do
     if meta2[:no_parens] do
       case maybe_capture_loader(ast, state) do
         {:ok, ast, state} ->
-          fun = Ast.fetch(ast, fun_name, state.eval_var)
+          fun = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
           {:ok, fun, state}
 
         :error ->

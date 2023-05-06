@@ -8,6 +8,33 @@ defmodule Dx.DefdTest do
     quote do: "#{unquote(file)}:#{unquote(__CALLER__.line) + unquote(plus)}"
   end
 
+  defp assert_same_error(expected_type, location, fun1, fun2) do
+    {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
+    assert e1 == e2
+
+    {type, _, stacktrace} = e1
+    assert type == expected_type
+
+    assert Enum.any?(stacktrace, &String.starts_with?(&1, location)), """
+    No stacktrace entry starts with #{location}
+
+    #{Enum.join(stacktrace, "\n")}
+    """
+  end
+
+  defp get_error_and_stacktrace(fun) do
+    fun.()
+  rescue
+    e -> {e.__struct__, Exception.message(e), stacktrace(__STACKTRACE__)}
+  end
+
+  defp stacktrace(stacktrace) do
+    stacktrace
+    |> Exception.format_stacktrace()
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.trim_leading/1)
+  end
+
   describe "constants" do
     defd bool_constant() do
       true
@@ -252,10 +279,16 @@ defmodule Dx.DefdTest do
 
     setup do
       user = create(User)
-      list = create(List, %{created_by: user}) |> Repo.reload!()
-      task = create(Task, %{list: list, created_by: user}) |> Repo.reload!()
+      list = create(List, %{created_by: user})
+      task = create(Task, %{list: list, created_by: user})
 
-      [user: user, list: list, task: task]
+      [
+        user: user,
+        preloaded_list: list,
+        list: Repo.reload!(list),
+        preloaded_task: task,
+        task: Repo.reload!(task)
+      ]
     end
 
     test "loads record.association if not loaded", %{
@@ -385,6 +418,110 @@ defmodule Dx.DefdTest do
       end
 
       assert load(DoubleRefTest.double_mail(list)) == {:ok, user.email <> user.email}
+    end
+
+    test "loads deeply nested keys from external map" do
+      defmodule DeeplyNestedMapTest do
+        import Dx.Defd
+
+        defp data(), do: %{a: %{b: %{c: :d}}}
+
+        defd deeply_nested() do
+          call(data()).a.b.c
+        end
+      end
+
+      assert load(DeeplyNestedMapTest.deeply_nested()) == {:ok, :d}
+    end
+
+    test "KeyError on invalid key", %{
+      list: list
+    } do
+      defmodule InvalidKeyTest do
+        import Dx.Defd
+
+        @dx def: :original
+        defd invalid_key(list) do
+          list.unknown
+        end
+      end
+
+      assert_same_error(
+        KeyError,
+        location(-6),
+        fn -> InvalidKeyTest.invalid_key(list) end,
+        fn -> Dx.Defd.load(InvalidKeyTest.invalid_key(list)) end
+      )
+    end
+
+    test "KeyError on invalid key from association", %{
+      preloaded_list: list
+    } do
+      defmodule InvalidNestedKeyTest do
+        import Dx.Defd
+
+        @dx def: :original
+        defd invalid_nested_key(list) do
+          list.created_by.unknown
+        end
+      end
+
+      assert_same_error(
+        KeyError,
+        location(-6),
+        fn -> InvalidNestedKeyTest.invalid_nested_key(list) end,
+        fn -> Dx.Defd.load(InvalidNestedKeyTest.invalid_nested_key(list)) end
+      )
+    end
+
+    test "KeyError on invalid key from external map", %{
+      list: list
+    } do
+      defmodule InvalidExternalKeyTest do
+        import Dx.Defd
+
+        def map() do
+          %{}
+        end
+
+        defp call(arg) do
+          arg
+        end
+
+        @dx def: :original
+        defd invalid_external_key() do
+          call(map()).unknown
+        end
+      end
+
+      assert_same_error(
+        KeyError,
+        location(-6),
+        fn -> InvalidExternalKeyTest.invalid_external_key() end,
+        fn -> Dx.Defd.load(InvalidExternalKeyTest.invalid_external_key()) end
+      )
+    end
+
+    test "ArgumentError on invalid typed argument", %{
+      list: list
+    } do
+      defmodule InvalidCallTest do
+        import Dx.Defd
+
+        defp call(arg), do: arg
+
+        @dx def: :original
+        defd invalid_arg(list) do
+          call(String.to_integer(list))
+        end
+      end
+
+      assert_same_error(
+        ArgumentError,
+        location(-6),
+        fn -> InvalidCallTest.invalid_arg(list) end,
+        fn -> Dx.Defd.load(InvalidCallTest.invalid_arg(list)) end
+      )
     end
   end
 end
