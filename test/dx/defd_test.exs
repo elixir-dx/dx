@@ -22,6 +22,38 @@ defmodule Dx.DefdTest do
                bool_constant()
              end) =~ "Use Dx.load as entrypoint"
     end
+
+    test "emits no compiler warning when def: :no_warn" do
+      defmodule OptsDefTest do
+        import Dx.Defd
+
+        @dx def: :no_warn
+        defd no_warn() do
+          :ok
+        end
+
+        defd default() do
+          :ok
+        end
+
+        @dx def: :original
+        defd original() do
+          :ok
+        end
+      end
+
+      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
+               OptsDefTest.no_warn()
+             end) == ""
+
+      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
+               OptsDefTest.default()
+             end) =~ "Use Dx.load as entrypoint"
+
+      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
+               OptsDefTest.original()
+             end) == ""
+    end
   end
 
   describe "simple arg" do

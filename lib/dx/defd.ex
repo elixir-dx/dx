@@ -50,7 +50,8 @@ defmodule Dx.Defd do
         unquote(kind),
         unquote(name),
         unquote(arity),
-        %{unquote_splicing(defaults)}
+        %{unquote_splicing(defaults)},
+        Module.delete_attribute(__MODULE__, :dx)
       )
 
       unquote(kind)(unquote(call)) do
@@ -89,7 +90,7 @@ defmodule Dx.Defd do
   @defd_exports_key :__defd_exports__
 
   @doc false
-  def __define__(module, kind, name, arity, defaults) do
+  def __define__(module, kind, name, arity, defaults, opts) do
     exports =
       if exports = Module.get_attribute(module, @defd_exports_key) do
         exports
@@ -100,7 +101,8 @@ defmodule Dx.Defd do
 
     current_export = %{
       kind: kind,
-      defaults: defaults
+      defaults: defaults,
+      opts: opts || []
     }
 
     exports = Map.put(exports, {name, arity}, current_export)

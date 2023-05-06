@@ -35,9 +35,9 @@ defmodule Dx.Defd.Compiler do
   end
 
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
-    %{defaults: defaults} = def_meta
+    %{defaults: defaults, opts: opts} = def_meta
 
-    {{kind, _meta, args, ast}, state} = get_and_normalize_defd(def, state)
+    {{kind, meta, args, ast}, state} = get_and_normalize_defd(def, state)
 
     defd_name = Util.defd_name(name)
 
@@ -50,17 +50,39 @@ defmodule Dx.Defd.Compiler do
       end) ++ [state.eval_var]
 
     all_args = Macro.generate_arguments(arity, __MODULE__)
-    Module.delete_definition(state.module, def)
 
     entrypoint =
-      quote line: state.line do
-        Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
-          IO.warn("""
-          Use Dx.load as entrypoint.
-          """)
+      case Keyword.get(opts, :def, :warn) do
+        :warn ->
+          Module.delete_definition(state.module, def)
 
-          Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
-        end
+          quote line: state.line do
+            Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
+              IO.warn("""
+              Use Dx.load as entrypoint.
+              """)
+
+              Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
+            end
+          end
+          |> strip_definition_context()
+
+        :no_warn ->
+          Module.delete_definition(state.module, def)
+
+          quote line: state.line do
+            Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
+              Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
+            end
+          end
+          |> strip_definition_context()
+
+        :original ->
+          quote do
+          end
+
+        invalid ->
+          compile_error!(meta, state, "Invalid option @dx def: #{inspect(invalid)}")
       end
 
     impl =
@@ -70,7 +92,7 @@ defmodule Dx.Defd.Compiler do
         end
       end
 
-    {strip_definition_context(entrypoint), impl}
+    {entrypoint, impl}
   end
 
   # If the definition has a context, we don't warn when it goes unused,
