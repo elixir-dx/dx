@@ -59,12 +59,7 @@ defmodule Dx.Defd.Util do
       end
   end
 
-  def fetch!(map, key, eval) do
-    {:ok, val} = fetch(map, key, eval)
-    val
-  end
-
-  def fetch({:ok, map}, key, eval) do
+  def fetch(map, key, eval) do
     case Map.fetch!(map, key) do
       %Ecto.Association.NotLoaded{} ->
         eval.loader.lookup(eval.cache, {:assoc, map, key}, false)
@@ -72,11 +67,13 @@ defmodule Dx.Defd.Util do
       other ->
         Result.ok(other)
     end
-  rescue
-    e in KeyError -> {:error, {e, __STACKTRACE__}}
   end
 
-  def fetch(other, _key, _eval) do
+  def maybe_fetch({:ok, map}, key, eval) do
+    fetch(map, key, eval)
+  end
+
+  def maybe_fetch(other, _key, _eval) do
     other
   end
 end

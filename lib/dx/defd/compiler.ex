@@ -110,7 +110,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   defp prepend_data_reqs({ast, state}) do
-    {ast, state} = Ast.ensure_loaded(ast, state.data_reqs, state)
+    ast = Ast.ensure_loaded(ast, state.data_reqs)
 
     {ast, %{state | data_reqs: %{}}}
   end
@@ -229,22 +229,16 @@ defmodule Dx.Defd.Compiler do
             {ast, state}
 
           :error ->
-            if state.in_fn? do
-              {module, state} = normalize(module, state)
+            {module, state} = normalize(module, state)
 
-              fun = {{:., meta, [module, fun_name]}, meta2, []}
+            fun =
+              if state.in_fn? do
+                {{:., meta, [module, fun_name]}, meta2, []}
+              else
+                Ast.fetch(module, fun_name, state.eval_var)
+              end
 
-              {fun, state}
-            else
-              {module, state} = normalize(module, state)
-
-              fun =
-                quote do
-                  Dx.Defd.Util.fetch(unquote(module), unquote(fun_name), unquote(state.eval_var))
-                end
-
-              {fun, state}
-            end
+            {fun, state}
         end
 
       # function call on dynamically computed module
@@ -323,11 +317,7 @@ defmodule Dx.Defd.Compiler do
     if meta2[:no_parens] do
       case maybe_capture_loader(ast, state) do
         {:ok, ast, state} ->
-          fun =
-            quote do
-              Dx.Defd.Util.fetch(unquote(ast), unquote(fun_name), unquote(state.eval_var))
-            end
-
+          fun = Ast.fetch(ast, fun_name, state.eval_var)
           {:ok, fun, state}
 
         :error ->
@@ -372,8 +362,9 @@ defmodule Dx.Defd.Compiler do
       end)
 
     call_args = args |> fun.()
+    ast = Ast.ensure_loaded(call_args, defd_reqs)
 
-    Ast.ensure_loaded(call_args, defd_reqs, state)
+    {ast, state}
   end
 
   ## Helpers

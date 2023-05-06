@@ -98,34 +98,32 @@ defmodule Dx.Defd.Result do
       ...> |> Dx.Defd.Result.collect_reverse()
       {:error, :x}
   """
-  def collect_reverse(enum) do
-    do_collect(enum, {:ok, []})
-  end
+  def collect_reverse(list, acc \\ {:ok, []})
 
-  defp do_collect([], acc) do
+  def collect_reverse([], acc) do
     acc
   end
 
-  defp do_collect([{:error, e} | _tail], _acc) do
+  def collect_reverse([{:error, e} | _tail], _acc) do
     {:error, e}
   end
 
-  defp do_collect([{:not_loaded, r1} | tail], {:not_loaded, r2}) do
+  def collect_reverse([{:not_loaded, r1} | tail], {:not_loaded, r2}) do
     acc = {:not_loaded, Dx.Util.deep_merge(r1, r2)}
-    do_collect(tail, acc)
+    collect_reverse(tail, acc)
   end
 
-  defp do_collect([{:not_loaded, _reqs} = reqs | tail], _acc) do
-    do_collect(tail, reqs)
+  def collect_reverse([{:not_loaded, _reqs} = reqs | tail], _acc) do
+    collect_reverse(tail, reqs)
   end
 
-  defp do_collect([{:ok, result} | tail], {:ok, results}) do
+  def collect_reverse([{:ok, result} | tail], {:ok, results}) do
     acc = {:ok, [result | results]}
-    do_collect(tail, acc)
+    collect_reverse(tail, acc)
   end
 
-  defp do_collect([{:ok, _result} | tail], acc) do
-    do_collect(tail, acc)
+  def collect_reverse([{:ok, _result} | tail], acc) do
+    collect_reverse(tail, acc)
   end
 
   defp combine(mode, acc, elem, extra \\ nil)
