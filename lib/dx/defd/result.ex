@@ -126,6 +126,18 @@ defmodule Dx.Defd.Result do
     collect_reverse(tail, acc)
   end
 
+  def merge(_acc, {:error, e}), do: {:halt, {:error, e}}
+
+  def merge({:not_loaded, r1}, {:not_loaded, r2}),
+    do: {:cont, {:not_loaded, Dx.Util.deep_merge(r1, r2)}}
+
+  def merge(_acc, {:not_loaded, reqs}), do: {:cont, {:not_loaded, reqs}}
+
+  def merge({:not_loaded, reqs}, {:ok, _}), do: {:cont, {:not_loaded, reqs}}
+
+  def merge({:ok, results}, {:ok, result}),
+    do: {:cont, {:ok, Dx.Util.deep_merge(results, result)}}
+
   defp combine(mode, acc, elem, extra \\ nil)
 
   defp combine(_mode, _acc, {:error, e}, _), do: {:halt, {:error, e}}

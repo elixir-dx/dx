@@ -75,4 +75,18 @@ defmodule Dx.Defd.Ast do
       end
     end
   end
+
+  ## Helpers
+
+  def compile_error!(meta, state, description) do
+    line = meta[:line] || state.line
+    raise CompileError, line: line, file: state.file, description: description
+  end
+
+  def warn(meta, state, message) do
+    line = meta[:line] || state.line
+    {name, arity} = state.function
+    entry = {state.module, name, arity, [file: String.to_charlist(state.file), line: line]}
+    IO.warn(message, [entry])
+  end
 end

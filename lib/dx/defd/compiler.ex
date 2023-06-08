@@ -195,6 +195,10 @@ defmodule Dx.Defd.Compiler do
     {ast, %{new_state | in_external?: state.in_external?}}
   end
 
+  def normalize({:case, _meta, _args} = ast, state) do
+    Dx.Defd.Case.normalize(ast, state)
+  end
+
   def normalize({fun_name, meta, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
@@ -391,12 +395,12 @@ defmodule Dx.Defd.Compiler do
 
   ## Helpers
 
-  defp compile_error!(meta, state, description) do
+  def compile_error!(meta, state, description) do
     line = meta[:line] || state.line
     raise CompileError, line: line, file: state.file, description: description
   end
 
-  defp warn(meta, state, message) do
+  def warn(meta, state, message) do
     line = meta[:line] || state.line
     {name, arity} = state.function
     entry = {state.module, name, arity, [file: String.to_charlist(state.file), line: line]}

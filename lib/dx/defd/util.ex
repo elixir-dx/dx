@@ -59,6 +59,10 @@ defmodule Dx.Defd.Util do
       end
   end
 
+  def fetch(map, subset, eval) when is_map(subset) do
+    eval.loader.lookup(eval.cache, {:subset, map, subset}, false)
+  end
+
   def fetch(map, val, key, eval) do
     case val do
       %Ecto.Association.NotLoaded{} ->
