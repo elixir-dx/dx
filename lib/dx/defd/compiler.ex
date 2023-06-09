@@ -37,6 +37,9 @@ defmodule Dx.Defd.Compiler do
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
     %{defaults: defaults, opts: opts} = def_meta
 
+    all_args = Macro.generate_arguments(arity, __MODULE__)
+    state = Map.put(state, :all_args, all_args)
+
     {{kind, meta, args, ast}, state} = get_and_normalize_defd(def, state)
 
     defd_name = Util.defd_name(name)
@@ -48,8 +51,6 @@ defmodule Dx.Defd.Compiler do
           %{} -> arg
         end
       end) ++ [state.eval_var]
-
-    all_args = Macro.generate_arguments(arity, __MODULE__)
 
     entrypoint =
       case Keyword.get(opts, :def, :warn) do
@@ -115,19 +116,28 @@ defmodule Dx.Defd.Compiler do
       [{meta, args, [], ast}] ->
         # {args, state} = normalize_args(args, meta, state)
         {ast, state} =
-          with_args(args, state, fn state ->
+          Ast.with_args(args, state, fn state ->
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
           |> prepend_data_reqs()
 
         {{kind, meta, args, ast}, state}
 
-      [_, _ | _] ->
-        compile_error!(
-          meta,
-          state,
-          "cannot compile #{type_str} #{name}/#{arity} with multiple clauses"
-        )
+      [{meta, _args, _, _} | _] = clauses ->
+        {ast, state} =
+          Enum.map_reduce(clauses, state, fn {meta, args, [], ast}, state ->
+            ast = {:->, meta, [[Ast.wrap_args(args)], ast]}
+
+            {ast, state}
+          end)
+
+        ast = {:case, [], [Ast.wrap_args(state.all_args), [do: ast]]}
+
+        {ast, state} =
+          Dx.Defd.Case.normalize(ast, state)
+          |> prepend_data_reqs()
+
+        {{kind, meta, state.all_args, ast}, state}
     end
   end
 
@@ -135,22 +145,6 @@ defmodule Dx.Defd.Compiler do
     ast = Ast.ensure_loaded(ast, state.data_reqs)
 
     {ast, %{state | data_reqs: %{}}}
-  end
-
-  # merge given args into state.args for calling fun,
-  # then reset state.args to its original value
-  defp with_args(args, state, fun) do
-    temp_state = Map.update!(state, :args, &Map.merge(&1, args_map(args)))
-
-    case fun.(temp_state) do
-      {ast, updated_state} -> {ast, %{updated_state | args: state.args}}
-    end
-  end
-
-  defp args_map(args) do
-    Enum.reduce(args, %{}, fn
-      {arg_name, _meta, nil} = arg, acc when is_atom(arg_name) -> Map.put(acc, arg_name, arg)
-    end)
   end
 
   defguardp is_simple(val)

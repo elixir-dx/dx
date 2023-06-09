@@ -82,6 +82,40 @@ defmodule Dx.Defd.CaseTest do
 
       assert {:ok, %{id: ^user_id}} = load(FullAssocTest.created_by(list))
     end
+
+    test "matches list", %{list: list, user: %{id: user_id}} do
+      defmodule ListTest do
+        import Dx.Defd
+
+        defd created_by(list, mode) do
+          case [list, mode] do
+            [%{created_by: user}, :record] -> user
+            [%{created_by_id: user_id}, :id] -> user_id
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(ListTest.created_by(list, :record))
+      assert {:ok, ^user_id} = load(ListTest.created_by(list, :id))
+    end
+
+    test "matches tuple", %{list: list, user: %{id: user_id}} do
+      defmodule TupleTest do
+        import Dx.Defd
+
+        defd created_by(list, mode) do
+          case {list, mode} do
+            {%{created_by: user}, :record} -> user
+            {%{created_by_id: user_id}, :id} -> user_id
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(TupleTest.created_by(list, :record))
+      assert {:ok, ^user_id} = load(TupleTest.created_by(list, :id))
+    end
   end
 
   describe "compile error" do

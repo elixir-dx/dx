@@ -57,6 +57,28 @@ defmodule Dx.Defd.Case do
     data_req_from_clauses(tail, acc)
   end
 
+  defp quoted_data_req({elem_0, elem_1}) do
+    %{{:__tuple__, 2} => %{0 => quoted_data_req(elem_0), 1 => quoted_data_req(elem_1)}}
+  end
+
+  defp quoted_data_req({:{}, _meta, tuple_elems}) do
+    inner_reqs =
+      tuple_elems
+      |> Enum.with_index()
+      |> Map.new(fn {elem, index} -> {index, quoted_data_req(elem)} end)
+
+    %{{:__tuple__, length(tuple_elems)} => inner_reqs}
+  end
+
+  defp quoted_data_req(list) when is_list(list) do
+    inner_reqs =
+      list
+      |> Enum.with_index()
+      |> Map.new(fn {elem, index} -> {index, quoted_data_req(elem)} end)
+
+    %{:__list__ => inner_reqs}
+  end
+
   defp quoted_data_req({:%, _meta, [_type, map]}) do
     quoted_data_req(map)
   end

@@ -40,6 +40,49 @@ defmodule Dx.Defd.Ast do
     end
   end
 
+  def wrap_args([arg]) do
+    arg
+  end
+
+  def wrap_args(args) do
+    List.wrap(args)
+  end
+
+  # merge given args into state.args for calling fun,
+  # then reset state.args to its original value
+  def with_args(args, state, fun) do
+    temp_state = Map.update!(state, :args, &collect_vars(args, &1))
+
+    case fun.(temp_state) do
+      {ast, updated_state} -> {ast, %{updated_state | args: state.args}}
+    end
+  end
+
+  def collect_vars({:%, _meta, [_type, map]}, acc) do
+    collect_vars(map, acc)
+  end
+
+  def collect_vars({:%{}, _meta, pairs}, acc) do
+    Enum.reduce(pairs, acc, fn {k, v}, acc ->
+      acc = collect_vars(k, acc)
+      collect_vars(v, acc)
+    end)
+  end
+
+  def collect_vars({var_name, _meta, context} = var, acc)
+      when is_atom(var_name) and is_atom(context) do
+    Map.put(acc, var_name, var)
+  end
+
+  def collect_vars([ast | tail], acc) do
+    acc = collect_vars(ast, acc)
+    collect_vars(tail, acc)
+  end
+
+  def collect_vars(_other, acc) do
+    acc
+  end
+
   def fetch({:ok, ast}, key, eval, line) when is_var(ast) do
     asty = {{:., [line: line], [ast, key]}, [no_parens: true, line: line], []}
 
@@ -74,19 +117,5 @@ defmodule Dx.Defd.Ast do
           other
       end
     end
-  end
-
-  ## Helpers
-
-  def compile_error!(meta, state, description) do
-    line = meta[:line] || state.line
-    raise CompileError, line: line, file: state.file, description: description
-  end
-
-  def warn(meta, state, message) do
-    line = meta[:line] || state.line
-    {name, arity} = state.function
-    entry = {state.module, name, arity, [file: String.to_charlist(state.file), line: line]}
-    IO.warn(message, [entry])
   end
 end
