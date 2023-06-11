@@ -126,6 +126,28 @@ defmodule Dx.Defd.Result do
     collect_reverse(tail, acc)
   end
 
+  def collect(results) do
+    collect_reverse(results, {:ok, []})
+    |> transform(&Enum.reverse/1)
+  end
+
+  def collect_ok(results) do
+    collect_ok_reverse(results, [])
+    |> transform(&Enum.reverse/1)
+  end
+
+  def collect_ok_reverse([], acc) do
+    {:ok, acc}
+  end
+
+  def collect_ok_reverse([{:ok, result} | tail], acc) do
+    collect_ok_reverse(tail, [result | acc])
+  end
+
+  def collect_ok_reverse([_ | _tail], _acc) do
+    :error
+  end
+
   def merge(_acc, {:error, e}), do: {:halt, {:error, e}}
 
   def merge({:not_loaded, r1}, {:not_loaded, r2}),

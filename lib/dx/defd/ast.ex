@@ -1,7 +1,5 @@
 defmodule Dx.Defd.Ast do
-  defguardp is_var(var)
-            when is_tuple(var) and tuple_size(var) == 3 and is_atom(elem(var, 0)) and
-                   is_atom(elem(var, 2))
+  import __MODULE__.Guards
 
   def ensure_loaded(ast, data_reqs) do
     {loaders, vars} = Enum.unzip(data_reqs)
@@ -48,14 +46,38 @@ defmodule Dx.Defd.Ast do
     List.wrap(args)
   end
 
+  def var_id({var_name, meta, context}) do
+    {var_name, Keyword.take(meta, [:version, :counter]), context}
+  end
+
   # merge given args into state.args for calling fun,
   # then reset state.args to its original value
   def with_args(args, state, fun) do
+    new_vars = collect_vars(args, %{})
     temp_state = Map.update!(state, :args, &collect_vars(args, &1))
 
     case fun.(temp_state) do
-      {ast, updated_state} -> {ast, %{updated_state | args: state.args}}
+      {ast, updated_state} ->
+        {ast, %{updated_state | args: state.args}}
+        |> prepend_data_reqs_in(new_vars)
     end
+  end
+
+  defp prepend_data_reqs_in({ast, state}, vars) do
+    {local_data_reqs, other_data_reqs} =
+      Enum.split_with(state.data_reqs, fn {loader_ast, _data_var} ->
+        any_var_in?(loader_ast, vars)
+      end)
+
+    ast = ensure_loaded(ast, Map.new(local_data_reqs))
+
+    {ast, %{state | data_reqs: Map.new(other_data_reqs)}}
+  end
+
+  defp any_var_in?(ast, vars) do
+    ast
+    |> collect_vars(%{})
+    |> Enum.any?(fn {var, _} -> Map.has_key?(vars, var) end)
   end
 
   def collect_vars({:%, _meta, [_type, map]}, acc) do
@@ -69,14 +91,17 @@ defmodule Dx.Defd.Ast do
     end)
   end
 
-  def collect_vars({var_name, _meta, context} = var, acc)
-      when is_atom(var_name) and is_atom(context) do
-    Map.put(acc, var_name, var)
+  def collect_vars({_, _, args}, acc) when is_list(args) do
+    collect_vars(args, acc)
   end
 
   def collect_vars([ast | tail], acc) do
     acc = collect_vars(ast, acc)
     collect_vars(tail, acc)
+  end
+
+  def collect_vars(var, acc) when is_var(var) do
+    Map.put(acc, var_id(var), true)
   end
 
   def collect_vars(_other, acc) do

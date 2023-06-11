@@ -2,6 +2,8 @@ defmodule Dx.Defd.Compiler do
   alias Dx.Defd.Ast
   alias Dx.Defd.Util
 
+  import Ast.Guards
+
   @doc false
   def __compile__(%Macro.Env{module: module, file: file, line: line}, exports, eval_var) do
     defds = compile_prepare_arities(exports)
@@ -119,44 +121,114 @@ defmodule Dx.Defd.Compiler do
           Ast.with_args(args, state, fn state ->
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
-          |> prepend_data_reqs()
+
+        if not Enum.empty?(state.data_reqs) do
+          compile_error!(meta, state, """
+          Remaining state.data_reqs at function root level:
+
+          #{inspect(state.data_reqs, pretty: true)}
+          """)
+        end
 
         {{kind, meta, args, ast}, state}
 
       [{meta, _args, _, _} | _] = clauses ->
-        {ast, state} =
-          Enum.map_reduce(clauses, state, fn {meta, args, [], ast}, state ->
-            ast = {:->, meta, [[Ast.wrap_args(args)], ast]}
-
-            {ast, state}
+        case_clauses =
+          Enum.map(clauses, fn {meta, args, [], ast} ->
+            {:->, meta, [[Ast.wrap_args(args)], ast]}
           end)
 
-        ast = {:case, [], [Ast.wrap_args(state.all_args), [do: ast]]}
+        line = meta[:line] || state.line
+        case_ast = {:case, [line: line], [Ast.wrap_args(state.all_args), [do: case_clauses]]}
 
-        {ast, state} =
-          Dx.Defd.Case.normalize(ast, state)
-          |> prepend_data_reqs()
+        {ast, state} = Dx.Defd.Case.normalize(case_ast, state)
 
         {{kind, meta, state.all_args, ast}, state}
     end
   end
-
-  defp prepend_data_reqs({ast, state}) do
-    ast = Ast.ensure_loaded(ast, state.data_reqs)
-
-    {ast, %{state | data_reqs: %{}}}
-  end
-
-  defguardp is_simple(val)
-            when is_integer(val) or is_float(val) or is_atom(val) or is_binary(val) or
-                   is_boolean(val) or is_nil(val) or is_struct(val)
 
   def normalize(ast, state) when is_simple(ast) do
     ast = {:ok, ast}
     {ast, state}
   end
 
-  def normalize({var_name, _meta, nil} = var, state) when is_atom(var_name) do
+  # []
+  def normalize([], state) do
+    {{:ok, []}, state}
+  end
+
+  # [...]
+  def normalize(ast, state) when is_list(ast) do
+    {ast, state} = Enum.map_reduce(ast, state, &normalize/2)
+
+    ast =
+      case Dx.Defd.Result.collect_ok(ast) do
+        {:ok, ast} ->
+          # unwrapped at compile-time
+          {:ok, ast}
+
+        :error ->
+          # unwrap at runtime
+          line =
+            case ast do
+              [{_, meta, _} | _] -> meta[:line] || state.line
+              _other -> state.line
+            end
+
+          quote line: line do
+            Dx.Defd.Result.collect(unquote(ast))
+          end
+      end
+
+    {ast, state}
+  end
+
+  # {_, _}
+  def normalize({elem_0, elem_1}, state) do
+    ast = [elem_0, elem_1]
+    {ast, state} = Enum.map_reduce(ast, state, &normalize/2)
+
+    ast =
+      case Dx.Defd.Result.collect_ok(ast) do
+        {:ok, [elem_0, elem_1]} ->
+          # unwrapped at compile-time
+          {:ok, {elem_0, elem_1}}
+
+        :error ->
+          # unwrap at runtime
+          quote do
+            Dx.Defd.Result.collect(unquote(ast))
+            |> Dx.Defd.Result.transform(fn [e0, e1] -> {e0, e1} end)
+          end
+      end
+
+    {ast, state}
+  end
+
+  # {...}
+  def normalize({:{}, meta, elems}, state) do
+    {ast, state} = Enum.map_reduce(elems, state, &normalize/2)
+
+    ast =
+      case Dx.Defd.Result.collect_ok(ast) do
+        {:ok, list} ->
+          # unwrapped at compile-time
+          {:ok, {:{}, meta, list}}
+
+        :error ->
+          # unwrap at runtime
+          line = meta[:line] || state.line
+
+          quote line: line do
+            Dx.Defd.Result.collect(unquote(ast))
+            |> Dx.Defd.Result.transform(&List.to_tuple/1)
+          end
+      end
+
+    {ast, state}
+  end
+
+  def normalize(var, state) when is_var(var) do
     if state.in_fn? do
       {var, state}
     else
@@ -324,7 +396,7 @@ defmodule Dx.Defd.Compiler do
     compile_error!(meta, state, """
     This syntax is not supported yet:
 
-    #{inspect(ast, pretty: true)}
+    #{Macro.to_string(ast)}
     """)
   end
 
@@ -348,9 +420,9 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
-  def maybe_capture_loader({arg_name, _meta, nil} = arg, state) when is_atom(arg_name) do
-    if Map.has_key?(state.args, arg_name) do
-      {:ok, {:ok, arg}, state}
+  def maybe_capture_loader(var, state) when is_var(var) do
+    if Map.has_key?(state.args, Ast.var_id(var)) do
+      {:ok, {:ok, var}, state}
     else
       :error
     end

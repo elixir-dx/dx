@@ -1,9 +1,23 @@
 defmodule Dx.Defd.Case do
+  alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
 
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
     data_req = data_req_from_clauses(clauses, %{})
     quoted_data_req = Macro.escape(data_req)
+
+    {subject, state} = Compiler.normalize(subject, state)
+
+    {subject, state} =
+      case subject do
+        {:ok, subject} ->
+          {subject, state}
+
+        loader ->
+          reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+          var = reqs[loader]
+          {var, %{state | data_reqs: reqs}}
+      end
 
     {clauses, state} = normalize_clauses(clauses, state)
 
@@ -41,7 +55,11 @@ defmodule Dx.Defd.Case do
   end
 
   def normalize_clause({:->, meta, [[pattern], ast]}, state) do
-    {ast, state} = Compiler.normalize(ast, state)
+    {ast, state} =
+      Ast.with_args(pattern, state, fn state ->
+        Compiler.normalize(ast, state)
+      end)
+
     ast = {:->, meta, [[pattern], ast]}
 
     {ast, state}
