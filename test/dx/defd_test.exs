@@ -15,7 +15,7 @@ defmodule Dx.DefdTest do
     end
 
     test "emits compiler warning when called directly" do
-      defmodule BoolConstTest do
+      defmodule DirectCallTest do
         import Dx.Defd
 
         defd bool_constant() do
@@ -24,7 +24,7 @@ defmodule Dx.DefdTest do
       end
 
       assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               BoolConstTest.bool_constant()
+               DirectCallTest.bool_constant()
              end) =~ "Use Dx.load as entrypoint"
     end
 

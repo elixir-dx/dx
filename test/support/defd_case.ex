@@ -19,8 +19,6 @@ defmodule Dx.Test.DefdCase do
 
     def assert_same_error(expected_type, location, fun1, fun2) do
       {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
-      dbg(elem(e1, 0))
-      dbg(elem(e2, 0))
       assert e1 == e2
 
       {_, type, _, stacktrace} = e1
