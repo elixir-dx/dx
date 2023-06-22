@@ -4,7 +4,6 @@ defmodule Dx.Defd.Case do
 
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
     data_req = data_req_from_clauses(clauses, %{})
-    quoted_data_req = Macro.escape(data_req)
 
     {subject, state} = Compiler.normalize(subject, state)
 
@@ -21,18 +20,24 @@ defmodule Dx.Defd.Case do
 
     {clauses, state} = normalize_clauses(clauses, state)
 
-    subject_var = Macro.unique_var(:subject, __MODULE__)
-    ast = {:case, meta, [subject_var, [do: clauses]]}
-
     ast =
-      quote do
-        case Dx.Defd.Util.fetch(
-               unquote(subject),
-               unquote(quoted_data_req),
-               unquote(state.eval_var)
-             ) do
-          {:ok, unquote(subject_var)} -> unquote(ast)
-          other -> other
+      if data_req == %{} do
+        # nothing to load in any pattern
+        {:case, meta, [subject, [do: clauses]]}
+      else
+        # ensure data requirements are preloaded
+        subject_var = Macro.unique_var(:subject, __MODULE__)
+        case_ast = {:case, meta, [subject_var, [do: clauses]]}
+
+        quote do
+          case Dx.Defd.Util.fetch(
+                 unquote(subject),
+                 unquote(Macro.escape(data_req)),
+                 unquote(state.eval_var)
+               ) do
+            {:ok, unquote(subject_var)} -> unquote(case_ast)
+            other -> other
+          end
         end
       end
 
@@ -76,25 +81,15 @@ defmodule Dx.Defd.Case do
   end
 
   defp quoted_data_req({elem_0, elem_1}) do
-    %{{:__tuple__, 2} => %{0 => quoted_data_req(elem_0), 1 => quoted_data_req(elem_1)}}
+    maybe_add_elems({:__tuple__, 2}, [elem_0, elem_1])
   end
 
   defp quoted_data_req({:{}, _meta, tuple_elems}) do
-    inner_reqs =
-      tuple_elems
-      |> Enum.with_index()
-      |> Map.new(fn {elem, index} -> {index, quoted_data_req(elem)} end)
-
-    %{{:__tuple__, length(tuple_elems)} => inner_reqs}
+    maybe_add_elems({:__tuple__, length(tuple_elems)}, tuple_elems)
   end
 
   defp quoted_data_req(list) when is_list(list) do
-    inner_reqs =
-      list
-      |> Enum.with_index()
-      |> Map.new(fn {elem, index} -> {index, quoted_data_req(elem)} end)
-
-    %{:__list__ => inner_reqs}
+    maybe_add_elems(:__list__, list)
   end
 
   defp quoted_data_req({:%, _meta, [_type, map]}) do
@@ -111,4 +106,19 @@ defmodule Dx.Defd.Case do
   defp quoted_data_req(_other) do
     %{}
   end
+
+  defp maybe_add_elems(key, elems) do
+    maybe_add_nested(%{}, key, maybe_add_elems(elems))
+  end
+
+  defp maybe_add_elems(list) do
+    list
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {elem, index}, acc ->
+      maybe_add_nested(acc, index, quoted_data_req(elem))
+    end)
+  end
+
+  defp maybe_add_nested(map, _key, val) when val == %{}, do: map
+  defp maybe_add_nested(map, key, val), do: Map.put(map, key, val)
 end
