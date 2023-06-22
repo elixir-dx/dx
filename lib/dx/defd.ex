@@ -29,8 +29,34 @@ defmodule Dx.Defd do
     {defd_name, meta, args}
   end
 
+  defmacro defd(call) do
+    define_defd(:def, call, __CALLER__)
+  end
+
   defmacro defd(call, do: block) do
     define_defd(:def, call, block, __CALLER__)
+  end
+
+  defp define_defd(kind, call, env) do
+    assert_no_guards!(kind, call, env)
+    # Note name here is not necessarily an atom due to unquote(name) support
+    {name, args} = decompose_call!(kind, call, env)
+    arity = length(args)
+
+    defaults = defaults_for(args)
+
+    quote do
+      unquote(__MODULE__).__define__(
+        __MODULE__,
+        unquote(kind),
+        unquote(name),
+        unquote(arity),
+        %{unquote_splicing(defaults)},
+        Module.delete_attribute(__MODULE__, :dx)
+      )
+
+      unquote(kind)(unquote(call))
+    end
   end
 
   defp define_defd(kind, call, block, env) do
@@ -39,10 +65,7 @@ defmodule Dx.Defd do
     {name, args} = decompose_call!(kind, call, env)
     arity = length(args)
 
-    defaults =
-      for {{:\\, meta, [_, default]}, i} <- Enum.with_index(args),
-          do: {i, {meta, Macro.escape(default)}},
-          into: []
+    defaults = defaults_for(args)
 
     quote do
       unquote(__MODULE__).__define__(
@@ -58,6 +81,12 @@ defmodule Dx.Defd do
         unquote(block)
       end
     end
+  end
+
+  defp defaults_for(args) do
+    for {{:\\, meta, [_var, default]}, i} <- Enum.with_index(args),
+        do: {i, {meta, Macro.escape(default)}},
+        into: []
   end
 
   defp decompose_call!(kind, {:when, _, [call, _guards]}, env),
@@ -105,7 +134,7 @@ defmodule Dx.Defd do
       opts: opts || []
     }
 
-    exports = Map.put(exports, {name, arity}, current_export)
+    exports = Map.put_new(exports, {name, arity}, current_export)
 
     Module.put_attribute(module, @defd_exports_key, exports)
     :ok
