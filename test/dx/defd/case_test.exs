@@ -1,12 +1,5 @@
 defmodule Dx.Defd.CaseTest do
-  use Dx.Test.DataCase, async: true
-
-  import Dx.Defd
-
-  defmacrop location(plus) do
-    file = Path.relative_to_cwd(__CALLER__.file)
-    quote do: "#{unquote(file)}:#{unquote(__CALLER__.line) + unquote(plus)}"
-  end
+  use Dx.Test.DefdCase, async: true
 
   describe "data loading" do
     setup do

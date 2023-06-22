@@ -32,6 +32,10 @@ defmodule Dx.Loaders.Dataloader do
     end)
   end
 
+  def lookup(_cache, {:subset, subject, _subset}, third_elem) do
+    if third_elem, do: Result.ok(subject), else: Dx.Defd.Result.ok(subject)
+  end
+
   def lookup(cache, data_req, third_elem) do
     case apply(Dataloader, :get, [cache | args_for(data_req)]) do
       {:error, "Unable to find " <> _} ->

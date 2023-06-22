@@ -1,12 +1,5 @@
 defmodule Dx.Defd.ArgsTest do
-  use Dx.Test.DataCase, async: true
-
-  import Dx.Defd
-
-  defmacrop location(plus) do
-    file = Path.relative_to_cwd(__CALLER__.file)
-    quote do: "#{unquote(file)}:#{unquote(__CALLER__.line) + unquote(plus)}"
-  end
+  use Dx.Test.DefdCase, async: true
 
   describe "data loading" do
     setup do
@@ -139,6 +132,51 @@ defmodule Dx.Defd.ArgsTest do
       assert_raise CaseClauseError, fn ->
         load(CallingDefaultArgs.call_defargs_error())
       end
+    end
+
+    test "raises correct error when one function clause doesn't match" do
+      defmodule ClauseErrorTest do
+        import Dx.Defd
+
+        @dx def: :original
+        defd created_by_id(%{created_by: %{id: id}}) do
+          id
+        end
+      end
+
+      assert_same_error(
+        FunctionClauseError,
+        location(-7),
+        fn -> ClauseErrorTest.created_by_id(nil) end,
+        fn ->
+          load(ClauseErrorTest.created_by_id(nil))
+        end
+      )
+    end
+
+    @tag :skip
+    test "raises correct error when no function clause matches" do
+      defmodule ClausesErrorTest do
+        import Dx.Defd
+
+        @dx def: :original
+        defd created_by_id(%{created_by: %{id: id}}) do
+          id
+        end
+
+        defd created_by_id(%{created_by: %{name: "Herbo"}}) do
+          nil
+        end
+      end
+
+      assert_same_error(
+        FunctionClauseError,
+        location(-7),
+        fn -> ClausesErrorTest.created_by_id(nil) end,
+        fn ->
+          load(ClausesErrorTest.created_by_id(nil))
+        end
+      )
     end
   end
 end

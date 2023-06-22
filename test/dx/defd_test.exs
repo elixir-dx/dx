@@ -1,52 +1,30 @@
 defmodule Dx.DefdTest do
-  use Dx.Test.DataCase, async: true
-
-  import Dx.Defd
-
-  defmacrop location(plus) do
-    file = Path.relative_to_cwd(__CALLER__.file)
-    quote do: "#{unquote(file)}:#{unquote(__CALLER__.line) + unquote(plus)}"
-  end
-
-  defp assert_same_error(expected_type, location, fun1, fun2) do
-    {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
-    assert e1 == e2
-
-    {type, _, stacktrace} = e1
-    assert type == expected_type
-
-    assert Enum.any?(stacktrace, &String.starts_with?(&1, location)), """
-    No stacktrace entry starts with #{location}
-
-    #{Enum.join(stacktrace, "\n")}
-    """
-  end
-
-  defp get_error_and_stacktrace(fun) do
-    fun.()
-  rescue
-    e -> {e.__struct__, Exception.message(e), stacktrace(__STACKTRACE__)}
-  end
-
-  defp stacktrace(stacktrace) do
-    stacktrace
-    |> Exception.format_stacktrace()
-    |> String.split("\n", trim: true)
-    |> Enum.map(&String.trim_leading/1)
-  end
+  use Dx.Test.DefdCase, async: true
 
   describe "constants" do
-    defd bool_constant() do
-      true
-    end
-
     test "returns true" do
-      assert load(bool_constant()) == {:ok, true}
+      defmodule BoolConstTest do
+        import Dx.Defd
+
+        defd bool_constant() do
+          true
+        end
+      end
+
+      assert load(BoolConstTest.bool_constant()) == {:ok, true}
     end
 
     test "emits compiler warning when called directly" do
+      defmodule BoolConstTest do
+        import Dx.Defd
+
+        defd bool_constant() do
+          true
+        end
+      end
+
       assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               bool_constant()
+               BoolConstTest.bool_constant()
              end) =~ "Use Dx.load as entrypoint"
     end
 
@@ -84,12 +62,16 @@ defmodule Dx.DefdTest do
   end
 
   describe "simple arg" do
-    defd simple_arg(arg) do
-      arg
-    end
-
     test "returns arg" do
-      assert load(simple_arg(1)) == {:ok, 1}
+      defmodule SimpleArgTest do
+        import Dx.Defd
+
+        defd simple_arg(arg) do
+          arg
+        end
+      end
+
+      assert load(SimpleArgTest.simple_arg(1)) == {:ok, 1}
     end
   end
 
@@ -257,26 +239,6 @@ defmodule Dx.DefdTest do
   end
 
   describe "data loading" do
-    defd simple_assoc(list) do
-      list.tasks
-    end
-
-    defd assoc_chain(task) do
-      task.list.created_by
-    end
-
-    defd assoc_chain_field(task) do
-      task.list.created_by.email
-    end
-
-    defd created_by(record) do
-      record.created_by
-    end
-
-    defd assoc_chain_args(task) do
-      simple_arg(created_by(task)).email
-    end
-
     setup do
       user = create(User)
       list = create(List, %{created_by: user})
@@ -296,29 +258,69 @@ defmodule Dx.DefdTest do
       task: %{id: task_id},
       user: %{id: user_id}
     } do
+      defmodule SimpleAssocTest do
+        import Dx.Defd
+
+        defd simple_assoc(list) do
+          list.tasks
+        end
+      end
+
       assert {:ok, [%Task{id: ^task_id, list_id: ^list_id, created_by_id: ^user_id}]} =
-               load(simple_assoc(list))
+               load(SimpleAssocTest.simple_assoc(list))
     end
 
     test "loads association chain if not loaded", %{
       task: task,
       user: %{id: user_id}
     } do
-      assert {:ok, %User{id: ^user_id}} = load(assoc_chain(task))
+      defmodule AssocChainTest do
+        import Dx.Defd
+
+        defd assoc_chain(task) do
+          task.list.created_by
+        end
+      end
+
+      assert {:ok, %User{id: ^user_id}} = load(AssocChainTest.assoc_chain(task))
     end
 
     test "loads association chain field if not loaded", %{
       task: task,
       user: %{email: user_email}
     } do
-      assert {:ok, ^user_email} = load(assoc_chain_field(task))
+      defmodule AssocChainFieldTest do
+        import Dx.Defd
+
+        defd assoc_chain_field(task) do
+          task.list.created_by.email
+        end
+      end
+
+      assert {:ok, ^user_email} = load(AssocChainFieldTest.assoc_chain_field(task))
     end
 
     test "loads association chain as arguments", %{
       task: task,
       user: %{email: user_email}
     } do
-      assert {:ok, ^user_email} = load(assoc_chain_args(task))
+      defmodule AssocChainArgsTest do
+        import Dx.Defd
+
+        defd simple_arg(arg) do
+          arg
+        end
+
+        defd created_by(record) do
+          record.created_by
+        end
+
+        defd assoc_chain_args(task) do
+          simple_arg(created_by(task)).email
+        end
+      end
+
+      assert {:ok, ^user_email} = load(AssocChainArgsTest.assoc_chain_args(task))
     end
 
     test "calls dynamic function in variable" do
