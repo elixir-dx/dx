@@ -10,6 +10,10 @@ defmodule Dx.Defd.Ast do
     ast
   end
 
+  def ensure_loaded({:ok, var}, [loader], [var]) do
+    loader
+  end
+
   def ensure_loaded(ast, [loader], [var]) do
     quote do
       case unquote(loader) do
@@ -26,6 +30,10 @@ defmodule Dx.Defd.Ast do
         other -> other
       end
     end
+  end
+
+  def ok({ast, state}) do
+    {{:ok, ast}, state}
   end
 
   def unwrap({:ok, ast}) do
@@ -48,6 +56,12 @@ defmodule Dx.Defd.Ast do
 
   def var_id({var_name, meta, context}) do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
+  end
+
+  # ignore args that are bound in external contexts,
+  # as we can't load them anyway
+  def with_args(_args, %{in_external?: true} = state, fun) do
+    fun.(state)
   end
 
   # merge given args into state.args for calling fun,
@@ -142,5 +156,19 @@ defmodule Dx.Defd.Ast do
           other
       end
     end
+  end
+
+  # Helpers
+
+  def p(ast, label \\ nil)
+
+  def p(ast, nil) do
+    IO.puts("\n\n" <> Macro.to_string(ast) <> "\n\n")
+    ast
+  end
+
+  def p(ast, label) do
+    IO.puts("\n\n#{label}:\n" <> Macro.to_string(ast) <> "\n\n")
+    ast
   end
 end

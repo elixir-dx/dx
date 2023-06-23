@@ -229,7 +229,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    if state.in_fn? do
+    if state.in_external? and state.in_fn? do
       {var, state}
     else
       {{:ok, var}, state}
@@ -242,7 +242,11 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    {body, new_state} = normalize(body, %{state | in_fn?: true})
+    {body, new_state} =
+      Ast.with_args(args, %{state | in_fn?: true}, fn state ->
+        normalize(body, state)
+      end)
+
     ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
     {ast, %{new_state | in_fn?: state.in_fn?}}
   end
@@ -256,7 +260,7 @@ defmodule Dx.Defd.Compiler do
       normalize_call_args(args, %{state | in_external?: true}, fn args ->
         {{:., meta, [module]}, meta2, args}
       end)
-      |> maybe_wrap_external()
+      |> Ast.ok()
 
     {ast, %{new_state | in_external?: state.in_external?}}
   end
@@ -292,7 +296,7 @@ defmodule Dx.Defd.Compiler do
           normalize_call_args(args, %{state | in_external?: true}, fn args ->
             {fun_name, meta, args}
           end)
-          |> maybe_wrap_external()
+          |> Ast.ok()
 
         {ast, %{new_state | in_external?: state.in_external?}}
 
@@ -346,6 +350,9 @@ defmodule Dx.Defd.Compiler do
           end
         end)
 
+      rewriter = @rewriters[module] ->
+        rewriter.rewrite(fun, state)
+
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
 
@@ -368,7 +375,7 @@ defmodule Dx.Defd.Compiler do
           normalize_call_args(args, %{state | in_external?: true}, fn args ->
             {{:., meta, [module, fun_name]}, meta2, args}
           end)
-          |> maybe_wrap_external()
+          |> Ast.ok()
 
         {ast, %{new_state | in_external?: state.in_external?}}
 
@@ -400,9 +407,6 @@ defmodule Dx.Defd.Compiler do
     """)
   end
 
-  def maybe_wrap_external({ast, state = %{in_fn?: true}}), do: {ast, state}
-  def maybe_wrap_external({ast, state}), do: {{:ok, ast}, state}
-
   # Access.get/2
   def maybe_capture_loader({{:., meta, [ast, fun_name]}, meta2, []}, state)
       when is_atom(fun_name) do
@@ -432,7 +436,7 @@ defmodule Dx.Defd.Compiler do
     :error
   end
 
-  def normalize_call_args(args, state = %{in_fn?: true}, fun) do
+  def normalize_call_args(args, state = %{in_external?: true, in_fn?: true}, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
     call_args = args |> fun.()
 
