@@ -4,6 +4,12 @@ defmodule Dx.Defd.Compiler do
 
   import Ast.Guards
 
+  @rewriters %{
+    Enum => Dx.Enum,
+    :erlang => Dx.Defd.Kernel,
+    Kernel => Dx.Defd.Kernel
+  }
+
   @doc false
   def __compile__(%Macro.Env{module: module, file: file, line: line}, exports, eval_var) do
     defds = compile_prepare_arities(exports)
