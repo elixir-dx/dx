@@ -1,5 +1,5 @@
 defmodule Dx.Defd.ArgsTest do
-  use Dx.Test.DefdCase, async: true
+  use Dx.Test.DefdCase, async: false
 
   describe "data loading" do
     setup do
@@ -10,9 +10,9 @@ defmodule Dx.Defd.ArgsTest do
       [
         user: user,
         preloaded_list: list,
-        list: Repo.reload!(list),
+        list: unload(list),
         preloaded_task: task,
-        task: Repo.reload!(task)
+        task: unload(task)
       ]
     end
 

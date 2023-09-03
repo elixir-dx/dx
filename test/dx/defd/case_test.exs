@@ -1,5 +1,5 @@
 defmodule Dx.Defd.CaseTest do
-  use Dx.Test.DefdCase, async: true
+  use Dx.Test.DefdCase, async: false
 
   describe "data loading" do
     setup do
@@ -8,12 +8,12 @@ defmodule Dx.Defd.CaseTest do
       task = create(Task, %{list: list, created_by: user})
 
       [
-        user: Repo.reload!(user),
+        user: unload(user),
         preloaded_user: user,
         preloaded_list: %{list | tasks: [task]},
-        list: Repo.reload!(list),
+        list: unload(list),
         preloaded_task: task,
-        task: Repo.reload!(task)
+        task: unload(task)
       ]
     end
 
@@ -234,20 +234,20 @@ defmodule Dx.Defd.CaseTest do
   end
 
   describe "compile error" do
-    test "when matching a tuple" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               assert_raise CompileError,
-                            ~r"#{location(+6)}: Invalid case syntax",
-                            fn ->
-                              defmodule TupleMatchTest do
-                                import Dx.Defd
+    test "on case without clauses" do
+      refute_stderr(fn ->
+        assert_raise CompileError,
+                     ~r"#{location(+6)}: Invalid case syntax",
+                     fn ->
+                       defmodule TupleMatchTest do
+                         import Dx.Defd
 
-                                defd add(a) do
-                                  case(a)
-                                end
-                              end
-                            end
-             end) == ""
+                         defd add(a) do
+                           case(a)
+                         end
+                       end
+                     end
+      end)
     end
   end
 end

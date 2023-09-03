@@ -1,5 +1,5 @@
 defmodule Dx.Defd.KernelTest do
-  use Dx.Test.DefdCase, async: true
+  use Dx.Test.DefdCase, async: false
 
   setup do
     user = create(User, %{role: %{name: "Assistant"}})
@@ -7,12 +7,12 @@ defmodule Dx.Defd.KernelTest do
     task = create(Task, %{list: list, created_by: user})
 
     [
-      user: Repo.reload!(user),
+      user: unload(user),
       preloaded_user: user,
       preloaded_list: %{list | tasks: [task]},
-      list: Repo.reload!(list),
+      list: unload(list),
       preloaded_task: task,
-      task: Repo.reload!(task)
+      task: unload(task)
     ]
   end
 

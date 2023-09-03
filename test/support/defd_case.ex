@@ -17,6 +17,18 @@ defmodule Dx.Test.DefdCase do
       quote do: "#{unquote(file)}:#{unquote(__CALLER__.line) + unquote(plus)}"
     end
 
+    def refute_stderr(fun) do
+      assert ExUnit.CaptureIO.capture_io(:stderr, fun) == ""
+    end
+
+    def refute_stderr(msg_part, fun) do
+      refute ExUnit.CaptureIO.capture_io(:stderr, fun) =~ msg_part
+    end
+
+    def assert_stderr(msg_part, fun) do
+      assert ExUnit.CaptureIO.capture_io(:stderr, fun) =~ msg_part
+    end
+
     def assert_same_error(expected_type, location, fun1, fun2) do
       {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
       assert e1 == e2

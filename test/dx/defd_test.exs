@@ -1,5 +1,5 @@
 defmodule Dx.DefdTest do
-  use Dx.Test.DefdCase, async: true
+  use Dx.Test.DefdCase, async: false
 
   describe "constants" do
     test "returns true" do
@@ -23,9 +23,9 @@ defmodule Dx.DefdTest do
         end
       end
 
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               DirectCallTest.bool_constant()
-             end) =~ "Use Dx.load as entrypoint"
+      assert_stderr("Use Dx.load as entrypoint", fn ->
+        DirectCallTest.bool_constant()
+      end)
     end
 
     test "emits no compiler warning when def: :no_warn" do
@@ -47,17 +47,17 @@ defmodule Dx.DefdTest do
         end
       end
 
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               OptsDefTest.no_warn()
-             end) == ""
+      refute_stderr(fn ->
+        OptsDefTest.no_warn()
+      end)
 
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               OptsDefTest.default()
-             end) =~ "Use Dx.load as entrypoint"
+      assert_stderr("Use Dx.load as entrypoint", fn ->
+        OptsDefTest.default()
+      end)
 
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               OptsDefTest.original()
-             end) == ""
+      refute_stderr(fn ->
+        OptsDefTest.original()
+      end)
     end
   end
 
@@ -109,63 +109,63 @@ defmodule Dx.DefdTest do
       assert load(One.fun3()) == {:ok, "Hi!"}
       assert load(One.fun4()) == {:ok, "Hi!"}
 
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               load(One.fun2())
-               load(One.fun3())
-               load(One.fun4())
-             end) == ""
+      refute_stderr(fn ->
+        load(One.fun2())
+        load(One.fun3())
+        load(One.fun4())
+      end)
     end
   end
 
   describe "calling non-defd functions" do
     test "non-defd local function" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               defmodule Sample0 do
-                 import Dx.Defd
+      assert_stderr("do_add/2 is not defined with defd", fn ->
+        defmodule Sample0 do
+          import Dx.Defd
 
-                 defd add(a, b) do
-                   do_add(a, b)
-                 end
+          defd add(a, b) do
+            do_add(a, b)
+          end
 
-                 defp do_add(a, b), do: a + b
-               end
+          defp do_add(a, b), do: a + b
+        end
 
-               assert load(Sample0.add(1, 2)) == {:ok, 3}
-             end) =~ "do_add/2 is not defined with defd"
+        assert load(Sample0.add(1, 2)) == {:ok, 3}
+      end)
     end
 
     test "non-defd local function wrapped in call/1" do
-      refute ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               defmodule Sample0 do
-                 import Dx.Defd
+      refute_stderr("do_add/2 is not defined with defd", fn ->
+        defmodule Sample0 do
+          import Dx.Defd
 
-                 defd add(a, b) do
-                   call(do_add(a, b))
-                 end
+          defd add(a, b) do
+            call(do_add(a, b))
+          end
 
-                 defp do_add(a, b), do: a + b
-               end
+          defp do_add(a, b), do: a + b
+        end
 
-               assert load(Sample0.add(1, 2)) == {:ok, 3}
-             end) =~ "do_add/2 is not defined with defd"
+        assert load(Sample0.add(1, 2)) == {:ok, 3}
+      end)
     end
 
     test "non-defd function in other module" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               defmodule Other1 do
-                 def do_add(a, b), do: a + b
-               end
+      assert_stderr("Other1.do_add/2 is not defined with defd", fn ->
+        defmodule Other1 do
+          def do_add(a, b), do: a + b
+        end
 
-               defmodule Sample1 do
-                 import Dx.Defd
+        defmodule Sample1 do
+          import Dx.Defd
 
-                 defd add(a, b) do
-                   Other1.do_add(a, b)
-                 end
-               end
+          defd add(a, b) do
+            Other1.do_add(a, b)
+          end
+        end
 
-               assert load(Sample1.add(1, 2)) == {:ok, 3}
-             end) =~ "Other1.do_add/2 is not defined with defd"
+        assert load(Sample1.add(1, 2)) == {:ok, 3}
+      end)
     end
 
     test "non-defd function in other module wrapped in call/1" do
@@ -187,54 +187,54 @@ defmodule Dx.DefdTest do
     end
 
     test "undefined local function" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               assert_raise CompileError,
-                            ~r"#{location(+6)}: undefined function do_add/2",
-                            fn ->
-                              defmodule Sample2 do
-                                import Dx.Defd
+      refute_stderr(fn ->
+        assert_raise CompileError,
+                     ~r"#{location(+6)}: undefined function do_add/2",
+                     fn ->
+                       defmodule Sample2 do
+                         import Dx.Defd
 
-                                defd add(a, b) do
-                                  do_add(a, b)
-                                end
-                              end
-                            end
-             end) == ""
+                         defd add(a, b) do
+                           do_add(a, b)
+                         end
+                       end
+                     end
+      end)
     end
 
     test "undefined function in other module" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               assert_raise CompileError,
-                            ~r"#{location(+9)}: undefined function do_add/2 \(expected #{inspect(__MODULE__)}.Other3 to define such a function",
-                            fn ->
-                              defmodule Other3 do
-                              end
+      refute_stderr(fn ->
+        assert_raise CompileError,
+                     ~r"#{location(+9)}: undefined function do_add/2 \(expected #{inspect(__MODULE__)}.Other3 to define such a function",
+                     fn ->
+                       defmodule Other3 do
+                       end
 
-                              defmodule Sample3 do
-                                import Dx.Defd
+                       defmodule Sample3 do
+                         import Dx.Defd
 
-                                defd add(a, b) do
-                                  Other3.do_add(a, b)
-                                end
-                              end
-                            end
-             end) == ""
+                         defd add(a, b) do
+                           Other3.do_add(a, b)
+                         end
+                       end
+                     end
+      end)
     end
 
     test "function in non-existing module" do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
-               assert_raise CompileError,
-                            ~r"#{location(+6)}: undefined function do_add/2 \(module OtherSide does not exist\)",
-                            fn ->
-                              defmodule Sample4 do
-                                import Dx.Defd
+      refute_stderr(fn ->
+        assert_raise CompileError,
+                     ~r"#{location(+6)}: undefined function do_add/2 \(module OtherSide does not exist\)",
+                     fn ->
+                       defmodule Sample4 do
+                         import Dx.Defd
 
-                                defd add(a, b) do
-                                  OtherSide.do_add(a, b)
-                                end
-                              end
-                            end
-             end) == ""
+                         defd add(a, b) do
+                           OtherSide.do_add(a, b)
+                         end
+                       end
+                     end
+      end)
     end
   end
 
@@ -247,9 +247,9 @@ defmodule Dx.DefdTest do
       [
         user: user,
         preloaded_list: list,
-        list: Repo.reload!(list),
+        list: unload(list),
         preloaded_task: task,
-        task: Repo.reload!(task)
+        task: unload(task)
       ]
     end
 
