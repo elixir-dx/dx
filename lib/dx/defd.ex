@@ -15,6 +15,30 @@ defmodule Dx.Defd do
     end
   end
 
+  defmacro load!(call, opts \\ []) do
+    quote do
+      Dx.Defd.load(unquote(call), unquote(opts))
+      |> Dx.Result.unwrap!()
+    end
+  end
+
+  defmacro get(call, opts \\ []) do
+    defd_call = call_to_defd(call)
+
+    quote do
+      unquote(@eval_var) = Dx.Evaluation.from_options(unquote(opts))
+
+      unquote(defd_call)
+    end
+  end
+
+  defmacro get!(call, opts \\ []) do
+    quote do
+      Dx.Defd.get(unquote(call), unquote(opts))
+      |> Dx.Result.unwrap!()
+    end
+  end
+
   defp call_to_defd({{:., meta, [module, name]}, meta2, args}) do
     defd_name = Util.defd_name(name)
     args = args ++ [@eval_var]

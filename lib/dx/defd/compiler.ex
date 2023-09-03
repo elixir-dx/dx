@@ -71,7 +71,7 @@ defmodule Dx.Defd.Compiler do
               Use Dx.load as entrypoint.
               """)
 
-              Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
+              Dx.Defd.load!(unquote(name)(unquote_splicing(all_args)))
             end
           end
           |> strip_definition_context()
@@ -81,7 +81,7 @@ defmodule Dx.Defd.Compiler do
 
           quote line: state.line do
             Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
-              Dx.Defd.load(unquote(name)(unquote_splicing(all_args)))
+              Dx.Defd.load!(unquote(name)(unquote_splicing(all_args)))
             end
           end
           |> strip_definition_context()

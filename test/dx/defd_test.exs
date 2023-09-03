@@ -270,6 +270,32 @@ defmodule Dx.DefdTest do
                load(SimpleAssocTest.simple_assoc(list))
     end
 
+    test "Dx functions get, get!, load and load! work", %{
+      list: %{id: list_id} = list,
+      task: %{id: task_id},
+      user: %{id: user_id}
+    } do
+      defmodule APIFunctionsTest do
+        import Dx.Defd
+
+        defd simple_assoc(list) do
+          list.tasks
+        end
+      end
+
+      assert {:ok, [%Task{id: ^task_id, list_id: ^list_id, created_by_id: ^user_id}]} =
+               load(APIFunctionsTest.simple_assoc(list))
+
+      assert [%Task{id: ^task_id, list_id: ^list_id, created_by_id: ^user_id}] =
+               load!(APIFunctionsTest.simple_assoc(list))
+
+      assert {:not_loaded, _data_reqs} = get(APIFunctionsTest.simple_assoc(list))
+
+      assert_raise Dx.Error.NotLoaded, fn ->
+        get!(APIFunctionsTest.simple_assoc(list))
+      end
+    end
+
     test "loads association chain if not loaded", %{
       task: task,
       user: %{id: user_id}

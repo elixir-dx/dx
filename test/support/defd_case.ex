@@ -7,7 +7,7 @@ defmodule Dx.Test.DefdCase do
 
       import Dx.Test.DefdCase.Helpers
 
-      import Dx.Defd, only: [load: 1]
+      import Dx.Defd, except: [defd: 1, defd: 2]
     end
   end
 
