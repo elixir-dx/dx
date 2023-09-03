@@ -122,19 +122,10 @@ defmodule Dx.Defd.Compiler do
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
       [{meta, args, [], ast}] ->
-        # {args, state} = normalize_args(args, meta, state)
         {ast, state} =
-          Ast.with_args(args, state, fn state ->
+          Ast.with_root_args(args, state, fn state ->
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
-
-        if not Enum.empty?(state.data_reqs) do
-          compile_error!(meta, state, """
-          Remaining state.data_reqs at function root level:
-
-          #{inspect(state.data_reqs, pretty: true)}
-          """)
-        end
 
         {{kind, meta, args, ast}, state}
 
@@ -267,12 +258,36 @@ defmodule Dx.Defd.Compiler do
     {ast, state}
   end
 
+  # %{...}
+  def normalize({:%{}, meta, pairs}, state) do
+    {flat_ast, state} = pairs |> Ast.flatten_kv_list() |> Enum.map_reduce(state, &normalize/2)
+
+    ast =
+      case Dx.Defd.Result.collect_ok(flat_ast) do
+        {:ok, flat_ast} ->
+          # unwrapped at compile-time
+          {:ok, {:%{}, meta, Ast.unflatten_kv_list(flat_ast)}}
+
+        :error ->
+          # unwrap at runtime
+          line =
+            case flat_ast do
+              [{_, meta, _} | _] -> meta[:line] || state.line
+              _other -> state.line
+            end
+
+          quote line: line do
+            Dx.Defd.Result.collect_map_pairs(unquote(flat_ast))
+          end
+      end
+
+    {ast, state}
+  end
+
   def normalize(var, state) when is_var(var) do
-    if state.in_external? and state.in_fn? do
-      {var, state}
-    else
-      {{:ok, var}, state}
-    end
+    ast = Ast.maybe_wrap(var, state)
+
+    {ast, state}
   end
 
   def normalize({:call, _meta, [ast]}, state) do
@@ -308,6 +323,92 @@ defmodule Dx.Defd.Compiler do
     Dx.Defd.Case.normalize(ast, state)
   end
 
+  # &local_fun/2
+  def normalize({:&, meta, [{:/, [], [{fun_name, [], nil}, arity]}]}, state) do
+    args = Macro.generate_arguments(arity, __MODULE__)
+    line = meta[:line] || state.line
+
+    ast =
+      if {fun_name, arity} in state.defds do
+        defd_name = Util.defd_name(fun_name)
+
+        quote line: line do
+          {:ok,
+           fn unquote_splicing(args) ->
+             unquote(defd_name)(unquote_splicing(args), unquote(state.eval_var))
+           end}
+        end
+      else
+        if not state.in_call? do
+          warn(meta, state, """
+          #{fun_name}/#{arity} is not defined with defd.
+
+          Either define it using defd (preferred) or wrap the call in the call/1 function:
+
+              call(#{fun_name}(...))
+          """)
+        end
+
+        quote line: line do
+          {:ok,
+           fn unquote_splicing(args) ->
+             {:ok, unquote(fun_name)(unquote_splicing(args))}
+           end}
+        end
+      end
+
+    {ast, state}
+  end
+
+  # &Mod.fun/3
+  def normalize(
+        {:&, meta, [{:/, [], [{{:., [], [module, fun_name]}, [], []}, arity]}]} = fun,
+        state
+      ) do
+    args = Macro.generate_arguments(arity, __MODULE__)
+    line = meta[:line] || state.line
+
+    cond do
+      rewriter = @rewriters[module] ->
+        rewriter.rewrite(fun, state)
+
+      Util.is_defd?(module, fun_name, arity) ->
+        defd_name = Util.defd_name(fun_name)
+
+        ast =
+          quote line: line do
+            {:ok,
+             fn unquote_splicing(args) ->
+               unquote(module).unquote(defd_name)(unquote_splicing(args), unquote(state.eval_var))
+             end}
+          end
+
+        {ast, state}
+
+      true ->
+        if not state.in_call? do
+          warn(meta, state, """
+          #{fun_name}/#{arity} is not defined with defd.
+
+          Either define it using defd (preferred) or wrap the call in the call/1 function:
+
+              call(#{fun_name}(...))
+          """)
+        end
+
+        ast =
+          quote line: line do
+            {:ok,
+             fn unquote_splicing(args) ->
+               {:ok, unquote(module).unquote(fun_name)(unquote_splicing(args))}
+             end}
+          end
+
+        {ast, state}
+    end
+  end
+
+  # local_fun()
   def normalize({fun_name, meta, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
@@ -316,9 +417,16 @@ defmodule Dx.Defd.Compiler do
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
 
-        normalize_call_args(args, state, fn args ->
-          {defd_name, meta, args ++ [state.eval_var]}
-        end)
+        {loader, state} =
+          normalize_call_args(args, state, fn args ->
+            {defd_name, meta, args ++ [state.eval_var]}
+          end)
+
+        data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+        var = data_reqs[loader]
+        ast = Ast.maybe_wrap(var, state)
+
+        {ast, %{state | data_reqs: data_reqs}}
 
       Util.has_function?(state.module, fun_name, arity) ->
         if not state.in_call? do
@@ -331,19 +439,17 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        {ast, new_state} =
-          normalize_call_args(args, %{state | in_external?: true}, fn args ->
-            {fun_name, meta, args}
-          end)
-          |> Ast.ok()
-
-        {ast, %{new_state | in_external?: state.in_external?}}
+        normalize_external_call_args(args, state, fn args ->
+          {fun_name, meta, args}
+        end)
+        |> Ast.ok()
 
       true ->
         {fun, state}
     end
   end
 
+  # Mod.fun()
   def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
@@ -359,7 +465,7 @@ defmodule Dx.Defd.Compiler do
               end)
 
             var = state.data_reqs[loader_ast]
-            ast = if state.in_external? and state.in_fn?, do: var, else: {:ok, var}
+            ast = Ast.maybe_wrap(var, state)
 
             {ast, state}
 
@@ -395,9 +501,16 @@ defmodule Dx.Defd.Compiler do
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
 
-        normalize_call_args(args, state, fn args ->
-          {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
-        end)
+        {loader, state} =
+          normalize_call_args(args, state, fn args ->
+            {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
+          end)
+
+        data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+        var = data_reqs[loader]
+        ast = Ast.maybe_wrap(var, state)
+
+        {ast, %{state | data_reqs: data_reqs}}
 
       Util.has_function?(module, fun_name, arity) ->
         if not state.in_call? do
@@ -410,13 +523,10 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        {ast, new_state} =
-          normalize_call_args(args, %{state | in_external?: true}, fn args ->
-            {{:., meta, [module, fun_name]}, meta2, args}
-          end)
-          |> Ast.ok()
-
-        {ast, %{new_state | in_external?: state.in_external?}}
+        normalize_external_call_args(args, state, fn args ->
+          {{:., meta, [module, fun_name]}, meta2, args}
+        end)
+        |> Ast.ok()
 
       Code.ensure_loaded?(module) ->
         compile_error!(
@@ -475,16 +585,37 @@ defmodule Dx.Defd.Compiler do
     :error
   end
 
-  def normalize_call_args(args, state = %{in_external?: true, in_fn?: true}, fun) do
+  def normalize_external_call_args(args, state, fun) do
+    {args, new_state} =
+      Enum.map_reduce(args, state, fn
+        {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
+          {body, new_state} =
+            Ast.with_args(args, %{state | in_external?: true, in_fn?: true}, fn state ->
+              normalize(body, state)
+            end)
+
+          ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
+          {ast, %{new_state | in_external?: state.in_external?, in_fn?: state.in_fn?}}
+
+        arg, state ->
+          normalize(arg, state)
+      end)
+
+    do_normalize_call_args(args, new_state, fun)
+  end
+
+  def normalize_call_args(args, state, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
+    do_normalize_call_args(args, state, fun)
+  end
+
+  defp do_normalize_call_args(args, state = %{in_external?: true, in_fn?: true}, fun) do
     call_args = args |> fun.()
 
     {call_args, state}
   end
 
-  def normalize_call_args(args, state, fun) do
-    {args, state} = Enum.map_reduce(args, state, &normalize/2)
-
+  defp do_normalize_call_args(args, state, fun) do
     {args, defd_reqs} =
       Enum.map_reduce(args, %{}, fn
         {:ok, ast}, reqs ->
