@@ -45,7 +45,16 @@ defmodule Dx.Defd.Error do
   end
 
   defp replace_defd_refs(%{function: fun_name, arity: arity} = map) do
-    %{map | function: replace_defd_refs(fun_name), arity: arity - 1}
+    defd_name = replace_defd_refs(fun_name)
+
+    arity =
+      if defd_name != fun_name do
+        arity - 1
+      else
+        arity
+      end
+
+    %{map | function: defd_name, arity: arity}
     |> replace_defd_refs_in_map()
   end
 
