@@ -462,6 +462,55 @@ defmodule Dx.DefdTest do
       assert load(DeeplyNestedMapTest.deeply_nested()) == {:ok, :d}
     end
 
+    test "prepends constant list element" do
+      defmodule PrependListConstTest do
+        import Dx.Defd
+
+        defd run(head, tail) do
+          [head | tail]
+        end
+      end
+
+      assert load(PrependListConstTest.run(1, [2, 3])) == {:ok, [1, 2, 3]}
+    end
+
+    test "prepends multiple constant list elements" do
+      defmodule PrependListMultiConstTest do
+        import Dx.Defd
+
+        defd run(head, mid, tail) do
+          [head, mid | tail]
+        end
+      end
+
+      assert load(PrependListMultiConstTest.run(1, 2, [3, 4])) == {:ok, [1, 2, 3, 4]}
+    end
+
+    test "prepends loaded list element", %{task: task, user: user} do
+      defmodule PrependListLoadTest do
+        import Dx.Defd
+
+        defd run(task, tail) do
+          [task.created_by.email | tail]
+        end
+      end
+
+      assert load(PrependListLoadTest.run(task, [2, 3])) == {:ok, [user.email, 2, 3]}
+    end
+
+    test "prepends multiple loaded list elements", %{task: task, list: list, user: user} do
+      defmodule PrependListMultiLoadTest do
+        import Dx.Defd
+
+        defd run(task, list, tail) do
+          [task.created_by.email, list.created_by.email | tail]
+        end
+      end
+
+      assert load(PrependListMultiLoadTest.run(task, list, [3, 4])) ==
+               {:ok, [user.email, user.email, 3, 4]}
+    end
+
     test "KeyError on invalid key", %{
       list: list
     } do

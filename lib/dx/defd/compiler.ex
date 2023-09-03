@@ -164,16 +164,31 @@ defmodule Dx.Defd.Compiler do
   end
 
   # [...]
+  # [... | ...]
   def normalize(ast, state) when is_list(ast) do
-    {ast, state} = Enum.map_reduce(ast, state, &normalize/2)
+    {reverse_ast, prepend_meta} =
+      case Enum.reverse(ast) do
+        [{:|, meta, [prev_last, last]} | elems] -> {[last, prev_last | elems], meta}
+        elems -> {elems, nil}
+      end
+
+    {ast, state} =
+      Enum.reduce(reverse_ast, {[], state}, fn elem, {elems, state} ->
+        {elem, state} = normalize(elem, state)
+        {[elem | elems], state}
+      end)
 
     ast =
-      case Dx.Defd.Result.collect_ok(ast) do
-        {:ok, ast} ->
+      case {Dx.Defd.Result.collect_ok_reverse(ast, []), prepend_meta} do
+        {{:ok, reverse_ast}, nil} ->
           # unwrapped at compile-time
-          {:ok, ast}
+          {:ok, Enum.reverse(reverse_ast)}
 
-        :error ->
+        {{:ok, [last, prev_last | reverse_elems]}, prepend_meta} ->
+          # unwrapped at compile-time & prepend
+          {:ok, Enum.reverse(reverse_elems, [{:|, prepend_meta, [prev_last, last]}])}
+
+        {:error, nil} ->
           # unwrap at runtime
           line =
             case ast do
@@ -183,6 +198,24 @@ defmodule Dx.Defd.Compiler do
 
           quote line: line do
             Dx.Defd.Result.collect(unquote(ast))
+          end
+
+        {:error, _prepend_meta} ->
+          # unwrap at runtime & prepend
+          line =
+            case ast do
+              [{_, meta, _} | _] -> meta[:line] || state.line
+              _other -> state.line
+            end
+
+          quote line: line do
+            case Dx.Defd.Result.collect(unquote(ast)) do
+              {:ok, [last, prev_last | reverse_elems]} ->
+                {:ok, Enum.reverse(reverse_elems, [prev_last, last])}
+
+              other ->
+                other
+            end
           end
       end
 
