@@ -345,7 +345,7 @@ defmodule Dx.Defd.Compiler do
 
           Either define it using defd (preferred) or wrap the call in the call/1 function:
 
-              call(#{fun_name}(...))
+              call(...(&#{fun_name}/#{arity}))
           """)
         end
 
@@ -392,7 +392,7 @@ defmodule Dx.Defd.Compiler do
 
           Either define it using defd (preferred) or wrap the call in the call/1 function:
 
-              call(#{fun_name}(...))
+              call(...(&#{module}.#{fun_name}/#{arity}))
           """)
         end
 
@@ -585,17 +585,51 @@ defmodule Dx.Defd.Compiler do
     :error
   end
 
+  def normalize_external_fn(ast, state) do
+    Macro.prewalk(ast, state, fn
+      {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
+      when is_atom(fun_name) and is_list(args) ->
+        # Access.get/2
+        if meta2[:no_parens] do
+          case maybe_capture_loader(fun, state) do
+            {:ok, loader_ast, state} ->
+              state =
+                Map.update!(state, :data_reqs, fn data_reqs ->
+                  Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
+                end)
+
+              var = state.data_reqs[loader_ast]
+              ast = Ast.maybe_wrap(var, state)
+
+              {ast, state}
+
+            :error ->
+              {fun, state}
+          end
+        else
+          {fun, state}
+        end
+
+      ast, state ->
+        {ast, state}
+    end)
+  end
+
   def normalize_external_call_args(args, state, fun) do
     {args, new_state} =
       Enum.map_reduce(args, state, fn
         {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
           {body, new_state} =
-            Ast.with_args(args, %{state | in_external?: true, in_fn?: true}, fn state ->
-              normalize(body, state)
-            end)
+            normalize_external_fn(body, %{state | in_external?: true, in_fn?: true})
 
           ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
           {ast, %{new_state | in_external?: state.in_external?, in_fn?: state.in_fn?}}
+
+        {:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, [], []}, _arity]}]} = fun, state ->
+          {{:ok, fun}, state}
+
+        {:&, _meta, [{:/, [], [{_fun_name, [], nil}, _arity]}]} = fun, state ->
+          {{:ok, fun}, state}
 
         arg, state ->
           normalize(arg, state)

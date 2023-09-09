@@ -56,50 +56,189 @@ defmodule Dx.Defd.EnumTest do
     ]
   end
 
-  test "nested", %{list: list, preloaded_list: preloaded_list} do
-    refute_stderr(fn ->
-      defmodule NestedTest do
-        import Dx.Defd
+  describe "nested" do
+    test "Enum result as external function arg", %{list: list, preloaded_list: preloaded_list} do
+      refute_stderr(fn ->
+        defmodule NestedTest do
+          import Dx.Defd
 
-        @dx def: :original
-        defd run(list) do
-          Enum.map(list.tasks, fn task ->
-            call(
-              simple_arg(
-                Enum.find(task.created_by.lists, fn list ->
-                  Enum.count(list.tasks) > 1
-                end)
+          @dx def: :original
+          defd run(list) do
+            Enum.map(list.tasks, fn task ->
+              call(
+                simple_arg(
+                  Enum.find(task.created_by.lists, fn list ->
+                    Enum.count(list.tasks) > 1
+                  end)
+                )
               )
-            )
-          end)
-        end
+            end)
+          end
 
-        @dx def: :original
-        defd run2(list) do
-          Enum.map(list.tasks, fn task ->
-            call(
-              __MODULE__.simple_arg(
-                Enum.find(task.created_by.lists, fn list ->
-                  Enum.count(list.tasks) > 1
-                end)
+          @dx def: :original
+          defd run2(list) do
+            Enum.map(list.tasks, fn task ->
+              call(
+                __MODULE__.simple_arg(
+                  Enum.find(task.created_by.lists, fn list ->
+                    Enum.count(list.tasks) > 1
+                  end)
+                )
               )
+            end)
+          end
+
+          def simple_arg(arg) do
+            arg
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        preloaded_list = Repo.preload(preloaded_list, tasks: [created_by: [lists: :tasks]])
+        assert load!(NestedTest.run(list)) == unload(NestedTest.run(preloaded_list))
+        assert load!(NestedTest.run2(list)) == unload(NestedTest.run2(preloaded_list))
+      end)
+    end
+
+    test "Enum in external fn body", %{
+      list: list,
+      preloaded_list: preloaded_list,
+      task: task,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule EnumInExtFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], & &1.created_by.email)
+              end)
             )
-          end)
+          end
+
+          @dx def: :original
+          defd run2(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([%{a: %{b: task}}], & &1.a.b.created_by.email)
+              end)
+            )
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
         end
 
-        def simple_arg(arg) do
-          arg
+        preloaded_list = Repo.preload(preloaded_list, tasks: :created_by)
+        assert load!(EnumInExtFnTest.run(preloaded_list)) == EnumInExtFnTest.run(preloaded_list)
+        assert load!(EnumInExtFnTest.run2(preloaded_list)) == EnumInExtFnTest.run2(preloaded_list)
+      end)
+    end
+
+    test "function reference in fn body", %{
+      list: list,
+      preloaded_list: preloaded_list,
+      task: task,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule FunRefInFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(enum_map(list.tasks, &created_by_email/1))
+          end
+
+          @dx def: :original
+          defd run2(list) do
+            call(enum_map(list.tasks, &__MODULE__.created_by_email/1))
+          end
+
+          def created_by_email(task) do
+            task.created_by.email
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
         end
 
-        defp call(arg) do
-          arg
-        end
-      end
+        preloaded_list = Repo.preload(preloaded_list, tasks: :created_by)
 
-      preloaded_list = Repo.preload(preloaded_list, tasks: [created_by: [lists: :tasks]])
-      assert load!(NestedTest.run(list)) == unload(NestedTest.run(preloaded_list))
-      assert load!(NestedTest.run2(list)) == unload(NestedTest.run2(preloaded_list))
-    end)
+        assert load!(FunRefInFnTest.run(preloaded_list)) ==
+                 FunRefInFnTest.run(preloaded_list)
+
+        assert load!(FunRefInFnTest.run2(preloaded_list)) ==
+                 FunRefInFnTest.run2(preloaded_list)
+      end)
+    end
+
+    test "function reference in external fn body", %{
+      list: list,
+      preloaded_list: preloaded_list,
+      task: task,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule FunRefInExtFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], &created_by_email/1)
+              end)
+            )
+          end
+
+          @dx def: :original
+          defd run2(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], &__MODULE__.created_by_email/1)
+              end)
+            )
+          end
+
+          def created_by_email(task) do
+            task.created_by.email
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        preloaded_list = Repo.preload(preloaded_list, tasks: :created_by)
+
+        assert load!(FunRefInExtFnTest.run(preloaded_list)) ==
+                 FunRefInExtFnTest.run(preloaded_list)
+
+        assert load!(FunRefInExtFnTest.run2(preloaded_list)) ==
+                 FunRefInExtFnTest.run2(preloaded_list)
+      end)
+    end
   end
 
   test "all?/1", %{list: list} do
@@ -1521,28 +1660,6 @@ defmodule Dx.Defd.EnumTest do
         assert load(EnumInFnTest.run(list)) == {:ok, [task_user_emails]}
       end)
     end
-
-    # test "Enum in external fn", %{list: list, task: task, user: user} do
-    #   refute_stderr(fn ->
-    #     defmodule EnumInExtFnTest do
-    #       import Dx.Defd
-
-    #       defd run(list) do
-    #         call(
-    #           enum_map(list.tasks, fn task ->
-    #             Enum.map([task], & &1.created_by.email)
-    #           end)
-    #         )
-    #       end
-
-    #       defp enum_map(enum, mapper) do
-    #         Enum.map(enum, mapper)
-    #       end
-    #     end
-
-    #     assert load(EnumInExtFnTest.run(list)) == {:ok, [[user.email]]}
-    #   end)
-    # end
   end
 
   describe "map_every/3" do

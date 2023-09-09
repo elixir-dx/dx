@@ -2,15 +2,9 @@ defmodule Dx.Defd.Kernel do
   alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
 
-  def rewrite(
-        {:&, meta, [{:/, [], [{{:., [], [:erlang, fun_name]}, [], []}, arity]}]} = fun,
-        state
-      ) do
+  def rewrite({:&, meta, [{:/, [], [{{:., [], [:erlang, fun_name]}, [], []}, arity]}]}, state) do
     ast =
       cond do
-        state.in_external? and state.in_fn? ->
-          fun
-
         function_exported?(__MODULE__, fun_name, arity) ->
           args = Macro.generate_arguments(arity, __MODULE__)
           line = meta[:line] || state.line
@@ -44,9 +38,6 @@ defmodule Dx.Defd.Kernel do
 
     ast =
       cond do
-        state.in_external? and state.in_fn? ->
-          {{:., meta, [:erlang, fun_name]}, meta2, args}
-
         Enum.all?(args, &Ast.ok?/1) ->
           args = Enum.map(args, &Ast.unwrap_inner/1)
 
