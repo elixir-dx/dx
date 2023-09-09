@@ -23,8 +23,6 @@ defmodule Dx.Defd.Compiler do
       args: %{},
       eval_var: eval_var,
       in_call?: false,
-      in_external?: false,
-      in_fn?: false,
       is_loader?: false,
       data_reqs: %{},
       rewrite_underscore?: false
@@ -285,8 +283,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    ast = Ast.maybe_wrap(var, state)
-
+    ast = {:ok, var}
     {ast, state}
   end
 
@@ -297,12 +294,12 @@ defmodule Dx.Defd.Compiler do
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
     {body, new_state} =
-      Ast.with_args(args, %{state | in_fn?: true}, fn state ->
+      Ast.with_args(args, state, fn state ->
         normalize(body, state)
       end)
 
     ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
-    {ast, %{new_state | in_fn?: state.in_fn?}}
+    {ast, new_state}
   end
 
   # fun.()
@@ -310,13 +307,10 @@ defmodule Dx.Defd.Compiler do
     {module, state} = normalize(module, state)
     module = Ast.unwrap(module)
 
-    {ast, new_state} =
-      normalize_call_args(args, %{state | in_external?: true}, fn args ->
-        {{:., meta, [module]}, meta2, args}
-      end)
-      |> Ast.ok()
-
-    {ast, %{new_state | in_external?: state.in_external?}}
+    normalize_call_args(args, state, fn args ->
+      {{:., meta, [module]}, meta2, args}
+    end)
+    |> Ast.ok()
   end
 
   def normalize({:case, _meta, _args} = ast, state) do
@@ -424,7 +418,7 @@ defmodule Dx.Defd.Compiler do
 
         data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
         var = data_reqs[loader]
-        ast = Ast.maybe_wrap(var, state)
+        ast = {:ok, var}
 
         {ast, %{state | data_reqs: data_reqs}}
 
@@ -465,19 +459,14 @@ defmodule Dx.Defd.Compiler do
               end)
 
             var = state.data_reqs[loader_ast]
-            ast = Ast.maybe_wrap(var, state)
+            ast = {:ok, var}
 
             {ast, state}
 
           :error ->
             {module, state} = normalize(module, state)
 
-            fun =
-              if state.in_fn? do
-                {{:., meta, [module, fun_name]}, meta2, []}
-              else
-                Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
-              end
+            fun = Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
 
             {fun, state}
         end
@@ -508,7 +497,7 @@ defmodule Dx.Defd.Compiler do
 
         data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
         var = data_reqs[loader]
-        ast = Ast.maybe_wrap(var, state)
+        ast = {:ok, var}
 
         {ast, %{state | data_reqs: data_reqs}}
 
@@ -585,7 +574,8 @@ defmodule Dx.Defd.Compiler do
     :error
   end
 
-  def normalize_external_fn(ast, state) do
+  # extracts only loaders based on variables bound outside of the external anonymous function
+  defp normalize_external_fn(ast, state) do
     Macro.prewalk(ast, state, fn
       {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
       when is_atom(fun_name) and is_list(args) ->
@@ -599,9 +589,8 @@ defmodule Dx.Defd.Compiler do
                 end)
 
               var = state.data_reqs[loader_ast]
-              ast = Ast.maybe_wrap(var, state)
 
-              {ast, state}
+              {var, state}
 
             :error ->
               {fun, state}
@@ -619,11 +608,10 @@ defmodule Dx.Defd.Compiler do
     {args, new_state} =
       Enum.map_reduce(args, state, fn
         {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
-          {body, new_state} =
-            normalize_external_fn(body, %{state | in_external?: true, in_fn?: true})
+          {body, new_state} = normalize_external_fn(body, state)
 
           ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
-          {ast, %{new_state | in_external?: state.in_external?, in_fn?: state.in_fn?}}
+          {ast, new_state}
 
         {:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, [], []}, _arity]}]} = fun, state ->
           {{:ok, fun}, state}
@@ -641,12 +629,6 @@ defmodule Dx.Defd.Compiler do
   def normalize_call_args(args, state, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
     do_normalize_call_args(args, state, fun)
-  end
-
-  defp do_normalize_call_args(args, state = %{in_external?: true, in_fn?: true}, fun) do
-    call_args = args |> fun.()
-
-    {call_args, state}
   end
 
   defp do_normalize_call_args(args, state, fun) do

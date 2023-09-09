@@ -80,9 +80,6 @@ defmodule Dx.Defd.Ast do
     {{:ok, ast}, state}
   end
 
-  def maybe_wrap(ast, %{in_fn?: true, in_external?: true}), do: ast
-  def maybe_wrap(ast, _state), do: {:ok, ast}
-
   def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, {:ok, _body}]}]}}), do: true
   def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, _body]}]}}), do: false
   def ok?({:ok, _}), do: true
@@ -127,10 +124,6 @@ defmodule Dx.Defd.Ast do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
   end
 
-  def with_root_args(_args, %{in_external?: true} = state, fun) do
-    fun.(state)
-  end
-
   def with_root_args(args, state, fun) do
     temp_state = Map.update!(state, :args, &collect_vars(args, &1))
 
@@ -143,12 +136,6 @@ defmodule Dx.Defd.Ast do
         IO.inspect(other)
         raise CompileError
     end
-  end
-
-  # ignore args that are bound in external contexts,
-  # as we can't load them anyway
-  def with_args(_args, %{in_external?: true} = state, fun) do
-    fun.(state)
   end
 
   # merge given args into state.args for calling fun,
