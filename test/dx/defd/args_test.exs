@@ -64,6 +64,26 @@ defmodule Dx.Defd.ArgsTest do
       assert load(TypedAssocFieldTest.created_by_id(task)) == {:ok, user_id}
     end
 
+    test "ignores invalid field in non-matching clause", %{task: task, user: %{id: user_id}} do
+      defmodule InvalidAssocFieldTest do
+        import Dx.Defd
+
+        defd created_by_id(%Task{list: %List{created_by: %{id: id}}}) do
+          id
+        end
+
+        defd created_by_id(%{unknown: %List{created_by: %{id: id}}}) do
+          id
+        end
+
+        defd created_by_id(_other) do
+          nil
+        end
+      end
+
+      assert load(InvalidAssocFieldTest.created_by_id(task)) == {:ok, user_id}
+    end
+
     test "matches entire associated record", %{list: list, user: %{id: user_id}} do
       defmodule FullAssocTest do
         import Dx.Defd

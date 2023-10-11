@@ -192,15 +192,9 @@ defmodule Dx.Enum do
   }
 
   # &Enum.fun/3
-  def rewrite(
-        {:&, meta, [{:/, [], [{{:., [], [Enum, fun_name]}, [], []}, arity]}]} = fun,
-        state
-      ) do
+  def rewrite({:&, meta, [{:/, [], [{{:., [], [Enum, fun_name]}, [], []}, arity]}]}, state) do
     ast =
       cond do
-        state.in_external? and state.in_fn? ->
-          fun
-
         function_exported?(__MODULE__, fun_name, arity) ->
           args = Macro.generate_arguments(arity, __MODULE__)
           line = meta[:line] || state.line

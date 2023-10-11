@@ -1,5 +1,6 @@
 defmodule Dx.Defd do
   alias Dx.Defd.Util
+  alias Dx.Evaluation, as: Eval
 
   @eval_var Macro.var(:eval, Dx.Defd.Compiler)
 
@@ -7,18 +8,19 @@ defmodule Dx.Defd do
     defd_call = call_to_defd(call)
 
     quote do
-      eval = Dx.Evaluation.from_options(unquote(opts))
-
-      Dx.load_all_data_reqs(eval, fn unquote(@eval_var) ->
+      Eval.load_all_data_reqs(unquote(opts), fn unquote(@eval_var) ->
         unquote(defd_call)
       end)
     end
   end
 
   defmacro load!(call, opts \\ []) do
+    defd_call = call_to_defd(call)
+
     quote do
-      Dx.Defd.load(unquote(call), unquote(opts))
-      |> Dx.Result.unwrap!()
+      Eval.load_all_data_reqs!(unquote(opts), fn unquote(@eval_var) ->
+        unquote(defd_call)
+      end)
     end
   end
 
@@ -26,7 +28,7 @@ defmodule Dx.Defd do
     defd_call = call_to_defd(call)
 
     quote do
-      unquote(@eval_var) = Dx.Evaluation.from_options(unquote(opts))
+      unquote(@eval_var) = Eval.from_options(unquote(opts))
 
       unquote(defd_call)
     end

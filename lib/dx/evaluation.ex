@@ -47,4 +47,33 @@ defmodule Dx.Evaluation do
   def load_data_reqs(eval, data_reqs) do
     Map.update!(eval, :cache, &eval.loader.load(&1, data_reqs))
   end
+
+  def load_all_data_reqs!(eval_opts, fun) when is_list(eval_opts) do
+    from_options(eval_opts)
+    |> load_all_data_reqs(fun)
+    |> Dx.Result.unwrap!()
+  end
+
+  def load_all_data_reqs!(eval, fun) do
+    eval
+    |> load_all_data_reqs(fun)
+    |> Dx.Result.unwrap!()
+  end
+
+  def load_all_data_reqs(eval_opts, fun) when is_list(eval_opts) do
+    from_options(eval_opts)
+    |> load_all_data_reqs(fun)
+  end
+
+  def load_all_data_reqs(eval, fun) do
+    case fun.(eval) do
+      {:not_loaded, data_reqs} -> load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
+      {:ok, result, _binds} -> {:ok, result, eval.cache}
+      other -> other
+    end
+  rescue
+    e ->
+      # Remove Dx's inner stacktrace and convert defd function names
+      Dx.Defd.Error.filter_and_reraise(e, __STACKTRACE__)
+  end
 end

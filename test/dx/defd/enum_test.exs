@@ -146,6 +146,97 @@ defmodule Dx.Defd.EnumTest do
       end)
     end
 
+    test "Invalid field in external fn body", %{
+      list: list,
+      preloaded_list: preloaded_list,
+      task: task,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule InvalidFieldInExtFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], & &1.unknown.email)
+              end)
+            )
+          end
+
+          @dx def: :original
+          defd run2(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([%{a: %{b: task}}], & &1.a.b.unknown.email)
+              end)
+            )
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        assert_same_error(
+          KeyError,
+          location(-25),
+          fn -> load!(InvalidFieldInExtFnTest.run(preloaded_list)) end,
+          fn -> InvalidFieldInExtFnTest.run(preloaded_list) end
+        )
+
+        assert_same_error(
+          KeyError,
+          location(-23),
+          fn -> load!(InvalidFieldInExtFnTest.run2(preloaded_list)) end,
+          fn -> InvalidFieldInExtFnTest.run2(preloaded_list) end
+        )
+      end)
+    end
+
+    test "Invalid field in external fn body condition", %{
+      list: list,
+      preloaded_list: preloaded_list,
+      task: task,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule InvalidFieldInExtFnCondTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map(
+                  [task],
+                  &if(Map.has_key?(&1, :unknown), do: &1.unknown.email, else: :unknown)
+                )
+              end)
+            )
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        preloaded_list = Repo.preload(preloaded_list, tasks: :created_by)
+
+        assert load!(InvalidFieldInExtFnCondTest.run(preloaded_list)) ==
+                 InvalidFieldInExtFnCondTest.run(preloaded_list)
+      end)
+    end
+
     test "function reference in fn body", %{
       list: list,
       preloaded_list: preloaded_list,
