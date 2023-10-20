@@ -582,15 +582,28 @@ defmodule Dx.Defd.Compiler do
         # Access.get/2
         if meta2[:no_parens] do
           case maybe_capture_loader(fun, state) do
-            {:ok, loader_ast, state} ->
+            {:ok, _loader_ast, state} ->
+              subject = root_var_from_access_chain(fun)
+              data_req = data_req_from_access_chain(fun, %{})
+
+              loader_ast =
+                quote do
+                  Dx.Defd.Util.fetch(
+                    unquote(subject),
+                    unquote(Macro.escape(data_req)),
+                    unquote(state.eval_var)
+                  )
+                end
+
               state =
                 Map.update!(state, :data_reqs, fn data_reqs ->
                   Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
                 end)
 
               var = state.data_reqs[loader_ast]
+              access_ast = replace_root_var(fun, var)
 
-              {var, state}
+              {access_ast, state}
 
             :error ->
               {fun, state}
@@ -602,6 +615,31 @@ defmodule Dx.Defd.Compiler do
       ast, state ->
         {ast, state}
     end)
+  end
+
+  def root_var_from_access_chain({{:., _meta, [ast, _fun_name]}, _meta2, []}) do
+    root_var_from_access_chain(ast)
+  end
+
+  def root_var_from_access_chain(var) when is_var(var) do
+    var
+  end
+
+  def replace_root_var({{:., meta, [ast, fun_name]}, meta2, []}, new_var) do
+    {{:., meta, [replace_root_var(ast, new_var), fun_name]}, meta2, []}
+  end
+
+  def replace_root_var(var, new_var) when is_var(var) do
+    new_var
+  end
+
+  def data_req_from_access_chain({{:., _meta, [ast, fun_name]}, _meta2, []}, acc) do
+    acc = %{fun_name => acc}
+    data_req_from_access_chain(ast, acc)
+  end
+
+  def data_req_from_access_chain(var, acc) when is_var(var) do
+    acc
   end
 
   def normalize_external_call_args(args, state, fun) do

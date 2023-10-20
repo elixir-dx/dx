@@ -33,7 +33,7 @@ defmodule Dx.Test.DefdCase do
       {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
       assert e1 == e2
 
-      {_, type, _, stacktrace} = e1
+      assert {:error, _, type, _, stacktrace} = e1
       assert type == expected_type
 
       assert Enum.any?(stacktrace, &String.starts_with?(&1, location)), """
@@ -44,9 +44,9 @@ defmodule Dx.Test.DefdCase do
     end
 
     defp get_error_and_stacktrace(fun) do
-      fun.()
+      {:ok, fun.()}
     rescue
-      e -> {e, e.__struct__, Exception.message(e), stacktrace(__STACKTRACE__)}
+      e -> {:error, e, e.__struct__, Exception.message(e), stacktrace(__STACKTRACE__)}
     end
 
     defp stacktrace(stacktrace) do

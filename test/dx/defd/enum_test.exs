@@ -23,7 +23,7 @@ defmodule Dx.Defd.EnumTest do
 
     users = [user, user2]
 
-    list = create(List, %{created_by: user})
+    list = create(List, %{created_by: user, from_template: nil})
 
     tasks = [
       task = create(Task, %{list: list, created_by: user}),
@@ -234,6 +234,71 @@ defmodule Dx.Defd.EnumTest do
 
         assert load!(InvalidFieldInExtFnCondTest.run(preloaded_list)) ==
                  InvalidFieldInExtFnCondTest.run(preloaded_list)
+      end)
+    end
+
+    test "Error accessing field on nil in external fn body", %{
+      list: list,
+      preloaded_list: preloaded_list
+    } do
+      refute_stderr(fn ->
+        defmodule FieldOnNilInExtFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], fn _ -> list.from_template.title end)
+              end)
+            )
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        assert_same_error(
+          KeyError,
+          location(-16),
+          fn -> load!(FieldOnNilInExtFnTest.run(list)) end,
+          fn -> FieldOnNilInExtFnTest.run(preloaded_list) end
+        )
+      end)
+    end
+
+    test "No error NOT accessing field on nil in external fn body", %{
+      list: list,
+      preloaded_list: preloaded_list
+    } do
+      refute_stderr(fn ->
+        defmodule CondOnNilInExtFnTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(list) do
+            call(
+              enum_map(list.tasks, fn task ->
+                Enum.map([task], fn _ -> false && list.from_template.title end)
+              end)
+            )
+          end
+
+          defp enum_map(enum, mapper) do
+            Enum.map(enum, mapper)
+          end
+
+          defp call(arg) do
+            arg
+          end
+        end
+
+        assert load!(CondOnNilInExtFnTest.run(list)) == CondOnNilInExtFnTest.run(preloaded_list)
       end)
     end
 
