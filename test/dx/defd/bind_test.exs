@@ -93,7 +93,7 @@ defmodule Dx.Defd.BindTest do
 
     test "pattern-matches assoc field, binds to variable", %{list: list, user: user} do
       assert_stderr("is unused", fn ->
-        defmodule AssocFieldPatternTest do
+        defmodule AssocFieldPatternUnusedTest do
           import Dx.Defd
 
           defd run(list) do
@@ -101,7 +101,7 @@ defmodule Dx.Defd.BindTest do
           end
         end
 
-        assert load(AssocFieldPatternTest.run(list)) == {:ok, %{list | created_by: user}}
+        assert load(AssocFieldPatternUnusedTest.run(list)) == {:ok, %{list | created_by: user}}
       end)
     end
 
