@@ -33,6 +33,14 @@ defmodule Dx.Util do
   @doc """
   Merges two nested maps recursively.
   """
+  def deep_merge(%type{} = left, %type{} = right) do
+    Map.merge(left, right, fn _key, left, right -> deep_merge(left, right) end)
+  end
+
+  def deep_merge(%_{} = _left, %_{} = right) do
+    right
+  end
+
   def deep_merge(%{} = left, %{} = right) do
     Map.merge(left, right, fn _key, left, right -> deep_merge(left, right) end)
   end

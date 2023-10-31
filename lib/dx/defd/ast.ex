@@ -151,7 +151,7 @@ defmodule Dx.Defd.Ast do
     end
   end
 
-  defp prepend_data_reqs_in({ast, state}, vars) do
+  def prepend_data_reqs_in({ast, state}, vars) do
     {local_data_reqs, other_data_reqs} =
       Enum.split_with(state.data_reqs, fn {loader_ast, _data_var} ->
         any_var_in?(loader_ast, vars)

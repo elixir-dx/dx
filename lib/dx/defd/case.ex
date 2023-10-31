@@ -80,30 +80,30 @@ defmodule Dx.Defd.Case do
     data_req_from_clauses(tail, acc)
   end
 
-  defp quoted_data_req({elem_0, elem_1}) do
+  def quoted_data_req({elem_0, elem_1}) do
     maybe_add_elems({:__tuple__, 2}, [elem_0, elem_1])
   end
 
-  defp quoted_data_req({:{}, _meta, tuple_elems}) do
+  def quoted_data_req({:{}, _meta, tuple_elems}) do
     maybe_add_elems({:__tuple__, length(tuple_elems)}, tuple_elems)
   end
 
-  defp quoted_data_req(list) when is_list(list) do
+  def quoted_data_req(list) when is_list(list) do
     maybe_add_elems(:__list__, list)
   end
 
-  defp quoted_data_req({:%, _meta, [_type, map]}) do
+  def quoted_data_req({:%, _meta, [_type, map]}) do
     quoted_data_req(map)
   end
 
-  defp quoted_data_req({:%{}, _meta, pairs}) do
+  def quoted_data_req({:%{}, _meta, pairs}) do
     Map.new(pairs, fn
       {k, v} when is_atom(k) -> {k, quoted_data_req(v)}
       {k, v} -> {quoted_data_req(k), quoted_data_req(v)}
     end)
   end
 
-  defp quoted_data_req(_other) do
+  def quoted_data_req(_other) do
     %{}
   end
 
