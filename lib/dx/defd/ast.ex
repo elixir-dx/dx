@@ -1,67 +1,6 @@
 defmodule Dx.Defd.Ast do
   import __MODULE__.Guards
 
-  def ensure_loaded(ast, data_reqs) do
-    {loaders, vars} = Enum.unzip(data_reqs)
-    ensure_loaded(ast, loaders, vars)
-  end
-
-  def ensure_loaded(ast, [], _vars) do
-    ast
-  end
-
-  def ensure_loaded({:ok, var}, [loader], [var]) do
-    loader
-  end
-
-  def ensure_loaded(ast, [loader], [var]) do
-    quote do
-      case unquote(loader) do
-        {:ok, unquote(var)} -> unquote(ast)
-        other -> other
-      end
-    end
-  end
-
-  def ensure_loaded(ast, list, vars) do
-    deps = get_dependencies(list, vars)
-
-    ensure_loaded(ast, list, vars, deps)
-  end
-
-  def ensure_loaded(ast, [], [], []) do
-    ast
-  end
-
-  def ensure_loaded(ast, list, vars, deps) do
-    {{ready_loaders, ready_vars}, {defer_loaders, defer_vars, defer_deps}} =
-      [list, vars, deps]
-      |> Enum.zip_reduce({{[], []}, {[], [], []}}, fn
-        [loader, var, []], {{ready_loaders, ready_vars}, defer} ->
-          {{[loader | ready_loaders], [var | ready_vars]}, defer}
-
-        [loader, var, deps], {ready, {defer_loaders, defer_vars, defer_deps}} ->
-          {ready, {[loader | defer_loaders], [var | defer_vars], [deps | defer_deps]}}
-      end)
-
-    defer_deps = Enum.map(defer_deps, fn loader_deps -> loader_deps -- ready_vars end)
-    ast = ensure_loaded(ast, defer_loaders, defer_vars, defer_deps)
-
-    quote do
-      case Dx.Defd.Result.collect_reverse(unquote(ready_loaders), {:ok, []}) do
-        {:ok, unquote(Enum.reverse(ready_vars))} -> unquote(ast)
-        other -> other
-      end
-    end
-  end
-
-  defp get_dependencies(loaders, vars) do
-    Enum.map(loaders, fn loader_ast ->
-      loader_deps = collect_vars(loader_ast, %{})
-      Enum.filter(vars, &Map.has_key?(loader_deps, var_id(&1)))
-    end)
-  end
-
   def is_function({:ok, {:fn, _meta, [{:->, _meta2, [args, _body]}]}}, arity) do
     length(args) == arity
   end
@@ -97,12 +36,6 @@ defmodule Dx.Defd.Ast do
     ast
   end
 
-  def unwrap(ast) do
-    quote location: :keep do
-      Dx.Result.unwrap!(unquote(ast))
-    end
-  end
-
   def wrap_args([arg]) do
     arg
   end
@@ -124,13 +57,84 @@ defmodule Dx.Defd.Ast do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
   end
 
+  defp ensure_loaded(ast, []) do
+    ast
+  end
+
+  defp ensure_loaded({:ok, var}, [{loader, var}]) do
+    loader
+  end
+
+  defp ensure_loaded(ast, [{loader, var}]) do
+    quote do
+      case unquote(loader) do
+        {:ok, unquote(var)} -> unquote(ast)
+        other -> other
+      end
+    end
+  end
+
+  defp ensure_loaded(ast, data_reqs) do
+    {loaders, vars} = Enum.unzip(data_reqs)
+
+    quote do
+      case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
+        {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
+        other -> other
+      end
+    end
+  end
+
+  def ensure_vars_loaded(ast, filter_vars, state) do
+    data_vars = get_data_vars(state.data_reqs)
+
+    state.data_reqs
+    |> Enum.split_with(fn {loader_ast, _data_var} ->
+      loader_vars = collect_vars(loader_ast, %{})
+      any_var_in?(loader_vars, filter_vars) and not any_var_in?(loader_vars, data_vars)
+    end)
+    |> case do
+      {[], _data_reqs} ->
+        {ast, state}
+
+      {local_data_reqs, other_data_reqs} ->
+        next_filter_vars = get_data_vars(local_data_reqs)
+        state = %{state | data_reqs: Map.new(other_data_reqs)}
+        {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
+        ast = ensure_loaded(ast, local_data_reqs)
+        {ast, state}
+    end
+  end
+
+  defp ensure_all_loaded(ast, state) do
+    data_vars = get_data_vars(state.data_reqs)
+
+    state.data_reqs
+    |> Enum.split_with(fn {loader_ast, _data_var} ->
+      loader_vars = collect_vars(loader_ast, %{})
+      not any_var_in?(loader_vars, data_vars)
+    end)
+    |> case do
+      {[], _data_reqs} ->
+        {ast, state}
+
+      {local_data_reqs, other_data_reqs} ->
+        next_filter_vars = get_data_vars(local_data_reqs)
+        state = %{state | data_reqs: Map.new(other_data_reqs)}
+        {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
+        ast = ensure_loaded(ast, local_data_reqs)
+        {ast, state}
+    end
+  end
+
   def with_root_args(args, state, fun) do
     temp_state = Map.update!(state, :args, &collect_vars(args, &1))
 
     case fun.(temp_state) do
       {ast, updated_state} ->
-        ast = ensure_loaded(ast, updated_state.data_reqs)
-        {ast, %{updated_state | args: state.args, data_reqs: %{}}}
+        {ast, updated_state} = ensure_all_loaded(ast, updated_state)
+
+        {ast, %{updated_state | args: state.args}}
 
       other ->
         IO.inspect(other)
@@ -146,25 +150,18 @@ defmodule Dx.Defd.Ast do
 
     case fun.(temp_state) do
       {ast, updated_state} ->
+        {ast, updated_state} = ensure_vars_loaded(ast, new_vars, updated_state)
+
         {ast, %{updated_state | args: state.args}}
-        |> prepend_data_reqs_in(new_vars)
     end
   end
 
-  def prepend_data_reqs_in({ast, state}, vars) do
-    {local_data_reqs, other_data_reqs} =
-      Enum.split_with(state.data_reqs, fn {loader_ast, _data_var} ->
-        any_var_in?(loader_ast, vars)
-      end)
-
-    ast = ensure_loaded(ast, Map.new(local_data_reqs))
-
-    {ast, %{state | data_reqs: Map.new(other_data_reqs)}}
+  defp get_data_vars(data_reqs) do
+    Map.new(data_reqs, fn {_loader_ast, data_var} -> {data_var, true} end)
   end
 
-  defp any_var_in?(ast, vars) do
-    ast
-    |> collect_vars(%{})
+  defp any_var_in?(ast_vars, vars) do
+    ast_vars
     |> Enum.any?(fn {var, _} -> Map.has_key?(vars, var) end)
   end
 

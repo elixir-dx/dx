@@ -511,6 +511,7 @@ defmodule Dx.Defd.Result do
 
   # :find
   defp combine(:find, acc, {:ok, false}, _), do: {:cont, acc}
-  defp combine(:find, {:not_loaded, reqs}, {:ok, true}, _), do: {:halt, {:not_loaded, reqs}}
-  defp combine(:find, {:ok, _}, {:ok, true}, mapper), do: {:halt, mapper.()}
+  defp combine(:find, acc, {:ok, nil}, _), do: {:cont, acc}
+  defp combine(:find, {:not_loaded, reqs}, {:ok, _truthy}, _), do: {:halt, {:not_loaded, reqs}}
+  defp combine(:find, {:ok, _}, {:ok, _truthy}, mapper), do: {:halt, mapper.()}
 end

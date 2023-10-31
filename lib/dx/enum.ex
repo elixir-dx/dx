@@ -228,18 +228,19 @@ defmodule Dx.Enum do
 
     ast =
       cond do
+        function_exported?(__MODULE__, fun_name, arity) ->
+          maybe_warn(meta, fun_name, arity, args, state)
+          maybe_warn_static(meta, fun_name, arity, args, state)
+
+          args = Enum.map(args, &Ast.unwrap/1)
+          {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+
         Enum.all?(args, &Ast.ok?/1) ->
           maybe_warn_static(meta, fun_name, arity, args, state)
 
           args = Enum.map(args, &Ast.unwrap_inner/1)
 
           {:ok, {{:., meta, [Enum, fun_name]}, meta2, args}}
-
-        function_exported?(__MODULE__, fun_name, arity) ->
-          maybe_warn(meta, fun_name, arity, args, state)
-
-          args = Enum.map(args, &Ast.unwrap/1)
-          {{:., meta, [__MODULE__, fun_name]}, meta2, args}
 
         true ->
           maybe_warn_static(meta, fun_name, arity, args, state)

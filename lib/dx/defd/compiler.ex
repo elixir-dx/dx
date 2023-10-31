@@ -493,7 +493,17 @@ defmodule Dx.Defd.Compiler do
         end)
 
       rewriter = @rewriters[module] ->
-        rewriter.rewrite(fun, state)
+        case rewriter.rewrite(fun, state) do
+          {{:ok, result}, state} ->
+            {{:ok, result}, state}
+
+          {loader, state} ->
+            data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+            var = data_reqs[loader]
+            ast = {:ok, var}
+
+            {ast, %{state | data_reqs: data_reqs}}
+        end
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
@@ -678,21 +688,9 @@ defmodule Dx.Defd.Compiler do
   end
 
   defp do_normalize_call_args(args, state, fun) do
-    {args, defd_reqs} =
-      Enum.map_reduce(args, %{}, fn
-        {:ok, ast}, reqs ->
-          {ast, reqs}
+    call_args = args |> Enum.map(&Ast.unwrap/1) |> fun.()
 
-        loader, reqs ->
-          reqs = Map.put_new(reqs, loader, Macro.unique_var(:data, __MODULE__))
-          var = reqs[loader]
-          {var, reqs}
-      end)
-
-    call_args = args |> fun.()
-    ast = Ast.ensure_loaded(call_args, defd_reqs)
-
-    {ast, state}
+    {call_args, state}
   end
 
   ## Helpers

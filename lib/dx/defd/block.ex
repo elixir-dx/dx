@@ -69,14 +69,14 @@ defmodule Dx.Defd.Block do
       else
         case normalize_block_body(rest, new_state) do
           {[ast], state} ->
-            case Ast.prepend_data_reqs_in({ast, state}, new_vars) do
+            case Ast.ensure_vars_loaded(ast, new_vars, state) do
               {ast, state} -> {[ast], state}
             end
 
           {lines, state} ->
             ast = to_block(lines, state)
 
-            case Ast.prepend_data_reqs_in({ast, state}, new_vars) do
+            case Ast.ensure_vars_loaded(ast, new_vars, state) do
               {{:__block__, _meta, lines}, state} -> {lines, state}
               {ast, state} -> {[ast], state}
             end
