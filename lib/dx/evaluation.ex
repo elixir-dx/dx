@@ -69,11 +69,21 @@ defmodule Dx.Evaluation do
     case fun.(eval) do
       {:not_loaded, data_reqs} -> load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
       {:ok, result, _binds} -> {:ok, result, eval.cache}
+      {:ok, %Dx.Scope{} = scope} -> Dx.Scope.lookup(scope, eval) |> maybe_load_scope(scope, eval)
       other -> other
     end
   rescue
     e ->
       # Remove Dx's inner stacktrace and convert defd function names
       Dx.Defd.Error.filter_and_reraise(e, __STACKTRACE__)
+  end
+
+  defp maybe_load_scope({:not_loaded, data_reqs}, scope, eval) do
+    eval = load_data_reqs(eval, data_reqs)
+    Dx.Scope.lookup(scope, eval)
+  end
+
+  defp maybe_load_scope(other, _scope, _eval) do
+    other
   end
 end

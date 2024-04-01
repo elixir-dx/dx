@@ -54,7 +54,7 @@ defmodule Dx.MixProject do
       {:dataloader, "~> 1.0.0"},
 
       # adapters
-      {:ecto, ">= 3.4.3 and < 4.0.0", optional: true},
+      {:ecto, "~> 3.8", optional: true},
       {:ecto_sql, "~> 3.0", optional: true},
 
       # dev & test
@@ -62,6 +62,8 @@ defmodule Dx.MixProject do
       {:timex, "~> 3.6", only: :test, runtime: false},
       {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
       {:stream_data, "~> 0.6", only: [:dev, :test]},
+      {:pretty_print_formatter, github: "san650/pretty_print_formatter", only: [:dev, :test]},
+      # {:pretty_print_formatter, "~> 0.1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end

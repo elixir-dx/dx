@@ -239,8 +239,9 @@ defmodule Dx.DefdTest do
   end
 
   describe "data loading" do
-    setup do
-      user = create(User)
+    setup context do
+      user_attrs = context[:user] || %{}
+      user = create(User, user_attrs)
       list = create(List, %{created_by: user})
       task = create(Task, %{list: list, created_by: user})
 
@@ -446,6 +447,22 @@ defmodule Dx.DefdTest do
       end
 
       assert load(DoubleRefTest.double_mail(list)) == {:ok, user.email <> user.email}
+    end
+
+    test "loads duplicate defd reference once",
+         %{list: list, user: user} do
+      defmodule DoubleDefdRefTest do
+        import Dx.Defd
+
+        defd double_mail(list) do
+          concatd(list.created_by.email, list.created_by.email)
+        end
+
+        defd(concatd(a, b), do: call(concat(a, b)))
+        defp concat(a, b), do: a <> b
+      end
+
+      assert load(DoubleDefdRefTest.double_mail(list)) == {:ok, user.email <> user.email}
     end
 
     test "loads deeply nested keys from external map" do

@@ -221,40 +221,98 @@ defmodule Dx.Enum do
     {ast, state}
   end
 
-  def rewrite({{:., meta, [Enum, fun_name]}, meta2, args} = orig, state) do
-    arity = length(args)
+  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args} = orig, state) do
+    arity = length(orig_args)
+    # dbg(meta)
+    # Ast.p(args, "ORIG Enum.#{fun_name}/#{arity} args")
+    # IO.inspect(args, label: "ORIG Enum.#{fun_name}/#{arity} args")
+    # dbg(args)
+    # {args, state} = Ast.with_state(state, %{in_external?: false}, fn state ->
+    #   Enum.map_reduce(args, state, &Compiler.normalize/2)
+    # end)
+    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+    # IO.inspect(args, label: "NORM Enum.#{fun_name}/#{arity} args")
+    # dbg(args)
+    # Ast.p(args, "NORM Enum.#{fun_name}/#{arity} args")
+    # dbg(state.data_reqs)
 
-    {args, state} = Enum.map_reduce(args, state, &Compiler.normalize/2)
+    cond do
+      args_ok?(args, __fn_args(fun_name, arity)) ->
+        IO.inspect(args, label: "ALL OK: #{fun_name}/#{arity}")
+        maybe_warn_static(meta, fun_name, arity, args, state)
 
-    ast =
-      cond do
-        function_exported?(__MODULE__, fun_name, arity) ->
-          maybe_warn(meta, fun_name, arity, args, state)
-          maybe_warn_static(meta, fun_name, arity, args, state)
+        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        args = Enum.map(args, &Ast.unwrap_inner/1)
+        # args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
 
-          args = Enum.map(args, &Ast.unwrap/1)
-          {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+        ast =
+          quote do
+            # unquote({{:., meta, [IO, :inspect]}, meta2, [args, [label: fun_name]]})
+            unquote({:ok, {{:., meta, [Enum, fun_name]}, meta2, args}})
+          end
 
-        Enum.all?(args, &Ast.ok?/1) ->
-          maybe_warn_static(meta, fun_name, arity, args, state)
+        {ast, state}
 
-          args = Enum.map(args, &Ast.unwrap_inner/1)
+      # |> Ast.p("after2")
 
-          {:ok, {{:., meta, [Enum, fun_name]}, meta2, args}}
+      function_exported?(__MODULE__, fun_name, arity) ->
+        # IO.inspect(args, label: "NOT OK: #{fun_name}/#{arity}")
+        # IO.inspect(args, label: fun_name)
+        maybe_warn_static(meta, fun_name, arity, args, state)
 
-        true ->
-          maybe_warn_static(meta, fun_name, arity, args, state)
+        {args, state} =
+          if __scopable?(fun_name, arity) do
+            maybe_warn(meta, fun_name, arity, args, state)
+            args = Enum.map(args, &Ast.unwrap/1)
+            {args, state}
+          else
+            {args, state} =
+              Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
 
-          orig
-      end
+            maybe_warn(meta, fun_name, arity, args, state)
 
-    {ast, state}
+            {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+            args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
+            {args, state}
+          end
+
+        ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+
+        if __returns_scope?(fun_name, arity) do
+          Compiler.add_loader(ast, state)
+        else
+          Compiler.add_loader(ast, state)
+          |> Compiler.mark_scope_safe()
+        end
+
+      # |> Ast.p("after1")
+
+      # function_exported?(Enum, fun_name, arity) ->
+      #   Compiler.compile_error!(meta, state, """
+      #   Enum.#{fun_name}/#{arity} is not supported by Dx yet.
+
+      #   Please check the issues in the repo, upvote, comment, or create an issue for it.
+      #   """)
+
+      true ->
+        maybe_warn_static(meta, fun_name, arity, args, state)
+
+        {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
+
+        maybe_warn(meta, fun_name, arity, args, state)
+
+        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
+
+        ast = {:ok, {{:., meta, [Enum, fun_name]}, meta2, args}}
+        {ast, state}
+    end
   end
 
   defp maybe_warn(meta, fun_name, arity, args, state) do
     cond do
-      fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+      fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2) |> dbg(), 2) |> dbg() and
+          not Ast.ok?(Enum.at(args, 2)) |> dbg() ->
         Compiler.warn(meta, state, @chunk_while_chunk_fun_warning)
 
       fun_name == :max and Ast.is_function(Enum.at(args, 1), 2) and
@@ -298,6 +356,42 @@ defmodule Dx.Enum do
         :ok
     end
   end
+
+  defp args_ok?(args, fn_arg_indexes) do
+    args
+    |> Enum.with_index()
+    |> Enum.all?(fn {arg, i} ->
+      Ast.ok?(arg, i in fn_arg_indexes)
+    end)
+  end
+
+  defp maybe_preload_scopes(args, scopable_arg_indexes, state) do
+    args
+    |> Enum.with_index()
+    |> Enum.map_reduce(state, fn {arg, i}, state ->
+      if i in scopable_arg_indexes do
+        Compiler.maybe_load_scope(arg, state)
+      else
+        {arg, state}
+      end
+    end)
+  end
+
+  def __fn_args(_fun_name, arity), do: [arity - 1]
+
+  def __preload_scopes(:count, 1), do: []
+  def __preload_scopes(:filter, 2), do: []
+  def __preload_scopes(:zip, 2), do: [0, 1]
+  def __preload_scopes(:zip_with, 3), do: [0, 1]
+  def __preload_scopes(_fun_name, _arity), do: [0]
+
+  def __scopable?(:count, 1), do: true
+  def __scopable?(:filter, 2), do: true
+  def __scopable?(_fun_name, _arity), do: false
+
+  def __returns_scope?(:count, 1), do: true
+  def __returns_scope?(:filter, 2), do: true
+  def __returns_scope?(_fun_name, _arity), do: false
 
   def all?(enumerable, fun) do
     Result.all?(enumerable, fun)
@@ -350,6 +444,22 @@ defmodule Dx.Enum do
     end)
   end
 
+  def count({:ok, %Dx.Scope{} = scope}) do
+    scope = %{scope | plan: {:count, scope.plan}}
+
+    {:ok, scope}
+  end
+
+  def count(%Dx.Scope{} = scope) do
+    scope = %{scope | plan: {:count, scope.plan}}
+
+    {:ok, scope}
+  end
+
+  def count(enumerable) do
+    {:ok, Enum.count(enumerable)}
+  end
+
   def count(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, 0, fn mapped, acc ->
       if mapped, do: acc + 1, else: acc
@@ -390,7 +500,28 @@ defmodule Dx.Enum do
     |> Result.transform(fn _ -> :ok end)
   end
 
-  def filter(enumerable, fun) do
+  def filter(module, conditions) when is_atom(module) do
+    Dx.Scope.all(module)
+    |> filter(conditions)
+  end
+
+  def filter(%Dx.Scope{} = scope, conditions) do
+    scope = Dx.Scope.add_conditions(scope, conditions)
+    # |> IO.inspect(label: :ADD)
+
+    {:ok, scope}
+
+    # if conditions in scope.query_conditions do
+    #   %{scope | query_conditions: List.delete(scope.query_conditions, conditions)}
+    # else
+    #   Dx.Result.filter_map(
+    #     scope.data,
+    #     &Dx.Engine.evaluate_condition(conditions, &1, %{eval | root_subject: &1})
+    #   )
+    # end
+  end
+
+  def filter(enumerable, %Dx.Defd.Fn{fun: fun}) do
     Result.map_then_reduce_ok(enumerable, fun, [], fn elem, mapped, acc ->
       if mapped, do: [elem | acc], else: acc
     end)
@@ -400,7 +531,7 @@ defmodule Dx.Enum do
   @doc false
   @deprecated "Use Enum.filter/2 + Enum.map/2 or for comprehensions instead"
   def filter_map(enumerable, filter, mapper) do
-    filter(enumerable, filter)
+    filter(enumerable, %Dx.Defd.Fn{fun: filter})
     |> Result.then(&map(&1, mapper))
   end
 
@@ -492,6 +623,8 @@ defmodule Dx.Enum do
 
   def map(enumerable, fun) do
     Result.map(enumerable, fun)
+    # Enum.map(enumerable, fun)
+    # |> Result.collect()
   end
 
   def map_every(enumerable, 1, fun), do: map(enumerable, fun)
@@ -714,6 +847,12 @@ defmodule Dx.Enum do
 
   def reduce(enumerable, acc, fun) do
     Result.reduce(enumerable, acc, fun)
+    # Enum.reduce_while(enumerable, Result.ok(acc), fn elem, {:ok, acc} ->
+    #   case fun.(elem, acc) do
+    #     {:ok, _} = result -> {:cont, result}
+    #     other -> {:halt, other}
+    #   end
+    # end)
   end
 
   def reduce_while(enumerable, acc, fun) do
@@ -727,6 +866,7 @@ defmodule Dx.Enum do
     |> Result.transform(&:lists.reverse/1)
   end
 
+  # TODO: warn
   def scan(enumerable, fun) do
     Result.reduce(enumerable, [], fn
       entry, [] ->
@@ -739,6 +879,7 @@ defmodule Dx.Enum do
     |> Result.transform(&:lists.reverse/1)
   end
 
+  # TODO: warn
   def scan(enumerable, acc, fun) do
     Result.reduce(enumerable, {:empty, acc}, fn
       entry, {:empty, acc} ->
@@ -761,6 +902,7 @@ defmodule Dx.Enum do
   end
 
   defp to_sort_fun(sorter) when is_function(sorter, 2), do: sorter
+  # defp to_sort_fun(:asc), do: &<=/2
   defp to_sort_fun(:asc), do: &{:ok, &1 <= &2}
   defp to_sort_fun(:desc), do: &{:ok, &1 >= &2}
   defp to_sort_fun(module) when is_atom(module), do: &{:ok, module.compare(&1, &2) != :gt}
@@ -791,6 +933,7 @@ defmodule Dx.Enum do
       |> sort(fn {_left_elem, left_mapped}, {_right_elem, right_mapped} ->
         fun.(left_mapped, right_mapped)
       end)
+      # |> List.keysort(1, sorter)
       |> Result.transform(fn list -> Enum.map(list, &elem(&1, 0)) end)
     end)
   end
@@ -853,6 +996,7 @@ defmodule Dx.Enum do
     {:ok, Enum.with_index(enumerable, offset)}
   end
 
+  # TODO: warn
   def with_index(enumerable, fun) when is_function(fun, 2) do
     Result.reduce(enumerable, {[], 0}, fn entry, {acc, index} ->
       fun.(entry, index)
@@ -874,6 +1018,7 @@ defmodule Dx.Enum do
     |> Result.map(fn elems -> elems |> Tuple.to_list() |> zip_fun.() end)
   end
 
+  # TODO: warn
   def zip_reduce(left, right, acc, reducer) when is_function(reducer, 3) do
     zip_reduce([left, right], acc, fn [elem1, elem2], acc -> reducer.(elem1, elem2, acc) end)
   end
@@ -911,6 +1056,20 @@ defmodule Dx.Enum do
             end
         end)
     end)
+
+    # cond do
+    #   fun.(y, entry) == bool ->
+    #     {:split, entry, y, [x | r], rs, bool}
+
+    #   fun.(x, entry) == bool ->
+    #     {:split, y, entry, [x | r], rs, bool}
+
+    #   r == [] ->
+    #     {:split, y, x, [entry], rs, bool}
+
+    #   true ->
+    #     {:pivot, y, x, r, rs, entry, bool}
+    # end
   end
 
   defp sort_reducer(entry, {:pivot, y, x, r, rs, s, bool}, fun) do
@@ -936,6 +1095,20 @@ defmodule Dx.Enum do
             end)
         end)
     end)
+
+    # cond do
+    #   fun.(y, entry) == bool ->
+    #     {:pivot, entry, y, [x | r], rs, s, bool}
+
+    #   fun.(x, entry) == bool ->
+    #     {:pivot, y, entry, [x | r], rs, s, bool}
+
+    #   fun.(s, entry) == bool ->
+    #     {:split, entry, s, [], [[y, x | r] | rs], bool}
+
+    #   true ->
+    #     {:split, s, entry, [], [[y, x | r] | rs], bool}
+    # end
   end
 
   defp sort_reducer(entry, [x], fun) do

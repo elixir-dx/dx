@@ -74,4 +74,36 @@ defmodule Dx.Util.Map do
   """
   def maybe_merge(nil, other), do: other
   def maybe_merge(map, other), do: Map.merge(map, other)
+
+  @doc """
+  Puts a value into the given map, if the key doesn't exist yet.
+  Then returns the value (new or existing) and the map (potentially updated).
+
+  ## Examples
+
+      iex> Dx.Util.Map.put_new_and_get(%{a: 1, b: 2}, :c, 3)
+      {3, %{a: 1, b: 2, c: 3}}
+
+      iex> Dx.Util.Map.put_new_and_get(%{a: 1, b: 2}, :b, 3)
+      {2, %{a: 1, b: 2}}
+
+      iex> Dx.Util.Map.put_new_and_get(%{a: 1, b: 2}, :c, fn -> 4 end)
+      {4, %{a: 1, b: 2, c: 4}}
+  """
+  def put_new_and_get(map, key, value_or_fun) do
+    case Map.fetch(map, key) do
+      {:ok, value} ->
+        {value, map}
+
+      :error ->
+        value =
+          if is_function(value_or_fun) do
+            value_or_fun.()
+          else
+            value_or_fun
+          end
+
+        {value, Map.put(map, key, value)}
+    end
+  end
 end

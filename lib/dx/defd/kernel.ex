@@ -31,19 +31,30 @@ defmodule Dx.Defd.Kernel do
     {ast, state}
   end
 
-  def rewrite({{:., meta, [:erlang, fun_name]}, meta2, args} = orig, state) do
-    arity = length(args)
+  def rewrite({{:., meta, [:erlang, fun_name]}, meta2, orig_args} = orig, state) do
+    arity = length(orig_args)
 
-    {args, state} = Enum.map_reduce(args, state, &Compiler.normalize/2)
+    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+    # args = if state.in_external? and state.in_fn?, do: args, else: Enum.map(args, &Ast.unwrap/1)
+
+    # ast = {{:., meta, [:erlang, fun_name]}, meta2, args}
+    # ast = if state.in_external? and state.in_fn?, do: ast, else: {:ok, ast}
 
     ast =
       cond do
         Enum.all?(args, &Ast.ok?/1) ->
           args = Enum.map(args, &Ast.unwrap_inner/1)
 
-          {:ok, {{:., meta, [:erlang, fun_name]}, meta2, args}}
+          quote do
+            # unquote({{:., meta, [IO, :inspect]}, meta2, [args, [label: fun_name]]})
+            unquote({:ok, {{:., meta, [:erlang, fun_name]}, meta2, args}})
+          end
 
         function_exported?(:erlang, fun_name, arity) ->
+          dbg(orig_args)
+          dbg(args)
+          args |> List.first() |> Ast.p("1st")
+
           Compiler.compile_error!(meta, state, """
           #{fun_name}/#{arity} is not supported by Dx yet.
 
@@ -51,6 +62,7 @@ defmodule Dx.Defd.Kernel do
           """)
 
         true ->
+          # {:ok, orig}
           orig
       end
 
