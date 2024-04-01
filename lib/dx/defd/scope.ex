@@ -80,6 +80,15 @@ defmodule Dx.Scope do
 
   def lookup(scope, eval) do
     eval.loader.lookup(eval.cache, scope, false)
+    |> dbg()
+    |> case do
+      {:ok, [{results, post_load}]} ->
+        Dx.Ecto.Scope.run_post_load(results, post_load, eval)
+
+      other ->
+        other
+    end
+
     # |> IO.inspect(label: :LOOKUP)
   end
 

@@ -146,7 +146,8 @@ defmodule Dx.Loaders.Dataloader do
     scope_source =
       Dx.Ecto.DataloaderSource.new(repo,
         query: &Dx.Ecto.Scope.to_query/2,
-        # run_batch: &run_batch/5,
+        # query: &Dx.Ecto.Scope.resolve_and_build/2,
+        run_batch: &run_batch(config(:repo), &1, &2, &3, &4, &5),
         async: run_concurrently?
       )
 
@@ -172,4 +173,36 @@ defmodule Dx.Loaders.Dataloader do
   end
 
   def config(:repo), do: Application.fetch_env!(:dx, :repo)
+
+  # Source overrides
+
+  def run_batch(repo, queryable, {query, post_load}, col, inputs, repo_opts) do
+    # {:ok, query, post_load} = Dx.Ecto.Scope.resolve_and_build(scope)
+
+    Dx.Ecto.DataloaderSource.run_batch(
+      repo,
+      queryable,
+      query,
+      col,
+      inputs,
+      repo_opts
+    )
+    |> Enum.map(&{&1, post_load})
+
+    # |> then(&{&1, post_load})
+  end
+
+  def run_batch(repo, queryable, query, col, inputs, repo_opts) do
+    dbg(col)
+
+    Dx.Ecto.DataloaderSource.run_batch(
+      repo,
+      queryable,
+      query,
+      col,
+      inputs,
+      repo_opts
+    )
+    |> dbg()
+  end
 end

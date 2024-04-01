@@ -68,4 +68,10 @@ defmodule Dx.Defd.Kernel do
 
     {ast, state}
   end
+
+  import Kernel, except: [==: 2]
+
+  def unquote(:==)(left, right) do
+    left == right
+  end
 end

@@ -94,6 +94,13 @@ defmodule Dx.Defd.Result do
     |> transform(&Enum.reverse/1)
   end
 
+  def filter(enum, fun, eval) do
+    Enum.reduce_while(enum, ok([]), fn elem, acc ->
+      combine(:filter, acc, fun.(elem, eval), elem)
+    end)
+    |> transform(&Enum.reverse/1)
+  end
+
   @doc """
   Applies the `mapper` function to each element and reduces the mapped results
   using `acc` and `fun` as long as the mapped results are `{:ok, _}` tuples.
@@ -495,6 +502,11 @@ defmodule Dx.Defd.Result do
 
   defp combine(:all, {:ok, results}, {:ok, result}, fun),
     do: {:cont, {:ok, [fun.(result) | results]}}
+
+  # :filter
+  defp combine(:filter, acc, {:ok, false}, _), do: {:cont, acc}
+  defp combine(:filter, acc, {:ok, nil}, _), do: {:cont, acc}
+  defp combine(:filter, acc, {:ok, _}, elem), do: combine(:all, acc, {:ok, elem}, & &1)
 
   # :any?
   defp combine(:any?, _acc, {:ok, true}, _), do: {:halt, {:ok, true}}

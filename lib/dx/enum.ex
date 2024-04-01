@@ -221,7 +221,7 @@ defmodule Dx.Enum do
     {ast, state}
   end
 
-  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args} = orig, state) do
+  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args} = orig, orig_state) do
     arity = length(orig_args)
     # dbg(meta)
     # Ast.p(args, "ORIG Enum.#{fun_name}/#{arity} args")
@@ -230,7 +230,7 @@ defmodule Dx.Enum do
     # {args, state} = Ast.with_state(state, %{in_external?: false}, fn state ->
     #   Enum.map_reduce(args, state, &Compiler.normalize/2)
     # end)
-    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+    {args, state} = Enum.map_reduce(orig_args, orig_state, &Compiler.normalize/2)
     # IO.inspect(args, label: "NORM Enum.#{fun_name}/#{arity} args")
     # dbg(args)
     # Ast.p(args, "NORM Enum.#{fun_name}/#{arity} args")
@@ -256,7 +256,8 @@ defmodule Dx.Enum do
       # |> Ast.p("after2")
 
       function_exported?(__MODULE__, fun_name, arity) ->
-        # IO.inspect(args, label: "NOT OK: #{fun_name}/#{arity}")
+        IO.inspect(args, label: "NOT OK: #{fun_name}/#{arity}")
+        IO.inspect(orig_args, label: "ORIGINAL: #{fun_name}/#{arity}")
         # IO.inspect(args, label: fun_name)
         maybe_warn_static(meta, fun_name, arity, args, state)
 
@@ -267,7 +268,7 @@ defmodule Dx.Enum do
             {args, state}
           else
             {args, state} =
-              Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
+              Enum.map_reduce(orig_args, orig_state, &Compiler.normalize_scope_safe_arg/2)
 
             maybe_warn(meta, fun_name, arity, args, state)
 
