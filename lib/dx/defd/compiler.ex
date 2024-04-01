@@ -23,8 +23,10 @@ defmodule Dx.Defd.Compiler do
       function: nil,
       defds: defds,
       args: %{},
+      scope_args: [],
       eval_var: eval_var,
       in_call?: false,
+      in_scope?: false,
       is_loader?: false,
       data_reqs: %{},
       # scopable_data_reqs: MapSet.new(),
@@ -207,7 +209,7 @@ defmodule Dx.Defd.Compiler do
   # end
 
   def normalize(ast, state) when is_simple(ast) do
-    ast = {:ok, ast}
+    ast = if state.in_scope?, do: {:ok, {:value, ast}}, else: {:ok, ast}
     {ast, state}
   end
 
@@ -347,7 +349,11 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
+    # if state.in_scope? do
+    #   {var, state}
+    # else
     maybe_load_scope({:ok, var}, state)
+    # end
   end
 
   def normalize({:call, _meta, [ast]}, state) do
@@ -356,7 +362,19 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    {scope_body, _state} = Dx.Scope.Compiler.normalize(body, state)
+    normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state)
+  end
+
+  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
+    # Ast.with_args(args, state, fn state ->
+    {scope_body, _new_state} =
+      Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
+
+    # end)
+
+    # {scope_body, _state} = Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
+    # {scope_body, _state} = Dx.Scope.Compiler.normalize(body, state)
+    # {scope_body, _state} = normalize(body, %{state | in_scope?: true})
 
     {body, new_state} =
       Ast.with_args(args, state, fn state ->
@@ -385,6 +403,43 @@ defmodule Dx.Defd.Compiler do
            ]}
         ]}}
 
+    {ast, new_state}
+  end
+
+  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, false, state) do
+    # {body, new_state} =
+    #   Ast.with_args(args, state, fn state ->
+    #     normalize(body, state)
+    #   end)
+
+    # {ok?, ok_body} =
+    #   case body do
+    #     {:ok, ok_body} -> {true, ok_body}
+    #     _ -> {false, nil}
+    #   end
+
+    # line = meta[:line] || state.line
+
+    # ast =
+    #   {:ok,
+    #    {:%, [line: line],
+    #     [
+    #       {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+    #       {:%{}, [line: line],
+    #        [
+    #          ok?: ok?,
+    #          fun: {:fn, meta, [{:->, meta2, [args, body]}]},
+    #          ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]}
+    #        ]}
+    #     ]}}
+
+    # {ast, new_state}
+    {body, new_state} =
+      Ast.with_root_args(args, state, fn state ->
+        normalize(body, state)
+      end)
+
+    ast = {:fn, meta, [{:->, meta2, [args, body]}]}
     {ast, new_state}
   end
 
@@ -509,6 +564,17 @@ defmodule Dx.Defd.Compiler do
     arity = length(args)
 
     cond do
+      state.in_scope? and {fun_name, arity} in state.defds ->
+        scope_name = Util.scope_name(fun_name)
+
+        {args, state} = Enum.map_reduce(args, state, &normalize/2)
+
+        {scope_name, meta, args}
+        |> with_state(state)
+
+      state.in_scope? ->
+        {:error, state}
+
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
 
@@ -544,6 +610,27 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
+  def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]}, %{in_scope?: true} = state) do
+    {left, state} = normalize(left, state)
+    dbg(left)
+    {right, state} = normalize(right, state)
+    dbg(right)
+
+    quote line: meta[:line] do
+      case {unquote(left), unquote(right)} do
+        {{:ok, left}, {:ok, right}} ->
+          {:ok, Dx.Scope.eq(left, right)}
+
+        # {{_, left}, {_, right}} -> {:error, {:ok, left == right}}
+        _else ->
+          :error
+      end
+
+      # {:eq, unquote(normalize(left)), unquote(normalize(right))}
+    end
+    |> with_state(state)
+  end
+
   # Mod.fun()
   def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
@@ -551,8 +638,16 @@ defmodule Dx.Defd.Compiler do
 
     cond do
       # Access.get/2
+      state.in_scope? and meta2[:no_parens] ->
+        {module, state} = normalize(module, state)
+
+        quote line: meta[:line] do
+          {:ok, Dx.Scope.field_or_assoc(unquote(module), unquote(fun_name))}
+        end
+        |> with_state(state)
+
       meta2[:no_parens] ->
-        case maybe_capture_loader(fun, state) do
+        case maybe_capture_loader(fun, state) |> dbg() do
           {:ok, loader_ast, state} ->
             add_loader(loader_ast, state)
             |> mark_scope_safe()
@@ -581,7 +676,19 @@ defmodule Dx.Defd.Compiler do
         end)
 
       rewriter = @rewriters[module] ->
-        rewriter.rewrite(fun, state)
+        cond do
+          state.in_scope? and Util.is_scopable?(rewriter, fun_name, arity) ->
+            {args, state} = Enum.map_reduce(args, state, &normalize/2)
+
+            {{:., meta, [rewriter, fun_name]}, meta2, args}
+            |> with_state(state)
+
+          state.in_scope? ->
+            {:error, state}
+
+          true ->
+            rewriter.rewrite(fun, state)
+        end
 
       # case rewriter.rewrite(fun, state) do
       #   {{:ok, result}, state} ->
@@ -591,6 +698,15 @@ defmodule Dx.Defd.Compiler do
       #     add_loader(loader, state)
       #     # |> mark_scope_safe()
       # end
+
+      state.in_scope? and Util.is_defd?(module, fun_name, arity) ->
+        scope_name = Util.scope_name(fun_name)
+
+        {{:., meta, [module, scope_name]}, meta2, args}
+        |> with_state(state)
+
+      state.in_scope? ->
+        {:error, state}
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
@@ -650,6 +766,10 @@ defmodule Dx.Defd.Compiler do
         Dx.Scope.maybe_load(unquote(ast), unquote(state.eval_var))
       end
 
+    {ast, state}
+  end
+
+  def maybe_load_scope(ast, %{in_scope?: true} = state) do
     {ast, state}
   end
 
@@ -765,14 +885,14 @@ defmodule Dx.Defd.Compiler do
   end
 
   def maybe_capture_loader(var, state) when is_var(var) do
-    if Map.has_key?(state.args, Ast.var_id(var)) do
-      # {ast, state} = add_scope_loader_for(var, state)
-      # {:ok, ast, state}
-      {ast, state} = maybe_load_scope({:ok, var}, state)
-      {:ok, ast, state}
-    else
-      :error
-    end
+    # if Map.has_key?(state.args, Ast.var_id(var)) do
+    # {ast, state} = add_scope_loader_for(var, state)
+    # {:ok, ast, state}
+    {ast, state} = maybe_load_scope({:ok, var}, state)
+    {:ok, ast, state}
+    # else
+    # :error
+    # end
   end
 
   def maybe_capture_loader(_ast, _state) do
@@ -881,6 +1001,8 @@ defmodule Dx.Defd.Compiler do
   end
 
   ## Helpers
+
+  defp with_state(ast, state), do: {ast, state}
 
   def compile_error!(meta, state, description) do
     line = meta[:line] || state.line

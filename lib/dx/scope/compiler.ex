@@ -44,23 +44,45 @@ defmodule Dx.Scope.Compiler do
   #   end
   # end
 
-  def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]}, state) do
-    {left, state} = normalize(left, state)
-    {right, state} = normalize(right, state)
+  def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]} = ast, state) do
+    {n_left, n_state} = normalize(left, state)
+    {n_right, n_state} = normalize(right, n_state)
 
-    quote line: meta[:line] do
-      case {unquote(left), unquote(right)} do
-        {{:ok, left}, {:ok, right}} ->
-          {:ok, Dx.Scope.eq(left, right)}
+    case {n_left, n_right} do
+      {{:ok, left}, {:ok, right}} ->
+        quote line: meta[:line] do
+          {:ok, Dx.Scope.eq(unquote(left), unquote(right))}
+        end
 
-        # {{_, left}, {_, right}} -> {:error, {:ok, left == right}}
-        _else ->
-          :error
-      end
+      _else ->
+        {fun, _state} =
+          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], ast]}]}
+          |> Dx.Defd.Compiler.normalize_fn(false, state)
 
-      # {:eq, unquote(normalize(left)), unquote(normalize(right))}
+        case {n_left, n_right} do
+          {{:error, _}, _} ->
+            {:error, fun}
+
+          {_, {:error, _}} ->
+            {:error, fun}
+
+          _else ->
+            quote line: meta[:line] do
+              case {unquote(n_left), unquote(n_right)} do
+                {{:ok, left}, {:ok, right}} ->
+                  {:ok, Dx.Scope.eq(left, right)}
+
+                # {{_, left}, {_, right}} -> {:error, {:ok, left == right}}
+                _else ->
+                  # :error
+                  {:error, unquote(fun)}
+              end
+            end
+        end
+
+        # {:eq, unquote(normalize(left)), unquote(normalize(right))}
     end
-    |> with_state(state)
+    |> with_state(n_state)
   end
 
   # local_fun()
@@ -129,7 +151,10 @@ defmodule Dx.Scope.Compiler do
 
       true ->
         # {:error, {:ok, fun}}
-        :error
+        # :error
+        quote do
+          {:error, fn unquote_splicing(args ++ [state.eval_var]) -> {:ok, unquote(fun)} end}
+        end
         |> with_state(state)
     end
   end

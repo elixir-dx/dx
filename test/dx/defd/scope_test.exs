@@ -28,6 +28,7 @@ defmodule Dx.Defd.ScopeTest do
       preloaded_user: user,
       preloaded_list: %{list | tasks: [task]},
       preloaded_list2: %{list2 | tasks: []},
+      lists: [unload(list), unload(list2)],
       list: unload(list),
       list2: unload(list2),
       list_template: unload(list_template),
@@ -105,9 +106,24 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
-  test "list filter map", %{user: user} do
+  test "list filter", %{list: list, lists: lists} do
     refute_stderr(fn ->
-      defmodule FilterMapTest do
+      defmodule FilterTest do
+        import Dx.Defd
+
+        defd run(lists) do
+          Enum.filter(lists, &(&1.title == "Tasks"))
+        end
+      end
+
+      assert [^list] = load!(FilterTest.run(List))
+      assert [^list] = load!(FilterTest.run(lists))
+    end)
+  end
+
+  test "all lists filter map", %{user: user} do
+    refute_stderr(fn ->
+      defmodule AllFilterMapTest do
         import Dx.Defd
 
         defd run() do
@@ -115,8 +131,23 @@ defmodule Dx.Defd.ScopeTest do
         end
       end
 
-      assert [^user] = load!(FilterMapTest.run())
+      assert [^user] = load!(AllFilterMapTest.run())
     end)
+  end
+
+  test "list filter map", %{user: user, lists: lists} do
+    # refute_stderr(fn ->
+    defmodule FilterMapTest do
+      import Dx.Defd
+
+      defd run(lists) do
+        Enum.map(Enum.filter(lists, &(&1.title == "Tasks")), & &1.created_by)
+      end
+    end
+
+    assert [^user] = load!(FilterMapTest.run(List))
+    # assert [^user] = load!(FilterMapTest.run(lists))
+    # end)
   end
 
   test "filter empty lists", %{list: list} do
@@ -222,14 +253,35 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter partial condition 1", %{list: list} do
-    refute_stderr(fn ->
+    assert_stderr("not defined with defd", fn ->
       defmodule FilterPartial1Test do
         import Dx.Defd
 
         defd run() do
           Enum.filter(
             Enum.filter(List, &(__MODULE__.title(&1) == "Tasks")),
-            &(&1.hourly_points == 1.0)
+            &(&1.hourly_points == 0.2)
+          )
+        end
+
+        def title(arg) do
+          arg.title
+        end
+      end
+
+      assert [] = load!(FilterPartial1Test.run())
+    end)
+  end
+
+  test "filter partial condition 1 (private)", %{list: list} do
+    assert_stderr("not defined with defd", fn ->
+      defmodule FilterPartial1PrivTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &(title(&1) == "Tasks")),
+            &(&1.hourly_points == 0.2)
           )
         end
 
@@ -238,66 +290,87 @@ defmodule Dx.Defd.ScopeTest do
         end
       end
 
-      assert [^list] = load!(FilterPartial1Test.run())
+      assert [] = load!(FilterPartial1PrivTest.run())
     end)
   end
 
-  # test "filter partial condition 2", %{list: list} do
-  #   refute_stderr(fn ->
-  #     defmodule FilterPartial2Test do
-  #       import Dx.Defd
+  test "filter partial condition 2", %{list: list} do
+    # refute_stderr(fn ->
+    defmodule FilterPartial2Test do
+      import Dx.Defd
 
-  #       defd run() do
-  #         Enum.filter(
-  #           Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
-  #           &(&1.hourly_points == 1.0)
-  #         )
-  #       end
+      defd run() do
+        Enum.filter(
+          Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
+          &(&1.hourly_points == 1.0)
+        )
+      end
 
-  #       defp pass(arg) do
-  #         arg
-  #       end
-  #     end
+      def pass(arg) do
+        arg
+      end
+    end
 
-  #     assert [^list] = load!(FilterPartial2Test.run())
-  #   end)
-  # end
+    assert [^list] = load!(FilterPartial2Test.run())
+    # end)
+  end
 
-  # test "list all?" do
-  #   refute_stderr(fn ->
-  #     defmodule All1Test do
-  #       import Dx.Defd
+  test "filter partial condition 2 (private)", %{list: list} do
+    # refute_stderr(fn ->
+    defmodule FilterPartial2PrivTest do
+      import Dx.Defd
 
-  #       defd run() do
-  #         Enum.all?(List)
-  #       end
-  #     end
+      defd run() do
+        Enum.filter(
+          Enum.filter(List, &(pass(&1.title) == "Tasks")),
+          &(&1.hourly_points == 1.0)
+        )
+      end
 
-  #     assert load!(All1Test.run()) == true
-  #   end)
-  # end
+      defp pass(arg) do
+        arg
+      end
+    end
 
-  # test "error all?" do
-  #   refute_stderr(fn ->
-  #     defmodule All1ErrorTest do
-  #       import Dx.Defd
+    assert [^list] = load!(FilterPartial2PrivTest.run())
+    # end)
+  end
 
-  #       @dx def: :original
-  #       defd run() do
-  #         Enum.all?(:error)
-  #       end
-  #     end
+  test "list all?" do
+    refute_stderr(fn ->
+      defmodule All1Test do
+        import Dx.Defd
 
-  #     assert_raise Dataloader.GetError, ~r/The given atom - :\w+ - is not a module./, fn ->
-  #       load(All1ErrorTest.run())
-  #     end
+        defd run() do
+          Enum.all?(List)
+        end
+      end
 
-  #     # assert_same_error(
-  #     #   Protocol.UndefinedError,
-  #     #   location(-9 ),
-  #     #   fn -> load!(All1ErrorTest.run()) end,
-  #     #   fn -> All1ErrorTest.run() end
-  #     # )
-  #   end)
-  # end
+      assert load!(All1Test.run()) == true
+    end)
+  end
+
+  test "error all?" do
+    refute_stderr(fn ->
+      defmodule All1ErrorTest do
+        import Dx.Defd
+
+        @dx def: :original
+        defd run() do
+          Enum.all?(:error)
+        end
+      end
+
+      assert_raise Dataloader.GetError, ~r/The given atom - :\w+ - is not a module./, fn ->
+        load(All1ErrorTest.run())
+      end
+
+      # assert_same_error(
+      #   Protocol.UndefinedError,
+      #   location(-9 ),
+      #   fn -> load!(All1ErrorTest.run()) end,
+      #   fn -> All1ErrorTest.run() end
+      # )
+    end)
+  end
 end

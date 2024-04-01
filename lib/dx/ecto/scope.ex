@@ -1,24 +1,53 @@
 defmodule Dx.Ecto.Scope do
   import Ecto.Query
 
+  def resolve_and_build(queryable, scope) do
+    state = %{
+      aliases: MapSet.new(),
+      parent_aliases: MapSet.new(),
+      current_alias: nil,
+      current_alias_type: :unknown,
+      in_subquery?: false,
+      post_load: {:loaded}
+    }
+
+    case resolve(scope.plan, state) do
+      {{:ok, plan}, res_state} ->
+        dbg(plan)
+        # build(plan, state)
+
+        {query, state} = build(plan, state)
+
+        {:ok, query, res_state.post_load}
+
+      {other, _state} ->
+        other
+    end
+  end
+
   def to_query(queryable, %{scope: scope}) do
     state = %{
       aliases: MapSet.new(),
       parent_aliases: MapSet.new(),
       current_alias: nil,
       current_alias_type: :unknown,
-      in_subquery?: false
+      in_subquery?: false,
+      post_load: {:loaded}
     }
 
     case resolve(scope.plan, state) do
-      {{:ok, plan}, _state} ->
+      {{:ok, plan}, res_state} ->
         dbg(plan)
-        {query, _state} = build(plan, state)
-        # dbg(query, structs: false)
-        query
+        # build(plan, state)
 
-      {:error, _state} ->
-        queryable
+        {query, state} = build(plan, state)
+        dbg(state)
+        # dbg(query, structs: false)
+        dbg(query)
+        {query, res_state.post_load}
+
+      {:error, state} ->
+        {queryable, state}
     end
   end
 
@@ -101,11 +130,22 @@ defmodule Dx.Ecto.Scope do
     end)
   end
 
+  # defp resolve_condition({:error, %Dx.Defd.Fn{fun: fun}}, state)
+  #      when is_function(fun, 1) do
+  #   resolve_condition({:error, fun}, state)
+  # end
+
+  defp resolve_condition({:error, fun}, state) when is_function(fun, 2) do
+    state = %{state | post_load: {:filter, state.post_load, fun}}
+    {:skip, state}
+  end
+
   defp resolve_condition(fun, state) when is_function(fun, 1) do
     IO.inspect(fun, label: :calling)
 
     case fun.({:ref, state.current_alias}) |> dbg() do
       {:ok, condition} -> resolve_condition(condition, state)
+      {:error, condition} -> resolve_condition({:error, condition}, state)
       :error -> {:error, state}
     end
   end
@@ -115,6 +155,7 @@ defmodule Dx.Ecto.Scope do
     |> Enum.map_reduce(state, &resolve_condition/2)
     |> collect()
     |> if_ok(&{:all_of, &1})
+    |> dbg()
   end
 
   defp resolve_condition({:eq, left, right}, state) do
@@ -257,6 +298,15 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
+  def run_post_load(results, {:filter, {:loaded}, fun}, eval) do
+    Dx.Defd.Result.filter(results, fun, eval)
+    # Dx.Enum.filter(enumerable, %Dx.Defd.Fn{fun: filter})
+  end
+
+  def run_post_load(results, post_load, eval) do
+    {:ok, results}
+  end
+
   # def to_query(queryable, %{scope: scope}) do
   #   state = %{
   #     aliases: MapSet.new()
@@ -347,6 +397,7 @@ defmodule Dx.Ecto.Scope do
 
   defp with_state(term, state), do: {term, state}
 
+  defp if_ok({:skip, state}, _fun), do: {:skip, state}
   defp if_ok({{:ok, result}, state}, fun) when is_function(fun, 2), do: fun.(result, state)
   defp if_ok({{:ok, result}, state}, fun), do: {{:ok, fun.(result)}, state}
   defp if_ok({:error, state}, _fun), do: {:error, state}
@@ -361,6 +412,10 @@ defmodule Dx.Ecto.Scope do
 
   defp do_collect([], acc) do
     {:ok, :lists.reverse(acc)}
+  end
+
+  defp do_collect([:skip | rest], acc) do
+    do_collect(rest, acc)
   end
 
   defp do_collect([:error | _rest], _acc) do
