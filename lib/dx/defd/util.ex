@@ -8,6 +8,7 @@ defmodule Dx.Defd.Util do
   @defd_exports_key :__defd_exports__
 
   def defd_name(name), do: :"__defd:#{name}__"
+  def scope_name(name), do: :"__scope:#{name}__"
 
   def maybe_call_defd(module, fun_name, args, eval) do
     Code.ensure_loaded(module)
@@ -19,6 +20,11 @@ defmodule Dx.Defd.Util do
     else
       {:ok, apply(module, fun_name, args)}
     end
+  end
+
+  def is_scopable?(module, fun_name, arity) do
+    Code.ensure_loaded(module)
+    function_exported?(module, :__scopable?, 2) and module.__scopable?(fun_name, arity)
   end
 
   def is_defd?(module, fun_name, arity) do

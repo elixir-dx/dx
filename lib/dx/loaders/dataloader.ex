@@ -36,6 +36,26 @@ defmodule Dx.Loaders.Dataloader do
     if third_elem, do: Result.ok(subject), else: Dx.Defd.Result.ok(subject)
   end
 
+  def lookup(cache, %Dx.Scope{} = scope, third_elem) do
+    case apply(Dataloader, :get, [cache | args_for(scope)]) do
+      {:error, "Unable to find " <> _} ->
+        # try to translate to query here
+        #   -> loader needs eval, pass it in/through
+        # how to ensure optimized batching can happen here?
+        {:not_loaded, MapSet.new([scope])}
+
+      {:ok, data} ->
+        if third_elem, do: Result.ok(data), else: Dx.Defd.Result.ok(data)
+
+      # if third_elem,
+      #   do: Result.ok(%Dx.Scope.Loaded{data: data, scope: scope}),
+      #   else: Dx.Defd.Result.ok(%Dx.Scope.Loaded{data: data, scope: scope})
+
+      other ->
+        other
+    end
+  end
+
   def lookup(cache, data_req, third_elem) do
     case apply(Dataloader, :get, [cache | args_for(data_req)]) do
       {:error, "Unable to find " <> _} ->
@@ -81,6 +101,31 @@ defmodule Dx.Loaders.Dataloader do
     [:assoc, {:many, type, opts}, [main_condition]]
   end
 
+  # defp args_for(%Dx.Scope{
+  #        cardinality: :all,
+  #        type: type,
+  #        query_conditions: [],
+  #        opts: opts
+  #      }) do
+  #   [:assoc, {:many, type, opts}, []]
+  # end
+
+  # defp args_for(%Dx.Scope{
+  #        cardinality: :all,
+  #        type: type,
+  #        query_conditions: conditions,
+  #        opts: opts
+  #      }) do
+  #   [main_condition | other_conditions] = Dx.Scope.resolve_conditions(conditions)
+  #   opts = opts |> where(other_conditions)
+  #   [:assoc, {:many, type, opts}, [main_condition]]
+  # end
+  defp args_for(%Dx.Scope{} = scope) do
+    {main_condition, other_conditions} = Dx.Scope.split_main_condition(scope)
+    scope = %{scope | query_conditions: other_conditions}
+    [:dx_scope, {:many, scope.type, scope: scope}, main_condition]
+  end
+
   defp where(opts, []), do: opts
   defp where(opts, conditions), do: Keyword.put(opts, :where, {:all, conditions})
 
@@ -92,13 +137,22 @@ defmodule Dx.Loaders.Dataloader do
     run_concurrently? = not db_conn_checked_out?(repo)
 
     source =
-      Dataloader.Ecto.new(repo,
+      Dx.Ecto.DataloaderSource.new(repo,
         query: &Dx.Ecto.Query.from_options/2,
+        # run_batch: &run_batch/5,
+        async: run_concurrently?
+      )
+
+    scope_source =
+      Dx.Ecto.DataloaderSource.new(repo,
+        query: &Dx.Ecto.Scope.to_query/2,
+        # run_batch: &run_batch/5,
         async: run_concurrently?
       )
 
     Dataloader.new(get_policy: :tuples, async: run_concurrently?)
     |> Dataloader.add_source(:assoc, source)
+    |> Dataloader.add_source(:dx_scope, scope_source)
   end
 
   defp db_conn_checked_out?(repo_name) do

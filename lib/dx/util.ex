@@ -30,6 +30,10 @@ defmodule Dx.Util do
     end
   end
 
+  def if(term, nil, _fun), do: term
+  def if(term, false, _fun), do: term
+  def if(term, _truthy, fun), do: fun.(term)
+
   @doc """
   Merges two nested maps recursively.
   """

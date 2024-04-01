@@ -3,20 +3,29 @@ defmodule Dx.Defd.EnumTest do
 
   use ExUnitProperties
 
-  setup do
+  setup context do
+    user_attrs = Enum.at(context[:users] || [], 0) || %{}
+    user2_attrs = Enum.at(context[:users] || [], 1) || %{}
+
     user =
-      create(User, %{
-        email: "zoria@max.net",
-        verified_at: ~U[2022-01-13 00:01:00Z],
-        role: %{name: "Assistant"}
-      })
+      create(
+        User,
+        {%{
+           email: "zoria@max.net",
+           verified_at: ~U[2022-01-13 00:01:00Z],
+           role: %{name: "Assistant"}
+         }, user_attrs}
+      )
 
     user2 =
-      create(User, %{
-        email: "charlie@xoom.ie",
-        verified_at: ~U[2022-02-12 00:01:00Z],
-        role: %{name: "Assistant"}
-      })
+      create(
+        User,
+        {%{
+           email: "charlie@xoom.ie",
+           verified_at: ~U[2022-02-12 00:01:00Z],
+           role: %{name: "Assistant"}
+         }, user2_attrs}
+      )
 
     assert user.verified_at > user2.verified_at
     assert DateTime.compare(user.verified_at, user2.verified_at) == :lt
@@ -1762,6 +1771,10 @@ defmodule Dx.Defd.EnumTest do
 
           defd run(list) do
             Enum.map(list.tasks, fn task -> call(email(task)) end)
+          end
+
+          def call(arg) do
+            arg
           end
 
           def email(task) do

@@ -1,6 +1,26 @@
 defmodule Dx.Defd.Ast do
   import __MODULE__.Guards
 
+  # def apply({ast, state}, fun) when Kernel.is_function(fun, 1), do: {fun.(ast), state}
+  # def apply({ast, state}, fun) when Kernel.is_function(fun, 2), do: {fun.(ast, state), state}
+  # def apply2({ast, state}, fun), do: fun.(ast, state)
+
+  def is_function(
+        {:ok,
+         {:%, _,
+          [
+            {:__aliases__, _, [:Dx, :Defd, :Fn]},
+            {:%{}, _,
+             [
+               {:ok?, _},
+               {:fun, {:fn, _, [{:->, _, [args, _body]}]}} | _
+             ]}
+          ]}},
+        arity
+      ) do
+    length(args) == arity
+  end
+
   def is_function({:ok, {:fn, _meta, [{:->, _meta2, [args, _body]}]}}, arity) do
     length(args) == arity
   end
@@ -19,17 +39,47 @@ defmodule Dx.Defd.Ast do
     {{:ok, ast}, state}
   end
 
-  def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, {:ok, _body}]}]}}), do: true
-  def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, _body]}]}}), do: false
-  def ok?({:ok, _}), do: true
-  def ok?(_other), do: false
+  def ok?(ast, fn? \\ false)
+
+  def ok?(
+        {:ok,
+         {:%, _,
+          [
+            {:__aliases__, _, [:Dx, :Defd, :Fn]},
+            {:%{}, _,
+             [
+               {:ok?, ok?} | _
+             ]}
+          ]}},
+        _
+      ),
+      do: ok?
+
+  def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, {:ok, _body}]}]}}, _), do: true
+  def ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, _body]}]}}, _), do: false
+  def ok?({:ok, _}, true), do: false
+  def ok?({:ok, _}, _), do: true
+  def ok?(_other, _), do: false
 
   def unwrap_inner({:ok, {:fn, meta, [{:->, meta2, [args, {:ok, body}]}]}}) do
     {:fn, meta, [{:->, meta2, [args, body]}]}
   end
 
-  def unwrap_inner(other) do
-    unwrap(other)
+  def unwrap_inner({:ok, other}) do
+    quote do
+      Dx.Defd.Fn.maybe_unwrap_ok(unquote(other))
+    end
+  end
+
+  def unwrap_maybe_fn({:ok, ast}) do
+    quote do
+      Dx.Defd.Fn.maybe_unwrap(unquote(ast))
+    end
+  end
+
+  # for undefined variables
+  def unwrap_maybe_fn(other) do
+    other
   end
 
   def unwrap({:ok, ast}) do
@@ -56,6 +106,32 @@ defmodule Dx.Defd.Ast do
   def var_id({var_name, meta, context}) do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
   end
+
+  # defp ensure_loaded({:ok, var}, [{loader, var}], state) do
+  #   maybe_scopable(loader, state)
+  # end
+
+  # defp ensure_loaded(ast, [{loader, var}], state) do
+  #   quote do
+  #     case unquote(maybe_scopable(loader, state)) do
+  #       {:ok, unquote(var)} -> unquote(ast)
+  #       other -> other
+  #     end
+  #   end
+  # end
+
+  # defp ensure_loaded(ast, data_reqs, state) do
+  #   {loaders, vars} = Enum.unzip(data_reqs)
+
+  #   loaders = Enum.map(loaders, &maybe_scopable(&1, state))
+
+  #   quote do
+  #     case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
+  #       {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
+  #       other -> other
+  #     end
+  #   end
+  # end
 
   defp ensure_loaded(ast, []) do
     ast
@@ -85,12 +161,29 @@ defmodule Dx.Defd.Ast do
     end
   end
 
+  defp scopable(loader, state) do
+    quote do
+      Dx.Scope.maybe_lookup(unquote(loader), unquote(state.eval_var))
+    end
+  end
+
   def ensure_vars_loaded(ast, filter_vars, state) do
     data_vars = get_data_vars(state.data_reqs)
+
+    # IO.puts("")
+    # IO.puts("---")
+    # IO.inspect(Map.keys(filter_vars), label: "filter_vars")
+    # IO.inspect(Map.keys(data_vars), label: "data_vars")
 
     state.data_reqs
     |> Enum.split_with(fn {loader_ast, _data_var} ->
       loader_vars = collect_vars(loader_ast, %{})
+      # IO.inspect(loader_vars, label: :loader_vars)
+      # IO.inspect(data_var, label: :data_var)
+      # r1 = any_var_in?(loader_vars, filter_vars) |> IO.inspect(label: :in_filter_vars?)
+      # r2 = any_var_in?(loader_vars, data_vars) |> IO.inspect(label: :in_data_vars?)
+      # p(loader_ast, "(loader)")
+      # r1 and not r2
       any_var_in?(loader_vars, filter_vars) and not any_var_in?(loader_vars, data_vars)
     end)
     |> case do
@@ -101,6 +194,7 @@ defmodule Dx.Defd.Ast do
         next_filter_vars = get_data_vars(local_data_reqs)
         state = %{state | data_reqs: Map.new(other_data_reqs)}
         {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
+        # ast = ensure_loaded(ast, local_data_reqs, state)
         ast = ensure_loaded(ast, local_data_reqs)
         {ast, state}
     end
@@ -122,6 +216,7 @@ defmodule Dx.Defd.Ast do
         next_filter_vars = get_data_vars(local_data_reqs)
         state = %{state | data_reqs: Map.new(other_data_reqs)}
         {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
+        # ast = ensure_loaded(ast, local_data_reqs, state)
         ast = ensure_loaded(ast, local_data_reqs)
         {ast, state}
     end
@@ -235,6 +330,11 @@ defmodule Dx.Defd.Ast do
   end
 
   # Helpers
+
+  def pp({ast, state}, label \\ nil) do
+    p(ast, label)
+    {ast, state}
+  end
 
   def p(ast, label \\ nil)
 

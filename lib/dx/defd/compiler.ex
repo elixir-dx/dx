@@ -10,6 +10,8 @@ defmodule Dx.Defd.Compiler do
     Kernel => Dx.Defd.Kernel
   }
 
+  # @queryables Protocol.extract_impls(Ecto.Queryable)
+
   @doc false
   def __compile__(%Macro.Env{module: module, file: file, line: line}, exports, eval_var) do
     defds = compile_prepare_arities(exports)
@@ -25,10 +27,12 @@ defmodule Dx.Defd.Compiler do
       in_call?: false,
       is_loader?: false,
       data_reqs: %{},
+      # scopable_data_reqs: MapSet.new(),
+      scope_safe_vars: MapSet.new(),
       rewrite_underscore?: false
     }
 
-    quoted = Enum.map(exports, &compile_each_defd(&1, state))
+    quoted = Enum.flat_map(exports, &compile_each_defd(&1, state))
 
     {:__block__, [], quoted}
   end
@@ -46,19 +50,22 @@ defmodule Dx.Defd.Compiler do
     all_args = Macro.generate_arguments(arity, __MODULE__)
     state = Map.put(state, :all_args, all_args)
 
-    {{kind, meta, args, ast}, state} = get_and_normalize_defd(def, state)
+    {{kind, meta, args, ast}, scope_ast, state} = get_and_normalize_defd_and_scope(def, state)
 
     defd_name = Util.defd_name(name)
+    scope_name = Util.scope_name(name)
 
-    defd_args =
+    scope_args =
       Enum.with_index(args, fn arg, i ->
         case defaults do
           %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
           %{} -> arg
         end
-      end) ++ [state.eval_var]
+      end)
 
-    entrypoint =
+    defd_args = scope_args ++ [state.eval_var]
+
+    entrypoints =
       case Keyword.get(opts, :def, :warn) do
         :warn ->
           Module.delete_definition(state.module, def)
@@ -73,6 +80,7 @@ defmodule Dx.Defd.Compiler do
             end
           end
           |> strip_definition_context()
+          |> List.wrap()
 
         :no_warn ->
           Module.delete_definition(state.module, def)
@@ -83,23 +91,34 @@ defmodule Dx.Defd.Compiler do
             end
           end
           |> strip_definition_context()
+          |> List.wrap()
+
+        false ->
+          Module.delete_definition(state.module, def)
+          []
 
         :original ->
-          quote do
-          end
+          []
 
         invalid ->
           compile_error!(meta, state, "Invalid option @dx def: #{inspect(invalid)}")
       end
 
-    impl =
+    scope =
+      quote line: state.line do
+        Kernel.unquote(kind)(unquote(scope_name)(unquote_splicing(scope_args))) do
+          unquote(scope_ast)
+        end
+      end
+
+    defd =
       quote line: state.line do
         Kernel.unquote(kind)(unquote(defd_name)(unquote_splicing(defd_args))) do
           unquote(ast)
         end
       end
 
-    {entrypoint, impl}
+    entrypoints ++ [scope, defd]
   end
 
   # If the definition has a context, we don't warn when it goes unused,
@@ -108,8 +127,9 @@ defmodule Dx.Defd.Compiler do
     {kind, meta, [Macro.update_meta(signature, &Keyword.delete(&1, :context)), block]}
   end
 
-  defp get_and_normalize_defd({name, arity} = def, state) do
+  defp get_and_normalize_defd_and_scope({name, arity} = def, state) do
     {:v1, kind, meta, clauses} = Module.get_definition(state.module, def)
+    # |> IO.inspect(label: "ORIG #{name}/#{arity}\n")
 
     state = %{state | function: def, line: meta[:line] || state.line, rewrite_underscore?: true}
 
@@ -120,27 +140,71 @@ defmodule Dx.Defd.Compiler do
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
       [{meta, args, [], ast}] ->
+        # Ast.p(ast, "ORIG #{name}/#{arity}")
+        # IO.puts("ORIG #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
+
+        {scope_ast, _state} = Dx.Scope.Compiler.normalize(ast, state)
+
         {ast, state} =
           Ast.with_root_args(args, state, fn state ->
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
 
-        {{kind, meta, args, ast}, state}
+        # |> load_scope()
+
+        # IO.puts("NORM #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
+        Ast.p(ast, "CODE #{name}/#{arity}")
+        Ast.p(scope_ast, "SCOPE #{name}/#{arity}")
+
+        {{kind, meta, args, ast}, scope_ast, state}
 
       [{meta, _args, _, _} | _] = clauses ->
         case_clauses =
           Enum.map(clauses, fn {meta, args, [], ast} ->
+            # Ast.p(ast, "ORIG #{name}/#{arity}")
+            # IO.puts("ORIG #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
             {:->, meta, [[Ast.wrap_args(args)], ast]}
           end)
 
         line = meta[:line] || state.line
         case_ast = {:case, [line: line], [Ast.wrap_args(state.all_args), [do: case_clauses]]}
 
-        {ast, state} = Dx.Defd.Case.normalize(case_ast, state)
+        {ast, state} =
+          Ast.with_root_args(state.all_args, state, fn state ->
+            Dx.Defd.Case.normalize(case_ast, state)
+          end)
+
+        # IO.puts("NORM #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
+        Ast.p(ast, "CODE #{name}/#{arity}")
 
         {{kind, meta, state.all_args, ast}, state}
     end
   end
+
+  def normalize_scope_safe_arg({:fn, _meta, [{:->, _meta2, [args, _body]}]} = ast, state) do
+    vars = Ast.collect_vars(args, %{}) |> Map.keys() |> Enum.into(MapSet.new())
+    all_vars = MapSet.union(state.scope_safe_vars, vars)
+    new_vars = MapSet.difference(all_vars, state.scope_safe_vars)
+
+    {ast, new_state} = normalize(ast, %{state | scope_safe_vars: all_vars})
+
+    {ast, %{new_state | scope_safe_vars: MapSet.difference(new_state.scope_safe_vars, new_vars)}}
+  end
+
+  def normalize_scope_safe_arg(ast, state) do
+    normalize(ast, state)
+  end
+
+  # def normalize(atom, state) when is_atom(atom) do
+  #   ast =
+  #     case Code.ensure_loaded(atom) do
+  #       {:module, module} -> Macro.escape(Dx.Scope.all(module))
+  #       {:error, _atom} -> atom
+  #     end
+
+  #   ast = {:ok, ast}
+  #   {ast, state}
+  # end
 
   def normalize(ast, state) when is_simple(ast) do
     ast = {:ok, ast}
@@ -283,8 +347,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    ast = {:ok, var}
-    {ast, state}
+    maybe_load_scope({:ok, var}, state)
   end
 
   def normalize({:call, _meta, [ast]}, state) do
@@ -293,12 +356,35 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
+    {scope_body, _state} = Dx.Scope.Compiler.normalize(body, state)
+
     {body, new_state} =
       Ast.with_args(args, state, fn state ->
         normalize(body, state)
       end)
 
-    ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
+    {ok?, ok_body} =
+      case body do
+        {:ok, ok_body} -> {true, ok_body}
+        _ -> {false, nil}
+      end
+
+    line = meta[:line] || state.line
+
+    ast =
+      {:ok,
+       {:%, [line: line],
+        [
+          {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+          {:%{}, [line: line],
+           [
+             ok?: ok?,
+             fun: {:fn, meta, [{:->, meta2, [args, body]}]},
+             ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
+             scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
+           ]}
+        ]}}
+
     {ast, new_state}
   end
 
@@ -333,13 +419,20 @@ defmodule Dx.Defd.Compiler do
     ast =
       if {fun_name, arity} in state.defds do
         defd_name = Util.defd_name(fun_name)
+        scope_name = Util.scope_name(fun_name)
 
-        quote line: line do
-          {:ok,
-           fn unquote_splicing(args) ->
-             unquote(defd_name)(unquote_splicing(args), unquote(state.eval_var))
-           end}
-        end
+        {:ok,
+         {:%, [line: line],
+          [
+            {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+            {:%{}, [line: line],
+             [
+               ok?: false,
+               fun:
+                 {:fn, meta, [{:->, meta, [args, {defd_name, meta, args ++ [state.eval_var]}]}]},
+               scope: {:fn, meta, [{:->, meta, [args, {scope_name, meta, args}]}]}
+             ]}
+          ]}}
       else
         if not state.in_call? do
           warn(meta, state, """
@@ -461,15 +554,10 @@ defmodule Dx.Defd.Compiler do
       meta2[:no_parens] ->
         case maybe_capture_loader(fun, state) do
           {:ok, loader_ast, state} ->
-            state =
-              Map.update!(state, :data_reqs, fn data_reqs ->
-                Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
-              end)
+            add_loader(loader_ast, state)
+            |> mark_scope_safe()
 
-            var = state.data_reqs[loader_ast]
-            ast = {:ok, var}
-
-            {ast, state}
+          # {loader_ast, state}
 
           :error ->
             {module, state} = normalize(module, state)
@@ -493,31 +581,24 @@ defmodule Dx.Defd.Compiler do
         end)
 
       rewriter = @rewriters[module] ->
-        case rewriter.rewrite(fun, state) do
-          {{:ok, result}, state} ->
-            {{:ok, result}, state}
+        rewriter.rewrite(fun, state)
 
-          {loader, state} ->
-            data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
-            var = data_reqs[loader]
-            ast = {:ok, var}
+      # case rewriter.rewrite(fun, state) do
+      #   {{:ok, result}, state} ->
+      #     {{:ok, result}, state}
 
-            {ast, %{state | data_reqs: data_reqs}}
-        end
+      #   {loader, state} ->
+      #     add_loader(loader, state)
+      #     # |> mark_scope_safe()
+      # end
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
 
-        {loader, state} =
-          normalize_call_args(args, state, fn args ->
-            {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
-          end)
-
-        data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
-        var = data_reqs[loader]
-        ast = {:ok, var}
-
-        {ast, %{state | data_reqs: data_reqs}}
+        normalize_call_args(args, state, fn args ->
+          {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
+        end)
+        |> add_loader()
 
       Util.has_function?(module, fun_name, arity) ->
         if not state.in_call? do
@@ -563,12 +644,115 @@ defmodule Dx.Defd.Compiler do
     """)
   end
 
+  def load_scope({ast, state}) do
+    ast =
+      quote do
+        Dx.Scope.maybe_load(unquote(ast), unquote(state.eval_var))
+      end
+
+    {ast, state}
+  end
+
+  def maybe_load_scope({:ok, module}, state) when is_atom(module) do
+    quote do
+      Dx.Scope.lookup(Dx.Scope.all(unquote(module)), unquote(state.eval_var))
+    end
+    |> add_loader(state)
+    |> mark_scope_safe()
+  end
+
+  def maybe_load_scope({:ok, var}, state) when is_var(var) do
+    var_id = Ast.var_id(var)
+
+    if var_id in state.scope_safe_vars do
+      {{:ok, var}, state}
+    else
+      quote do
+        Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
+      end
+      |> add_loader(state)
+      |> mark_scope_safe()
+    end
+  end
+
+  def maybe_load_scope({:ok, {:%{}, _meta, [{:__struct__, Dx.Scope} | _]} = ast}, state) do
+    quote do
+      Dx.Scope.lookup(unquote(ast), unquote(state.eval_var))
+    end
+    |> add_loader(state)
+    |> mark_scope_safe()
+  end
+
+  def maybe_load_scope({:ok, ast}, state) do
+    {{:ok, ast}, state}
+  end
+
+  # for undefined variables
+  def maybe_load_scope(other, state) do
+    {other, state}
+  end
+
+  def mark_scope_safe({{:ok, var}, state}) do
+    state = Map.update!(state, :scope_safe_vars, &MapSet.put(&1, var))
+    {{:ok, var}, state}
+  end
+
+  # def add_scope_loader_for(ast, state) do
+  #   quote do
+  #     Dx.Scope.maybe_lookup(unquote(ast), unquote(state.eval_var))
+  #   end
+  #   |> add_loader(state, true)
+  # end
+
+  def add_loader({loader, state}), do: add_loader(loader, state)
+
+  def add_loader(loader, state) do
+    data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+
+    var = data_reqs[loader]
+    ast = {:ok, var}
+
+    {ast, %{state | data_reqs: data_reqs}}
+  end
+
+  # def add_loader(loader, state, scopable? \\ false)
+
+  # def add_loader(loader, state, true) do
+  #   data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+
+  #   var = data_reqs[loader]
+  #   ast = {:ok, var}
+
+  #   {ast, %{state | data_reqs: data_reqs}}
+  # end
+
+  # def add_loader(loader, state, false) do
+  #   {{:ok, inner_var}, state} = add_loader(loader, state, true)
+
+  #   quote do
+  #     Dx.Scope.maybe_lookup(unquote(inner_var), unquote(state.eval_var))
+  #   end
+  #   |> add_loader(state, true)
+  # end
+
   # Access.get/2
   def maybe_capture_loader({{:., meta, [ast, fun_name]}, meta2, []}, state)
       when is_atom(fun_name) do
     if meta2[:no_parens] do
       case maybe_capture_loader(ast, state) do
         {:ok, ast, state} ->
+          # loader_ast = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
+
+          # state =
+          #   Map.update!(state, :data_reqs, fn data_reqs ->
+          #     Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
+          #   end)
+
+          # var = state.data_reqs[loader_ast]
+          # ast = {:ok, var}
+
+          # {:ok, ast, state}
+
           fun = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
           {:ok, fun, state}
 
@@ -582,7 +766,10 @@ defmodule Dx.Defd.Compiler do
 
   def maybe_capture_loader(var, state) when is_var(var) do
     if Map.has_key?(state.args, Ast.var_id(var)) do
-      {:ok, {:ok, var}, state}
+      # {ast, state} = add_scope_loader_for(var, state)
+      # {:ok, ast, state}
+      {ast, state} = maybe_load_scope({:ok, var}, state)
+      {:ok, ast, state}
     else
       :error
     end
