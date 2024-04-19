@@ -293,6 +293,16 @@ defmodule Dx.Defd.Ast do
     acc
   end
 
+  def mark_vars_as_generated(ast) do
+    Macro.prewalk(ast, fn
+      {varname, meta, mod} when is_atom(varname) and is_atom(mod) ->
+        {varname, Keyword.put(meta, :generated, true), mod}
+
+      other ->
+        other
+    end)
+  end
+
   def fetch({:ok, ast}, key, eval, line) when is_var(ast) do
     asty = {{:., [line: line], [ast, key]}, [no_parens: true, line: line], []}
 
