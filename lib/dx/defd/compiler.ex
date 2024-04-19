@@ -146,6 +146,7 @@ defmodule Dx.Defd.Compiler do
         # IO.puts("ORIG #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
 
         {scope_ast, _state} = Dx.Scope.Compiler.normalize(ast, state)
+        args = Ast.mark_vars_as_generated(args)
 
         {ast, state} =
           Ast.with_root_args(args, state, fn state ->
@@ -366,6 +367,8 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
+    args = Ast.mark_vars_as_generated(args)
+
     # Ast.with_args(args, state, fn state ->
     {scope_body, _new_state} =
       Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))

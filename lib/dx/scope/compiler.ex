@@ -1,4 +1,5 @@
 defmodule Dx.Scope.Compiler do
+  alias Dx.Defd.Ast
   alias Dx.Defd.Util
 
   import Dx.Defd.Ast.Guards
@@ -21,6 +22,7 @@ defmodule Dx.Scope.Compiler do
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
     {body, state} = normalize(body, state)
+    args = Ast.mark_vars_as_generated(args)
 
     {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
     |> with_state(state)

@@ -18,7 +18,13 @@ defmodule Dx.Test.DefdCase do
     end
 
     def refute_stderr(fun) do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fun) == ""
+      output = ExUnit.CaptureIO.capture_io(:stderr, fun)
+
+      assert output == "", """
+      Expected no compiler warnings, but got:
+
+      #{output}
+      """
     end
 
     def refute_stderr(msg_part, fun) do
