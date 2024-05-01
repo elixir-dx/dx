@@ -888,14 +888,12 @@ defmodule Dx.Defd.Compiler do
   end
 
   def maybe_capture_loader(var, state) when is_var(var) do
-    # if Map.has_key?(state.args, Ast.var_id(var)) do
-    # {ast, state} = add_scope_loader_for(var, state)
-    # {:ok, ast, state}
-    {ast, state} = maybe_load_scope({:ok, var}, state)
-    {:ok, ast, state}
-    # else
-    # :error
-    # end
+    if Map.has_key?(state.args, Ast.var_id(var)) do
+      {ast, state} = maybe_load_scope({:ok, var}, state)
+      {:ok, ast, state}
+    else
+      :error
+    end
   end
 
   def maybe_capture_loader(_ast, _state) do
