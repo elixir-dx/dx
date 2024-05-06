@@ -237,6 +237,24 @@ defmodule Dx.Enum do
     # dbg(state.data_reqs)
 
     cond do
+      __scopable?(fun_name, arity) ->
+        maybe_warn_static(meta, fun_name, arity, args, state)
+
+        maybe_warn(meta, fun_name, arity, args, state)
+
+        args = Enum.map(args, &Ast.unwrap/1)
+
+        ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+
+        if __returns_scope?(fun_name, arity) do
+          {ast, state} = Compiler.add_loader(ast, state)
+
+          {ast, %{state | scope_safe?: false}}
+        else
+          Compiler.add_loader(ast, state)
+          |> Compiler.mark_scope_safe()
+        end
+
       args_ok?(args, __fn_args(fun_name, arity)) ->
         IO.inspect(args, label: "ALL OK: #{fun_name}/#{arity}")
         maybe_warn_static(meta, fun_name, arity, args, state)
@@ -262,25 +280,19 @@ defmodule Dx.Enum do
         maybe_warn_static(meta, fun_name, arity, args, state)
 
         {args, state} =
-          if __scopable?(fun_name, arity) do
-            maybe_warn(meta, fun_name, arity, args, state)
-            args = Enum.map(args, &Ast.unwrap/1)
-            {args, state}
-          else
-            {args, state} =
-              Enum.map_reduce(orig_args, orig_state, &Compiler.normalize_scope_safe_arg/2)
+          Enum.map_reduce(orig_args, orig_state, &Compiler.normalize_scope_safe_arg/2)
 
-            maybe_warn(meta, fun_name, arity, args, state)
+        maybe_warn(meta, fun_name, arity, args, state)
 
-            {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
-            args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
-            {args, state}
-          end
+        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
 
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
 
         if __returns_scope?(fun_name, arity) do
-          Compiler.add_loader(ast, state)
+          {ast, state} = Compiler.add_loader(ast, state)
+
+          {ast, %{state | scope_safe?: false}}
         else
           Compiler.add_loader(ast, state)
           |> Compiler.mark_scope_safe()

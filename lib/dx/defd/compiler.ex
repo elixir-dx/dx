@@ -28,6 +28,7 @@ defmodule Dx.Defd.Compiler do
       eval_var: eval_var,
       in_call?: false,
       in_scope?: false,
+      scope_safe?: true,
       is_loader?: false,
       data_reqs: %{},
       # scopable_data_reqs: MapSet.new(),
@@ -174,6 +175,8 @@ defmodule Dx.Defd.Compiler do
         line = meta[:line] || state.line
         case_ast = {:case, [line: line], [Ast.wrap_args(state.all_args), [do: case_clauses]]}
 
+        {scope_ast, _state} = Dx.Scope.Compiler.normalize(case_ast, state)
+
         {ast, state} =
           Ast.with_root_args(state.all_args, state, fn state ->
             Dx.Defd.Case.normalize(case_ast, state)
@@ -182,22 +185,19 @@ defmodule Dx.Defd.Compiler do
         # IO.puts("NORM #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
         Ast.p(ast, "CODE #{name}/#{arity}")
 
-        {{kind, meta, state.all_args, ast}, state}
+        {{kind, meta, state.all_args, ast}, scope_ast, state}
     end
   end
 
-  def normalize_scope_safe_arg({:fn, _meta, [{:->, _meta2, [args, _body]}]} = ast, state) do
-    vars = Ast.collect_vars(args, %{}) |> Map.keys() |> Enum.into(MapSet.new())
-    all_vars = MapSet.union(state.scope_safe_vars, vars)
-    new_vars = MapSet.difference(all_vars, state.scope_safe_vars)
-
-    {ast, new_state} = normalize(ast, %{state | scope_safe_vars: all_vars})
-
-    {ast, %{new_state | scope_safe_vars: MapSet.difference(new_state.scope_safe_vars, new_vars)}}
-  end
-
   def normalize_scope_safe_arg(ast, state) do
-    normalize(ast, state)
+    case normalize(ast, state) do
+      {ast, %{scope_safe?: false} = state} ->
+        {ast, state} = add_scope_loader_for(ast, state)
+        {ast, %{state | scope_safe?: true}}
+
+      other ->
+        other
+    end
   end
 
   # def normalize(atom, state) when is_atom(atom) do
@@ -352,11 +352,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    # if state.in_scope? do
-    #   {var, state}
-    # else
-    maybe_load_scope({:ok, var}, state)
-    # end
+    {{:ok, var}, state}
   end
 
   def normalize({:call, _meta, [ast]}, state) do
@@ -822,12 +818,12 @@ defmodule Dx.Defd.Compiler do
     {{:ok, var}, state}
   end
 
-  # def add_scope_loader_for(ast, state) do
-  #   quote do
-  #     Dx.Scope.maybe_lookup(unquote(ast), unquote(state.eval_var))
-  #   end
-  #   |> add_loader(state, true)
-  # end
+  def add_scope_loader_for({:ok, ast}, state) do
+    quote do
+      Dx.Scope.maybe_lookup(unquote(ast), unquote(state.eval_var))
+    end
+    |> add_loader(state)
+  end
 
   def add_loader({loader, state}), do: add_loader(loader, state)
 

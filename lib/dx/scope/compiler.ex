@@ -123,8 +123,10 @@ defmodule Dx.Scope.Compiler do
         end
         |> with_state(state)
 
-      # # function call on dynamically computed module
-      # not is_atom(module) ->
+      # function call on dynamically computed module
+      not is_atom(module) ->
+        :error
+        |> with_state(state)
 
       rewriter = @rewriters[module] ->
         cond do
@@ -159,6 +161,11 @@ defmodule Dx.Scope.Compiler do
         end
         |> with_state(state)
     end
+  end
+
+  def normalize(_other, state) do
+    :error
+    |> with_state(state)
   end
 
   defp if_all_ok(args, then_ast, else_ast) do
