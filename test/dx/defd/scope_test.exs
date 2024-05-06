@@ -65,288 +65,320 @@ defmodule Dx.Defd.ScopeTest do
   # end
 
   test "list template efficiency", %{list_template: list_template} do
-    refute_stderr(fn ->
-      defmodule ScopeTest1 do
-        import Dx.Defd
+    assert_queries(["\"title\" = 'Tasks'"], fn ->
+      refute_stderr(fn ->
+        defmodule ScopeTest1 do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(List, &(&1.title == "Tasks"))
+          defd run() do
+            Enum.filter(List, &(&1.title == "Tasks"))
+          end
         end
-      end
 
-      assert [%List{title: "Tasks"}] = load!(ScopeTest1.run())
+        assert [%List{title: "Tasks"}] = load!(ScopeTest1.run())
+      end)
     end)
   end
 
   test "filter twice", %{list: %{id: list_id}} do
-    refute_stderr(fn ->
-      defmodule ScopeTest2 do
-        import Dx.Defd
+    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = 1.0"]], fn ->
+      refute_stderr(fn ->
+        defmodule ScopeTest2 do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(Enum.filter(List, &(&1.title == "Tasks")), &(&1.hourly_points == 1.0))
+          defd run() do
+            Enum.filter(Enum.filter(List, &(&1.title == "Tasks")), &(&1.hourly_points == 1.0))
+          end
         end
-      end
 
-      assert [%List{title: "Tasks"}] = load!(ScopeTest2.run())
+        assert [%List{title: "Tasks"}] = load!(ScopeTest2.run())
+      end)
     end)
   end
 
   test "list map", %{user: user} do
-    refute_stderr(fn ->
-      defmodule MapTest do
-        import Dx.Defd
+    assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
+      refute_stderr(fn ->
+        defmodule MapTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.map(List, & &1.created_by)
+          defd run() do
+            Enum.map(List, & &1.created_by)
+          end
         end
-      end
 
-      assert [^user, ^user] = load!(MapTest.run())
+        assert [^user, ^user] = load!(MapTest.run())
+      end)
     end)
   end
 
   test "list filter", %{list: list, lists: lists} do
-    refute_stderr(fn ->
-      defmodule FilterTest do
-        import Dx.Defd
+    assert_queries(["\"title\" = 'Tasks'"], fn ->
+      refute_stderr(fn ->
+        defmodule FilterTest do
+          import Dx.Defd
 
-        defd run(lists) do
-          Enum.filter(lists, &(&1.title == "Tasks"))
+          defd run(lists) do
+            Enum.filter(lists, &(&1.title == "Tasks"))
+          end
         end
-      end
 
-      assert [^list] = load!(FilterTest.run(List))
-      assert [^list] = load!(FilterTest.run(lists))
+        assert [^list] = load!(FilterTest.run(List))
+        assert [^list] = load!(FilterTest.run(lists))
+      end)
     end)
   end
 
   test "all lists filter map", %{user: user} do
-    refute_stderr(fn ->
-      defmodule AllFilterMapTest do
-        import Dx.Defd
+    assert_queries(["\"title\" = 'Tasks'", "FROM \"users\""], fn ->
+      refute_stderr(fn ->
+        defmodule AllFilterMapTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.map(Enum.filter(List, &(&1.title == "Tasks")), & &1.created_by)
+          defd run() do
+            Enum.map(Enum.filter(List, &(&1.title == "Tasks")), & &1.created_by)
+          end
         end
-      end
 
-      assert [^user] = load!(AllFilterMapTest.run())
+        assert [^user] = load!(AllFilterMapTest.run())
+      end)
     end)
   end
 
   test "list filter map", %{user: user, lists: lists} do
-    # refute_stderr(fn ->
-    defmodule FilterMapTest do
-      import Dx.Defd
-
-      defd run(lists) do
-        Enum.map(Enum.filter(lists, &(&1.title == "Tasks")), & &1.created_by)
-      end
-    end
-
-    assert [^user] = load!(FilterMapTest.run(List))
-    # assert [^user] = load!(FilterMapTest.run(lists))
-    # end)
-  end
-
-  test "filter empty lists", %{list: list} do
-    refute_stderr(fn ->
-      defmodule FilterEmptyTest do
+    assert_queries(["\"title\" = 'Tasks'", "FROM \"users\""], fn ->
+      # refute_stderr(fn ->
+      defmodule FilterMapTest do
         import Dx.Defd
 
-        defd run() do
-          Enum.filter(List, &(Enum.count(&1.tasks) == 1))
+        defd run(lists) do
+          Enum.map(Enum.filter(lists, &(&1.title == "Tasks")), & &1.created_by)
         end
       end
 
-      assert [^list] = load!(FilterEmptyTest.run())
+      assert [^user] = load!(FilterMapTest.run(List))
+      # assert [^user] = load!(FilterMapTest.run(lists))
+      # end)
+    end)
+  end
+
+  test "filter empty lists", %{list: list} do
+    assert_queries([["(SELECT count(*) FROM \"tasks\"", " = 1"]], fn ->
+      refute_stderr(fn ->
+        defmodule FilterEmptyTest do
+          import Dx.Defd
+
+          defd run() do
+            Enum.filter(List, &(Enum.count(&1.tasks) == 1))
+          end
+        end
+
+        assert [^list] = load!(FilterEmptyTest.run())
+      end)
     end)
   end
 
   test "filter using defd condition", %{list: list} do
-    refute_stderr(fn ->
-      defmodule FilterDefdTest do
-        import Dx.Defd
+    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = 1.0"]], fn ->
+      refute_stderr(fn ->
+        defmodule FilterDefdTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(title(&1) == "Tasks")),
-            &(&1.hourly_points == 1.0)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(title(&1) == "Tasks")),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          defd title(arg) do
+            arg.title
+          end
         end
 
-        defd title(arg) do
-          arg.title
-        end
-      end
-
-      assert [^list] = load!(FilterDefdTest.run())
+        assert [^list] = load!(FilterDefdTest.run())
+      end)
     end)
   end
 
   test "filter using combined defd condition", %{list: list} do
-    refute_stderr(fn ->
-      defmodule FilterComboDefdTest do
-        import Dx.Defd
+    assert_queries([["\"title\" = 'Tasks') AND ((SELECT count("]], fn ->
+      refute_stderr(fn ->
+        defmodule FilterComboDefdTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(title(&1) == "Tasks")),
-            &(task_count(&1) == 1)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(title(&1) == "Tasks")),
+              &(task_count(&1) == 1)
+            )
+          end
+
+          defd title(list) do
+            list.title
+          end
+
+          defd task_count(list) do
+            Enum.count(list.tasks)
+          end
         end
 
-        defd title(list) do
-          list.title
-        end
-
-        defd task_count(list) do
-          Enum.count(list.tasks)
-        end
-      end
-
-      assert [^list] = load!(FilterComboDefdTest.run())
+        assert [^list] = load!(FilterComboDefdTest.run())
+      end)
     end)
   end
 
   test "filter by defd condition", %{list: list} do
-    refute_stderr(fn ->
-      defmodule FilterDefdRefTest do
-        import Dx.Defd
+    assert_queries([["\"hourly_points\" = 1.0", "\"title\" = 'Tasks'"]], fn ->
+      refute_stderr(fn ->
+        defmodule FilterDefdRefTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &title/1),
-            &(&1.hourly_points == 1.0)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &title/1),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          defd title(list) do
+            list.title == "Tasks"
+          end
         end
 
-        defd title(list) do
-          list.title == "Tasks"
-        end
-      end
-
-      assert [^list] = load!(FilterDefdRefTest.run())
+        assert [^list] = load!(FilterDefdRefTest.run())
+      end)
     end)
   end
 
   test "filter using pseudo-remote defd function", %{list: list} do
-    refute_stderr(fn ->
-      defmodule FilterModDefdTest do
-        import Dx.Defd
+    assert_queries([["\"hourly_points\" = 1.0", "\"title\" = 'Tasks'"]], fn ->
+      refute_stderr(fn ->
+        defmodule FilterModDefdTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(__MODULE__.title(&1) == "Tasks")),
-            &(&1.hourly_points == 1.0)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(__MODULE__.title(&1) == "Tasks")),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          defd title(arg) do
+            arg.title
+          end
         end
 
-        defd title(arg) do
-          arg.title
-        end
-      end
-
-      assert [^list] = load!(FilterModDefdTest.run())
+        assert [^list] = load!(FilterModDefdTest.run())
+      end)
     end)
   end
 
   test "filter partial condition 1", %{list: list} do
-    assert_stderr("not defined with defd", fn ->
-      defmodule FilterPartial1Test do
-        import Dx.Defd
+    assert_queries(["\"hourly_points\" = 0.2"], fn ->
+      assert_stderr("not defined with defd", fn ->
+        defmodule FilterPartial1Test do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(__MODULE__.title(&1) == "Tasks")),
-            &(&1.hourly_points == 0.2)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(__MODULE__.title(&1) == "Tasks")),
+              &(&1.hourly_points == 0.2)
+            )
+          end
+
+          def title(arg) do
+            arg.title
+          end
         end
 
-        def title(arg) do
-          arg.title
-        end
-      end
-
-      assert [] = load!(FilterPartial1Test.run())
+        assert [] = load!(FilterPartial1Test.run())
+      end)
     end)
   end
 
   test "filter partial condition 1 (private)", %{list: list} do
-    assert_stderr("not defined with defd", fn ->
-      defmodule FilterPartial1PrivTest do
-        import Dx.Defd
+    assert_queries(["\"hourly_points\" = 0.2"], fn ->
+      assert_stderr("not defined with defd", fn ->
+        defmodule FilterPartial1PrivTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(title(&1) == "Tasks")),
-            &(&1.hourly_points == 0.2)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(title(&1) == "Tasks")),
+              &(&1.hourly_points == 0.2)
+            )
+          end
+
+          defp title(arg) do
+            arg.title
+          end
         end
 
-        defp title(arg) do
-          arg.title
-        end
-      end
-
-      assert [] = load!(FilterPartial1PrivTest.run())
+        assert [] = load!(FilterPartial1PrivTest.run())
+      end)
     end)
   end
 
   test "filter partial condition 2", %{list: list} do
-    # refute_stderr(fn ->
-    defmodule FilterPartial2Test do
-      import Dx.Defd
-
-      defd run() do
-        Enum.filter(
-          Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
-          &(&1.hourly_points == 1.0)
-        )
-      end
-
-      def pass(arg) do
-        arg
-      end
-    end
-
-    assert [^list] = load!(FilterPartial2Test.run())
-    # end)
-  end
-
-  test "filter partial condition 2 (private)", %{list: list} do
-    # refute_stderr(fn ->
-    defmodule FilterPartial2PrivTest do
-      import Dx.Defd
-
-      defd run() do
-        Enum.filter(
-          Enum.filter(List, &(pass(&1.title) == "Tasks")),
-          &(&1.hourly_points == 1.0)
-        )
-      end
-
-      defp pass(arg) do
-        arg
-      end
-    end
-
-    assert [^list] = load!(FilterPartial2PrivTest.run())
-    # end)
-  end
-
-  test "list all?" do
-    refute_stderr(fn ->
-      defmodule All1Test do
+    assert_queries(["\"hourly_points\" = 1.0"], fn ->
+      # refute_stderr(fn ->
+      defmodule FilterPartial2Test do
         import Dx.Defd
 
         defd run() do
-          Enum.all?(List)
+          Enum.filter(
+            Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        def pass(arg) do
+          arg
         end
       end
 
-      assert load!(All1Test.run()) == true
+      assert [^list] = load!(FilterPartial2Test.run())
+      # end)
+    end)
+  end
+
+  test "filter partial condition 2 (private)", %{list: list} do
+    assert_queries(["\"hourly_points\" = 1.0"], fn ->
+      # refute_stderr(fn ->
+      defmodule FilterPartial2PrivTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &(pass(&1.title) == "Tasks")),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        defp pass(arg) do
+          arg
+        end
+      end
+
+      assert [^list] = load!(FilterPartial2PrivTest.run())
+      # end)
+    end)
+  end
+
+  test "list all?" do
+    assert_queries(["FROM \"lists\""], fn ->
+      refute_stderr(fn ->
+        defmodule All1Test do
+          import Dx.Defd
+
+          defd run() do
+            Enum.all?(List)
+          end
+        end
+
+        assert load!(All1Test.run()) == true
+      end)
     end)
   end
 
