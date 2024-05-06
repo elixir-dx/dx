@@ -32,6 +32,7 @@ defmodule Dx.Defd.Compiler do
       data_reqs: %{},
       # scopable_data_reqs: MapSet.new(),
       scope_safe_vars: MapSet.new(),
+      external_vars: %{},
       rewrite_underscore?: false
     }
 
@@ -894,11 +895,11 @@ defmodule Dx.Defd.Compiler do
   end
 
   def maybe_capture_loader(var, state) when is_var(var) do
-    if Map.has_key?(state.args, Ast.var_id(var)) do
+    if Map.has_key?(state.external_vars, Ast.var_id(var)) do
+      :error
+    else
       {ast, state} = maybe_load_scope({:ok, var}, state)
       {:ok, ast, state}
-    else
-      :error
     end
   end
 
@@ -909,6 +910,11 @@ defmodule Dx.Defd.Compiler do
   # extracts only loaders based on variables bound outside of the external anonymous function
   defp normalize_external_fn(ast, state) do
     Macro.prewalk(ast, state, fn
+      # TODO: add all other syntaxes that can bind variables
+      {:fn, _meta, [{:->, _meta2, [args, _body]}]} = fun, state ->
+        state = Map.update!(state, :external_vars, &Ast.collect_vars(args, &1))
+        {fun, state}
+
       {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
       when is_atom(fun_name) and is_list(args) ->
         # Access.get/2
@@ -978,6 +984,7 @@ defmodule Dx.Defd.Compiler do
     {args, new_state} =
       Enum.map_reduce(args, state, fn
         {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
+          state = Map.put(state, :external_vars, Ast.collect_vars(args, %{}))
           {body, new_state} = normalize_external_fn(body, state)
 
           ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
