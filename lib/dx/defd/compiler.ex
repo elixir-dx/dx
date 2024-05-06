@@ -23,6 +23,7 @@ defmodule Dx.Defd.Compiler do
       function: nil,
       defds: defds,
       args: %{},
+      var_index: 1,
       scope_args: [],
       eval_var: eval_var,
       in_call?: false,
@@ -830,12 +831,17 @@ defmodule Dx.Defd.Compiler do
   def add_loader({loader, state}), do: add_loader(loader, state)
 
   def add_loader(loader, state) do
-    data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
+    if var = Map.get(state.data_reqs, loader) do
+      ast = {:ok, var}
 
-    var = data_reqs[loader]
-    ast = {:ok, var}
+      {ast, state}
+    else
+      var = Macro.var(:"dx#{state.var_index}", __MODULE__)
+      data_reqs = Map.put(state.data_reqs, loader, var)
+      ast = {:ok, var}
 
-    {ast, %{state | data_reqs: data_reqs}}
+      {ast, %{state | data_reqs: data_reqs, var_index: state.var_index + 1}}
+    end
   end
 
   # def add_loader(loader, state, scopable? \\ false)
