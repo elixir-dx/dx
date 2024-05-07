@@ -10,32 +10,32 @@ defmodule Dx.Defd.Block do
     state = Map.update!(state, :args, &Ast.collect_vars(pattern, &1))
     data_req = Dx.Defd.Case.quoted_data_req(pattern)
 
-    {right, state} =
-      if data_req == %{} do
-        {right, state}
-      else
-        loader_ast =
-          quote do
-            Dx.Defd.Util.fetch(
-              unquote(right),
-              unquote(Macro.escape(data_req)),
-              unquote(state.eval_var)
-            )
-          end
+    if data_req == %{} do
+      var = Ast.var_id(pattern)
+      state = put_in(state.data_reqs[{:ok, right}], var)
+      ast = {:__block__, [], []}
 
-        state =
-          Map.update!(state, :data_reqs, fn data_reqs ->
-            Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
-          end)
+      {ast, state}
+    else
+      loader_ast =
+        quote do
+          Dx.Defd.Util.fetch(
+            unquote(right),
+            unquote(Macro.escape(data_req)),
+            unquote(state.eval_var)
+          )
+        end
 
-        var = state.data_reqs[loader_ast]
+      state =
+        Map.update!(state, :data_reqs, fn data_reqs ->
+          Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
+        end)
 
-        {var, state}
-      end
+      var = state.data_reqs[loader_ast]
+      ast = {:ok, {:=, meta, [pattern, var]}}
 
-    ast = {:ok, {:=, meta, [pattern, right]}}
-
-    {ast, state}
+      {ast, state}
+    end
   end
 
   def normalize({:__block__, meta, lines}, state) do
