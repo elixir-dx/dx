@@ -178,6 +178,27 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "filter using other scope", %{list: list} do
+    assert_queries(
+      [~r/\(SELECT count\(\*\) FROM "tasks" .*\(SELECT count\(\*\) FROM "tasks"/],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterScopeResultTest do
+            import Dx.Defd
+
+            defd run() do
+              task_count = Enum.count(Task)
+
+              Enum.filter(List, &(Enum.count(&1.tasks) == task_count))
+            end
+          end
+
+          assert [^list] = load!(FilterScopeResultTest.run())
+        end)
+      end
+    )
+  end
+
   test "filter using defd condition", %{list: list} do
     assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = 1.0"]], fn ->
       refute_stderr(fn ->

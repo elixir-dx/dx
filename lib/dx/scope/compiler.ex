@@ -29,7 +29,7 @@ defmodule Dx.Scope.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    {var, state}
+    {{:ok, var}, state}
   end
 
   def normalize(value, state) when is_simple(value) do

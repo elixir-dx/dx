@@ -457,6 +457,11 @@ defmodule Dx.Enum do
     end)
   end
 
+  def count(module) when is_atom(module) do
+    Dx.Scope.all(module)
+    |> count()
+  end
+
   def count({:ok, %Dx.Scope{} = scope}) do
     scope = %{scope | plan: {:count, scope.plan}}
 

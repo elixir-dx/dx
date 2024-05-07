@@ -133,15 +133,51 @@ defmodule Dx.Defd.Ast do
   #   end
   # end
 
-  defp ensure_loaded(ast, []) do
+  def cleanup({:__block__, meta, _lines} = block) do
+    case cleanup_line(block) do
+      [ast] -> ast
+      lines -> {:__block__, meta, unwrap_lines(lines)}
+    end
+  end
+
+  def cleanup(ast) do
     ast
   end
 
-  defp ensure_loaded({:ok, var}, [{loader, var}]) do
+  defp cleanup_line({:__block__, _meta, lines}) do
+    Enum.flat_map(lines, &cleanup_line/1)
+  end
+
+  defp cleanup_line(ast) do
+    [cleanup(ast)]
+  end
+
+  defp unwrap_lines([]), do: []
+  defp unwrap_lines([last_line]), do: [last_line]
+  defp unwrap_lines([{:ok, line} | rest]), do: [line | unwrap_lines(rest)]
+  defp unwrap_lines([line | rest]), do: [line | unwrap_lines(rest)]
+
+  defp ensure_loaded(ast, data_reqs) do
+    do_ensure_loaded(cleanup(ast), data_reqs)
+  end
+
+  defp do_ensure_loaded(ast, []) do
+    ast
+  end
+
+  defp do_ensure_loaded({:ok, var}, [{loader, var}]) do
     loader
   end
 
-  defp ensure_loaded(ast, [{loader, var}]) do
+  defp do_ensure_loaded(ast, [{{:ok, right}, pattern}]) do
+    quote do
+      {:ok, unquote(pattern) = unquote(right)}
+      unquote(ast)
+    end
+    |> cleanup()
+  end
+
+  defp do_ensure_loaded(ast, [{loader, var}]) do
     quote do
       case unquote(loader) do
         {:ok, unquote(var)} -> unquote(ast)
@@ -150,8 +186,17 @@ defmodule Dx.Defd.Ast do
     end
   end
 
-  defp ensure_loaded(ast, data_reqs) do
+  defp do_ensure_loaded(ast, data_reqs) do
+    {assigns, data_reqs} = Enum.split_with(data_reqs, &match?({{:ok, _}, _}, &1))
+
+    assigns_ast =
+      Enum.map(assigns, fn {right, pattern} ->
+        {:=, [], [pattern, right]}
+      end)
+
     {loaders, vars} = Enum.unzip(data_reqs)
+
+    ast = cleanup({:__block__, [], assigns_ast ++ [ast]})
 
     quote do
       case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do

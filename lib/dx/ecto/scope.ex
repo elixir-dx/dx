@@ -55,8 +55,9 @@ defmodule Dx.Ecto.Scope do
     resolve(fun.({:ref, state.current_alias}), state)
   end
 
-  defp resolve({:ok, %Dx.Scope{} = scope}, state) do
-    resolve(scope, state)
+  # TODO: Make this redundant & remove it
+  defp resolve({:ok, wrapped}, state) do
+    resolve(wrapped, state)
   end
 
   defp resolve(%Dx.Scope{} = scope, state) do
