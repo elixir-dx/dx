@@ -178,6 +178,44 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "filter comparing two fields", %{list: list} do
+    assert_queries(
+      [~s{WHERE (l0."archived_at" = l0."inserted_at")}],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterEqFieldsTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, &(&1.archived_at == &1.inserted_at))
+            end
+          end
+
+          assert [] = load!(FilterEqFieldsTest.run())
+        end)
+      end
+    )
+  end
+
+  test "filter comparing association field", %{list: list} do
+    assert_queries(
+      [~r/FROM \"lists\" .+ JOIN \"list_templates\" .+ WHERE \(\w\d\."title" = \w\d\."title"\)/],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterEqAssocFieldTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, &(&1.title == &1.from_template.title))
+            end
+          end
+
+          assert [] = load!(FilterEqAssocFieldTest.run())
+        end)
+      end
+    )
+  end
+
   test "filter using other scope", %{list: list} do
     assert_queries(
       [~r/\(SELECT count\(\*\) FROM "tasks" .*\(SELECT count\(\*\) FROM "tasks"/],
