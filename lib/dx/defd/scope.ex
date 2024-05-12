@@ -63,7 +63,16 @@ defmodule Dx.Scope do
   i.e. it can return `{:ok, result}` or `{:not_loaded, data_reqs}`.
   """
 
-  defstruct [:plan, :type, cardinality: :all, ref: :root, query_conditions: true, opts: []]
+  defstruct [
+    :plan,
+    :type,
+    cardinality: :many,
+    ref: :root,
+    query_conditions: true,
+    main_condition_candidates: nil,
+    post_load: {:loaded},
+    opts: []
+  ]
 
   def all(module) do
     %__MODULE__{type: module, plan: {:queryable, module}}
@@ -92,6 +101,81 @@ defmodule Dx.Scope do
     # |> IO.inspect(label: :LOOKUP)
   end
 
+  def to_data_req(%__MODULE__{} = scope) do
+    {candidates, scope} = extract_main_condition_candidates(scope)
+    nested_map = Dx.Util.Map.map_values(candidates, &MapSet.new([&1]))
+
+    %{
+      scope => %{
+        values: nested_map,
+        combinations: MapSet.new([candidates])
+      }
+    }
+  end
+
+  def detect_main_condition(scope, values) do
+    Enum.max_by(
+      scope.main_condition_candidates,
+      fn field -> MapSet.size(values[field]) end,
+      fn -> nil end
+    )
+  end
+
+  def extract_main_condition_candidates(%__MODULE__{} = scope) do
+    {:ok, scope} = Dx.Ecto.Scope.resolve(scope)
+    {candidates, plan} = main_condition_candidates(scope.plan)
+    fields = Map.keys(candidates) |> Enum.sort()
+    scope = %{scope | plan: plan, main_condition_candidates: fields}
+
+    {candidates, scope}
+  end
+
+  def main_condition_candidates({:filter, base, condition}) do
+    case to_main_condition_candidates(condition) do
+      {candidates, true} -> {candidates, base}
+      {candidates, condition} -> {candidates, {:filter, base, condition}}
+    end
+  end
+
+  def main_condition_candidates(other) do
+    {%{}, other}
+  end
+
+  defp to_main_condition_candidates({:all_of, conditions}) do
+    Enum.reduce(conditions, {%{}, []}, fn
+      condition, {candidates, remaining} ->
+        case to_main_condition_candidates(condition) do
+          {new_candidates, true} ->
+            {Map.merge(new_candidates, candidates), remaining}
+
+          {new_candidates, new_remaining} ->
+            {Map.merge(new_candidates, candidates), [new_remaining | remaining]}
+        end
+    end)
+    |> case do
+      {candidates, []} ->
+        {candidates, true}
+
+      {candidates, [remaining]} ->
+        {candidates, remaining}
+
+      {candidates, remaining} ->
+        {candidates, {:all_of, :lists.reverse(remaining)}}
+    end
+  end
+
+  defp to_main_condition_candidates({:eq, {:field, {:ref, :a0}, field}, {:value, value}}) do
+    {%{field => value}, true}
+  end
+
+  defp to_main_condition_candidates({:eq, {:value, value}, {:field, {:ref, :a0}, field}}) do
+    {%{field => value}, true}
+  end
+
+  defp to_main_condition_candidates(other) do
+    {%{}, other}
+  end
+
   def field_or_assoc(base, field) do
     # %{scope | plan: {:field, scope.plan, field}}
     # all({:field, scope, field})
@@ -105,6 +189,12 @@ defmodule Dx.Scope do
 
   def add_conditions(scope, %Dx.Defd.Fn{scope: fun}) do
     add_conditions(scope, fun)
+  end
+
+  def add_conditions(scope, new_conditions) when is_map(new_conditions) do
+    Enum.reduce(new_conditions, scope, fn {field, value}, scope ->
+      add_conditions(scope, {:eq, {:field, {:ref, :a0}, field}, {:value, value}})
+    end)
   end
 
   def add_conditions(scope, new_condition) do

@@ -65,7 +65,7 @@ defmodule Dx.Defd.ScopeTest do
   # end
 
   test "list template efficiency", %{list_template: list_template} do
-    assert_queries(["\"title\" = 'Tasks'"], fn ->
+    assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
       refute_stderr(fn ->
         defmodule ScopeTest1 do
           import Dx.Defd
@@ -81,7 +81,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter twice", %{list: %{id: list_id}} do
-    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = 1.0"]], fn ->
+    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->
         defmodule ScopeTest2 do
           import Dx.Defd
@@ -113,7 +113,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "list filter", %{list: list, lists: lists} do
-    assert_queries(["\"title\" = 'Tasks'"], fn ->
+    assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
       refute_stderr(fn ->
         defmodule FilterTest do
           import Dx.Defd
@@ -130,7 +130,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "all lists filter map", %{user: user} do
-    assert_queries(["\"title\" = 'Tasks'", "FROM \"users\""], fn ->
+    assert_queries(["\"title\" = ANY('{\"Tasks\"}')", "FROM \"users\""], fn ->
       refute_stderr(fn ->
         defmodule AllFilterMapTest do
           import Dx.Defd
@@ -146,7 +146,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "list filter map", %{user: user, lists: lists} do
-    assert_queries(["\"title\" = 'Tasks'", "FROM \"users\""], fn ->
+    assert_queries(["\"title\" = ANY('{\"Tasks\"}')", "FROM \"users\""], fn ->
       # refute_stderr(fn ->
       defmodule FilterMapTest do
         import Dx.Defd
@@ -238,7 +238,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter using defd condition", %{list: list} do
-    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = 1.0"]], fn ->
+    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->
         defmodule FilterDefdTest do
           import Dx.Defd
@@ -261,7 +261,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter using combined defd condition", %{list: list} do
-    assert_queries([["\"title\" = 'Tasks') AND ((SELECT count("]], fn ->
+    assert_queries([["\"title\" = ANY('{\"Tasks\"}')", "(SELECT count("]], fn ->
       refute_stderr(fn ->
         defmodule FilterComboDefdTest do
           import Dx.Defd
@@ -288,7 +288,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter by defd condition", %{list: list} do
-    assert_queries([["\"hourly_points\" = 1.0", "\"title\" = 'Tasks'"]], fn ->
+    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
       refute_stderr(fn ->
         defmodule FilterDefdRefTest do
           import Dx.Defd
@@ -311,7 +311,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter using pseudo-remote defd function", %{list: list} do
-    assert_queries([["\"hourly_points\" = 1.0", "\"title\" = 'Tasks'"]], fn ->
+    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
       refute_stderr(fn ->
         defmodule FilterModDefdTest do
           import Dx.Defd
@@ -334,7 +334,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter partial condition 1", %{list: list} do
-    assert_queries(["\"hourly_points\" = 0.2"], fn ->
+    assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
       assert_stderr("not defined with defd", fn ->
         defmodule FilterPartial1Test do
           import Dx.Defd
@@ -357,7 +357,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter partial condition 1 (private)", %{list: list} do
-    assert_queries(["\"hourly_points\" = 0.2"], fn ->
+    assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
       assert_stderr("not defined with defd", fn ->
         defmodule FilterPartial1PrivTest do
           import Dx.Defd
@@ -380,48 +380,48 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter partial condition 2", %{list: list} do
-    assert_queries(["\"hourly_points\" = 1.0"], fn ->
-      # refute_stderr(fn ->
-      defmodule FilterPartial2Test do
-        import Dx.Defd
+    assert_queries(["\"hourly_points\" = ANY('{1.0}')"], fn ->
+      assert_stderr("pass/1 is not defined with defd", fn ->
+        defmodule FilterPartial2Test do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
-            &(&1.hourly_points == 1.0)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(__MODULE__.pass(&1.title) == "Tasks")),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          def pass(arg) do
+            arg
+          end
         end
 
-        def pass(arg) do
-          arg
-        end
-      end
-
-      assert [^list] = load!(FilterPartial2Test.run())
-      # end)
+        assert [^list] = load!(FilterPartial2Test.run())
+      end)
     end)
   end
 
   test "filter partial condition 2 (private)", %{list: list} do
-    assert_queries(["\"hourly_points\" = 1.0"], fn ->
-      # refute_stderr(fn ->
-      defmodule FilterPartial2PrivTest do
-        import Dx.Defd
+    assert_queries(["\"hourly_points\" = ANY('{1.0}')"], fn ->
+      assert_stderr("pass/1 is not defined with defd", fn ->
+        defmodule FilterPartial2PrivTest do
+          import Dx.Defd
 
-        defd run() do
-          Enum.filter(
-            Enum.filter(List, &(pass(&1.title) == "Tasks")),
-            &(&1.hourly_points == 1.0)
-          )
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(pass(&1.title) == "Tasks")),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          defp pass(arg) do
+            arg
+          end
         end
 
-        defp pass(arg) do
-          arg
-        end
-      end
-
-      assert [^list] = load!(FilterPartial2PrivTest.run())
-      # end)
+        assert [^list] = load!(FilterPartial2PrivTest.run())
+      end)
     end)
   end
 

@@ -26,6 +26,13 @@ defmodule Dx.Util.Map do
   end
 
   @doc """
+  Returns a map with all values mapped through the given function.
+  """
+  def map_values(map, fun) when is_function(fun, 1) do
+    Map.new(map, fn {key, value} -> {key, fun.(value)} end)
+  end
+
+  @doc """
   Returns a `Map` with given keys and values zipped together
 
   ## Examples
