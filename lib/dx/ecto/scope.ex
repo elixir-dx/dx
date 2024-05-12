@@ -1,31 +1,6 @@
 defmodule Dx.Ecto.Scope do
   import Ecto.Query
 
-  defmodule Query do
-    use TypedStruct
-
-    defstruct [
-      :query,
-      aliases: MapSet.new(),
-      alias_types: Map.new(),
-      parent_aliases: MapSet.new(),
-      current_alias: nil,
-      current_alias_type: :unknown,
-      post_load: {:loaded}
-    ]
-
-    @type alias() :: atom()
-    @type t() :: %__MODULE__{
-            query: Ecto.Query.t(),
-            aliases: MapSet.t(alias()),
-            alias_types: %{alias => any()},
-            parent_aliases: MapSet.t(alias()),
-            current_alias: MapSet.t(alias()),
-            current_alias_type: any(),
-            post_load: any()
-          }
-  end
-
   def resolve_and_build(queryable, scope) do
     state = %{
       queries: [],
@@ -37,23 +12,36 @@ defmodule Dx.Ecto.Scope do
       post_load: {:loaded}
     }
 
-    case resolve(scope.plan, state) do
-      {{:ok, plan}, res_state} ->
-        dbg(plan)
-        # build(plan, state)
+    # dbg(scope.plan)
+    # build(plan, state)
 
-        %{queries: [query]} = build(plan, state)
+    %{queries: [query]} = build(scope.plan, state)
 
-        {:ok, query, res_state.post_load}
-
-      {other, _state} ->
-        other
-    end
+    {:ok, query, scope.post_load}
   end
 
   # defp to_query({%Query{} = query, %Ecto.Query.DynamicExpr{} = dynamic}), do: dynamic
 
-  def to_query(queryable, %{scope: scope}) do
+  def to_query(_queryable, %{scope: scope}) do
+    state = %{
+      queries: [],
+      aliases: MapSet.new(),
+      alias_types: Map.new(),
+      parent_aliases: MapSet.new(),
+      current_alias: nil,
+      current_alias_type: :unknown,
+      post_load: {:loaded}
+    }
+
+    # dbg(scope.plan)
+
+    %{queries: [query]} = build(scope.plan, state)
+    # dbg(query)
+
+    {query, scope.post_load}
+  end
+
+  def resolve(%Dx.Scope{} = scope) do
     state = %{
       queries: [],
       aliases: MapSet.new(),
@@ -65,17 +53,8 @@ defmodule Dx.Ecto.Scope do
     }
 
     case resolve(scope.plan, state) do
-      {{:ok, plan}, res_state} ->
-        dbg(plan)
-        # build(plan, state)
-
-        %{queries: [query]} = build(plan, state)
-        dbg(query)
-
-        {query, res_state.post_load}
-
-      {:error, state} ->
-        {queryable, state}
+      {{:ok, plan}, state} -> {:ok, %{scope | plan: plan, post_load: state.post_load}}
+      {other, _state} -> other
     end
   end
 
@@ -139,7 +118,7 @@ defmodule Dx.Ecto.Scope do
               aliases: MapSet.put(state.aliases, new_alias)
           }
 
-          {:ok, {:field, base, field}}
+          {:ok, {:assoc, base, field}}
           |> with_state(state)
 
         %{cardinality: :many, queryable: module} ->
@@ -154,7 +133,7 @@ defmodule Dx.Ecto.Scope do
               aliases: MapSet.put(state.aliases, new_alias)
           }
 
-          {:ok, {:field, base, field}}
+          {:ok, {:assoc, base, field}}
           |> with_state(state)
       end
     end)
@@ -250,13 +229,14 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp build({:field, {:ref, ref}, field}, state) do
+    dynamic([{^ref, x}], field(x, ^field))
+    |> with_state(state)
+  end
+
+  defp build({:assoc, {:ref, ref}, field}, state) do
     type = Map.fetch!(state.alias_types, ref)
 
     case type.__schema__(:association, field) do
-      nil ->
-        dynamic([{^ref, x}], field(x, ^field))
-        |> with_state(state)
-
       %{cardinality: :one, queryable: module} ->
         next_index = Enum.count(state.aliases)
         [query | queries] = state.queries
