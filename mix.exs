@@ -1,8 +1,8 @@
 defmodule Dx.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/dx-beam/dx"
-  @version "0.3.0"
+  @source_url "https://github.com/elixir-dx/dx"
+  @version "0.3.1"
 
   def project do
     [
@@ -68,12 +68,11 @@ defmodule Dx.MixProject do
   def docs do
     [
       extra_section: "Guides",
-      api_reference: false,
       extras: Path.wildcard("docs/**/*.md"),
       groups_for_extras: [
         Basics: Path.wildcard("docs/basics/*.md")
       ],
-      main: "welcome",
+      main: "Dx",
       source_url: @source_url,
       source_ref: "v#{@version}"
     ]

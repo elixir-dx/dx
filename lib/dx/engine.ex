@@ -1,7 +1,7 @@
 defmodule Dx.Engine do
-  @moduledoc """
-  Encapsulates the main functionality of working with rules.
-  """
+  # Encapsulates the main functionality of working with rules.
+
+  @moduledoc false
 
   alias Dx.{Result, Rule, Util}
   alias Dx.Evaluation, as: Eval

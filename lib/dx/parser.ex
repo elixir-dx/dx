@@ -1,13 +1,13 @@
 defmodule Dx.Parser do
-  @moduledoc """
-  Receives the module attributes created by the macros in `Dx.DSL`
-  and converts them into normalized `aliases` and lists of `Dx.Rule` structs.
-  """
+  # Receives the module attributes created by the macros in `Dx.DSL`
+  # and converts them into normalized `aliases` and lists of `Dx.Rule` structs.
+
+  @moduledoc false
 
   defmodule Token do
-    @doc """
-    Encapsulates all static args to be passed around between functions.
-    """
+    # Encapsulates all static args to be passed around between functions.
+
+    @moduledoc false
 
     use TypedStruct
 

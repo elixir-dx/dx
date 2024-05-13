@@ -1,27 +1,27 @@
 defmodule Dx.Ecto.Query.Builder do
-  @moduledoc """
-  Internal data structure to keep track of all context needed to translate complex Dx
-  rules to Ecto queries.
+  # Internal data structure to keep track of all context needed to translate complex Dx
+  # rules to Ecto queries.
+  #
+  # ## Context switches
+  #
+  # ### Evaluate rule on other subject
+  #
+  # - Can not access existing aliases
+  # - Reset path
+  # - Keep only next alias index
+  #
+  # ### Subquery (EXISTS)
+  #
+  # - Can access existing aliases & path
+  # - Mark existing aliases & path entries as :parent
+  # - Add alias & path entry
+  #
+  # ### Join
+  #
+  # - Can access existing aliases & path
+  # - Add alias & path entry
 
-  ## Context switches
-
-  ### Evaluate rule on other subject
-
-  - Can not access existing aliases
-  - Reset path
-  - Keep only next alias index
-
-  ### Subquery (EXISTS)
-
-  - Can access existing aliases & path
-  - Mark existing aliases & path entries as :parent
-  - Add alias & path entry
-
-  ### Join
-
-  - Can access existing aliases & path
-  - Add alias & path entry
-  """
+  @moduledoc false
 
   use TypedStruct
 

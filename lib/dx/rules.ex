@@ -1,5 +1,5 @@
 defmodule Dx.Rules do
-  @moduledoc "See `Dx`."
+  @moduledoc "Used to define dedicated rules modules. See `Dx` for usage."
 
   defmacro __using__(use_opts) do
     quote do

@@ -2,9 +2,9 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/dx)](https://hex.pm/packages/dx)
 [![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/dx/Dx.html)
-[![License](https://img.shields.io/github/license/dx-beam/dx.svg)](https://github.com/dx-beam/dx/blob/main/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/dx-beam/dx/main)](https://github.com/dx-beam/dx/tree/main)
-![CI](https://github.com/dx-beam/dx/actions/workflows/ci.yml/badge.svg)
+[![License](https://img.shields.io/github/license/elixir-dx/dx.svg)](https://github.com/elixir-dx/dx/blob/main/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/elixir-dx/dx/main)](https://github.com/elixir-dx/dx/tree/main)
+![CI](https://github.com/elixir-dx/dx/actions/workflows/ci.yml/badge.svg)
 
 Dx is an Elixir library that allows adding inferred properties to Ecto schemas,
 defined by rules based on fields, associations or other inferred properties.
@@ -23,7 +23,7 @@ Add `dx` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:dx, github: "dx-beam/dx"}
+    {:dx, "~> 0.3.0"}
   ]
 end
 ```
@@ -54,7 +54,7 @@ Import the formatter rules in `.formatter.exs`:
 
 ## Guides
 
-If you're new to Dx, the best place to start are the [Guides](https://dx-beam.github.io/dx/).
+If you're new to Dx, the best place to start are the [Guides](https://hexdocs.pm/dx/welcome.html).
 
 ## Status
 
@@ -73,4 +73,5 @@ To make it an easy-to-adopt open-source library, the next steps are to:
 
 This project is sponsored and kindly supported by [Team Engine](https://www.teamengine.co.uk/).
 
-If you'd like to join us working on Dx and [Refinery](https://github.com/dx-beam/refinery) as a contractor, please [reach out](https://tinyurl.com/engine-infer-dev2).
+If you'd like to join us working on [Dx](https://github.com/elixir-dx/dx) and Refactory
+as a contractor, please reach out to [@arnodirlam](https://github.com/arnodirlam).

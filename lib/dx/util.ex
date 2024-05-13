@@ -1,7 +1,7 @@
 defmodule Dx.Util do
-  @moduledoc """
-  Helpers needed in several core modules.
-  """
+  # Helpers needed in several core modules.
+
+  @moduledoc false
 
   alias __MODULE__, as: Util
   alias Dx.Evaluation, as: Eval

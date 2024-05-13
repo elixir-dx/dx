@@ -1,9 +1,10 @@
 defmodule Dx.Evaluation do
-  @moduledoc """
-  Represents an evaluation run in `Dx.Engine` according to the
-  [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
-  in Elixir.
-  """
+  # Represents an evaluation run in `Dx.Engine` according to the
+  # [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
+  # in Elixir.
+
+  @moduledoc false
+
   use TypedStruct
 
   typedstruct do

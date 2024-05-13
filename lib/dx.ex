@@ -13,30 +13,30 @@ defmodule Dx do
   directly, or otherwise raise an exception.
 
   Arguments:
-  - **subjects** can either be an individual subject (with the given predicates defined on it), or a list of subjects.
+  - `subjects` can either be an individual subject (with the given predicates defined on it), or a list of subjects.
     Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.
-  - **predicates** can either be a single predicate, or a list of predicates.
-    Passing a single predicate will return the resulting value, passing a list will return a **map**
+  - `predicates` can either be a single predicate, or a list of predicates.
+    Passing a single predicate will return the resulting value, passing a list will return a `Map`
     of the predicates and their resulting values.
-  - **options** (optional) See below.
+  - `options` (optional) See below.
 
   Options:
-  - **args** (list or map) can be used to pass in data from the caller's context that can be used in
+  - `args` (list or map) can be used to pass in data from the caller's context that can be used in
     rules (see *Arguments* below). A classic example is the `current_user`, e.g.
     ```elixir
     put!(project, :can_edit?, args: [user: current_user])
     ```
-  - **extra_rules** (module or list of modules) can be used to add context-specific rules that are
+  - `extra_rules` (module or list of modules) can be used to add context-specific rules that are
     not defined directly on the subject. This can be used to structure rules into their own modules
     and use them only where needed.
-  - **debug** (boolean) makes Dx print additional information to the console as rules are evaluated.
+  - `debug` (boolean) makes Dx print additional information to the console as rules are evaluated.
     Should only be used while debugging.
-  - **return_cache** (boolean) makes non-bang functions return `{:ok, result, cache}` instead of
+  - `return_cache` (boolean) makes non-bang functions return `{:ok, result, cache}` instead of
     `{:ok, result}` on success. This `cache` can be passed to other Dx functions (see `cache` option)
-  - **cache** (`Dataloader` struct) can be used to pass in an existing cache, so data already loaded
+  - `cache` (`Dataloader` struct) can be used to pass in an existing cache, so data already loaded
     doesn't need to be loaded again. Can be initialized using `Dx.Loaders.Dataloader.init/1`.
-  - **loader** allows choosing a loader module. Defaults to `Dx.Loaders.Dataloader`.
-  - **loader_options** are passed to `loader.init/1` function. See `Dx.Loaders.Dataloader` for options
+  - `loader` allows choosing a loader module. Defaults to `Dx.Loaders.Dataloader`.
+  - `loader_options` are passed to `loader.init/1` function. See `Dx.Loaders.Dataloader` for options
     supported by the default loader.
   """
 
@@ -200,7 +200,7 @@ defmodule Dx do
   If possible, the condition is completely translated to an `Ecto.Query`
   so the database only returns matching records.
   All condition parts that can not be translated to an `Ecto.Query`, will be
-  evaluated by **loading all remaining records**, and associations as needed,
+  evaluated by `loading all remaining records`, and associations as needed,
   and evaluating the rules on them.
   """
   def query_all(queryable, condition, opts \\ []) do
