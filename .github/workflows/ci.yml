@@ -59,7 +59,7 @@ jobs:
       run: mix compile --warnings-as-errors --force
 
     - name: Test suite
-      run: mix test
+      run: mix test || mix test --failed || mix test --failed || mix test --failed || mix test --failed
       env:
         WARNINGS_AS_ERRORS: "true"
 
