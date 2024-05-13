@@ -67,6 +67,7 @@ defmodule Dx.Scope do
     :plan,
     :type,
     cardinality: :many,
+    aggregate_default: nil,
     ref: :root,
     query_conditions: true,
     main_condition_candidates: nil,
@@ -89,16 +90,18 @@ defmodule Dx.Scope do
 
   def lookup(scope, eval) do
     eval.loader.lookup(eval.cache, scope, false)
-    |> dbg()
     |> case do
-      {:ok, [{results, post_load}]} ->
-        Dx.Ecto.Scope.run_post_load(results, post_load, eval)
+      {:ok, [{results, scope}]} ->
+        results
+        |> Dx.Ecto.Scope.run_post_load(scope.post_load, eval)
+
+      {:ok, {result, scope}} ->
+        result
+        |> Dx.Ecto.Scope.run_post_load(scope.post_load, eval)
 
       other ->
         other
     end
-
-    # |> IO.inspect(label: :LOOKUP)
   end
 
   def to_data_req(%__MODULE__{} = scope) do
@@ -135,6 +138,12 @@ defmodule Dx.Scope do
       {candidates, true} -> {candidates, base}
       {candidates, condition} -> {candidates, {:filter, base, condition}}
     end
+  end
+
+  def main_condition_candidates({:count, base}) do
+    {candidates, plan} = base |> main_condition_candidates()
+
+    {candidates, {:count, plan}}
   end
 
   def main_condition_candidates(other) do

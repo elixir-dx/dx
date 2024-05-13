@@ -4,6 +4,8 @@ defmodule Dx.Ecto.Scope do
   def resolve_and_build(queryable, scope) do
     state = %{
       queries: [],
+      cardinality: :many,
+      aggregate_default: nil,
       aliases: MapSet.new(),
       alias_types: Map.new(),
       parent_aliases: MapSet.new(),
@@ -17,7 +19,7 @@ defmodule Dx.Ecto.Scope do
 
     %{queries: [query]} = build(scope.plan, state)
 
-    {:ok, query, scope.post_load}
+    {:ok, query, scope}
   end
 
   # defp to_query({%Query{} = query, %Ecto.Query.DynamicExpr{} = dynamic}), do: dynamic
@@ -25,6 +27,8 @@ defmodule Dx.Ecto.Scope do
   def to_query(_queryable, %{scope: scope}) do
     state = %{
       queries: [],
+      cardinality: :many,
+      aggregate_default: nil,
       aliases: MapSet.new(),
       alias_types: Map.new(),
       parent_aliases: MapSet.new(),
@@ -38,12 +42,14 @@ defmodule Dx.Ecto.Scope do
     %{queries: [query]} = build(scope.plan, state)
     # dbg(query)
 
-    {query, scope.post_load}
+    {query, scope}
   end
 
   def resolve(%Dx.Scope{} = scope) do
     state = %{
       queries: [],
+      cardinality: :many,
+      aggregate_default: nil,
       aliases: MapSet.new(),
       alias_types: Map.new(),
       parent_aliases: MapSet.new(),
@@ -53,8 +59,18 @@ defmodule Dx.Ecto.Scope do
     }
 
     case resolve(scope.plan, state) do
-      {{:ok, plan}, state} -> {:ok, %{scope | plan: plan, post_load: state.post_load}}
-      {other, _state} -> other
+      {{:ok, plan}, state} ->
+        {:ok,
+         %{
+           scope
+           | plan: plan,
+             cardinality: state.cardinality,
+             aggregate_default: state.aggregate_default,
+             post_load: state.post_load
+         }}
+
+      {other, _state} ->
+        other
     end
   end
 
@@ -87,7 +103,8 @@ defmodule Dx.Ecto.Scope do
 
     state = %{
       state
-      | current_alias: new_alias,
+      | cardinality: :many,
+        current_alias: new_alias,
         current_alias_type: module,
         aliases: MapSet.put(state.aliases, new_alias)
     }
@@ -141,13 +158,22 @@ defmodule Dx.Ecto.Scope do
 
   defp resolve({:count, base}, state) do
     resolve(base, state)
+    |> put_state(:cardinality, :one)
+    |> put_state(:aggregate_default, 0)
     |> if_ok(&{:count, &1})
   end
 
   defp resolve({:filter, base, condition}, state) do
+    cardinality = state.cardinality
+    aggregate_default = state.aggregate_default
+
     resolve(base, state)
+    |> put_state(:cardinality, cardinality)
+    |> put_state(:aggregate_default, aggregate_default)
     |> if_ok(fn base, state ->
       resolve_condition(condition, state)
+      |> put_state(:cardinality, cardinality)
+      |> put_state(:aggregate_default, aggregate_default)
       |> if_ok(&{:filter, base, &1})
     end)
   end
@@ -322,8 +348,8 @@ defmodule Dx.Ecto.Scope do
     state = %{} = build(base, state)
     [query | queries] = state.queries
 
-    query = select(query, count())
-    %{state | queries: [query | queries]}
+    query = select(query, %{result: count()})
+    %{state | queries: [query | queries], cardinality: :one}
   end
 
   defp build({:filter, base, condition}, state) do
@@ -462,6 +488,7 @@ defmodule Dx.Ecto.Scope do
   # end
 
   defp with_state(term, state), do: {term, state}
+  defp put_state({term, state}, key, value), do: {term, %{state | key => value}}
 
   defp if_ok({:skip, state}, _fun), do: {:skip, state}
   defp if_ok({{:ok, result}, state}, fun) when is_function(fun, 2), do: fun.(result, state)

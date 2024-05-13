@@ -162,6 +162,76 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "count lists" do
+    assert_queries(["SELECT count(*) FROM \"lists\""], fn ->
+      refute_stderr(fn ->
+        defmodule CountListsTest do
+          import Dx.Defd
+
+          defd run() do
+            Enum.count(List)
+          end
+        end
+
+        assert {:ok, 2} = load(CountListsTest.run())
+      end)
+    end)
+  end
+
+  test "count empty table" do
+    assert_queries(["SELECT count(*) FROM \"list_calendar_overrides\""], fn ->
+      refute_stderr(fn ->
+        defmodule CountZeroTest do
+          import Dx.Defd
+
+          defd run() do
+            Enum.count(ListCalendarOverride)
+          end
+        end
+
+        assert {:ok, 0} = load(CountZeroTest.run())
+      end)
+    end)
+  end
+
+  test "filter count lists" do
+    assert_queries(
+      ["SELECT count(*), l0.\"title\" FROM \"lists\" AS l0 GROUP BY l0.\"title\""],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterCountListsTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.count(Enum.filter(List, &(&1.title == "Tasks")))
+            end
+          end
+
+          assert {:ok, 1} = load(FilterCountListsTest.run())
+        end)
+      end
+    )
+  end
+
+  test "filter count empty table" do
+    assert_queries(
+      ["SELECT count(*), l0.\"comment\" FROM \"list_calendar_overrides\" AS l0 GROUP BY l0.\"comment\""],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterCountZeroTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.count(Enum.filter(ListCalendarOverride, &(&1.comment == "Holiday")))
+            end
+          end
+
+          assert {:ok, 0} = load(FilterCountZeroTest.run())
+        end)
+      end
+    )
+  end
+
   test "filter empty lists", %{list: list} do
     assert_queries([["(SELECT count(*) FROM \"tasks\"", " = 1"]], fn ->
       refute_stderr(fn ->
