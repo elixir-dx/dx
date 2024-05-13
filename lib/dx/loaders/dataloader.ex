@@ -59,30 +59,16 @@ defmodule Dx.Loaders.Dataloader do
   def init(opts \\ []) do
     repo = config(:repo)
 
-    # workaround for dataloader incompatibility with transactions
-    #   -> https://github.com/absinthe-graphql/dataloader/issues/129#issuecomment-965492108
-    run_concurrently? = not db_conn_checked_out?(repo)
-
     ecto_opts = [
       query: &Dx.Ecto.Query.from_options/2,
-      async: run_concurrently?,
       repo_opts: opts[:repo_options] || opts[:repo_opts] || [],
       timeout: opts[:timeout] || Dataloader.default_timeout()
     ]
 
     source = Dataloader.Ecto.new(repo, ecto_opts)
 
-    Dataloader.new(get_policy: :tuples, async: run_concurrently?)
+    Dataloader.new(get_policy: :tuples)
     |> Dataloader.add_source(:assoc, source)
-  end
-
-  defp db_conn_checked_out?(repo_name) do
-    case Ecto.Repo.Registry.lookup(repo_name) do
-      # Ecto < 3.8.0
-      {adapter, meta} -> adapter.checked_out?(meta)
-      # Ecto >= 3.8.0
-      %{adapter: adapter} = meta -> adapter.checked_out?(meta)
-    end
   end
 
   def load(cache, data_reqs) do
