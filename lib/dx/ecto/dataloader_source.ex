@@ -65,11 +65,6 @@ defmodule Dx.Ecto.DataloaderSource do
     end
   end
 
-  defp load_rows(nil, inputs, queryable, query, repo, repo_opts) do
-    query
-    |> repo.all(repo_opts)
-  end
-
   defp load_rows(col, inputs, queryable, query, repo, repo_opts) do
     pk = queryable.__schema__(:primary_key)
 
@@ -100,7 +95,7 @@ defmodule Dx.Ecto.DataloaderSource do
 
     results =
       from(input in subquery(inputs_query), as: :input)
-      |> join(:inner_lateral, q in subquery(inner_query))
+      |> join(:inner_lateral, [], q in subquery(inner_query), on: true)
       |> select([_input, q], q)
       |> repo.all(repo_opts)
 
@@ -125,7 +120,10 @@ defmodule Dx.Ecto.DataloaderSource do
 
   defimpl Dataloader.Source do
     def run(source) do
-      results = Dataloader.async_safely(__MODULE__, :run_batches, [source])
+      results =
+        Dataloader.async_safely(__MODULE__, :run_batches, [source],
+          async?: Dataloader.Source.async?(source)
+        )
 
       results =
         Map.merge(source.results, results, fn _, {:ok, v1}, {:ok, v2} ->
@@ -208,6 +206,10 @@ defmodule Dx.Ecto.DataloaderSource do
 
     def timeout(%{options: options}) do
       options[:timeout]
+    end
+
+    def async?(%{repo: repo}) do
+      not repo.in_transaction?()
     end
 
     defp chase_down_queryable([field], schema) do
@@ -343,7 +345,7 @@ defmodule Dx.Ecto.DataloaderSource do
 
       results =
         batches
-        |> Task.async_stream(
+        |> maybe_async_stream(
           fn batch ->
             id = :erlang.unique_integer()
             system_time = System.system_time()
@@ -355,7 +357,8 @@ defmodule Dx.Ecto.DataloaderSource do
 
             batch_result
           end,
-          options
+          options,
+          Dataloader.Source.async?(source)
         )
         |> Enum.map(fn
           {:ok, {_key, result}} -> {:ok, result}
@@ -366,6 +369,21 @@ defmodule Dx.Ecto.DataloaderSource do
       |> Enum.map(fn {key, _set} -> key end)
       |> Enum.zip(results)
       |> Map.new()
+    end
+
+    defp maybe_async_stream(batches, fun, options, true) do
+      async_stream(batches, fun, options)
+    end
+
+    defp maybe_async_stream(batches, fun, _options, _) do
+      Enum.map(batches, fn batch ->
+        try do
+          {:ok, fun.(batch)}
+        rescue
+          e ->
+            {:exit, e}
+        end
+      end)
     end
 
     defp run_batch(
@@ -411,7 +429,7 @@ defmodule Dx.Ecto.DataloaderSource do
       records = records |> Enum.map(&Map.put(&1, field, empty))
 
       results =
-        if query.limit || query.offset do
+        if query.limit || query.offset || Enum.any?(query.order_bys) do
           records
           |> preload_lateral(field, query, source.repo, repo_opts)
         else
@@ -444,6 +462,7 @@ defmodule Dx.Ecto.DataloaderSource do
         from(x in schema,
           as: :parent,
           inner_lateral_join: y in subquery(inner_query),
+          on: true,
           where: field(x, ^pk) in ^Enum.map(structs, &Map.get(&1, pk)),
           select: {field(x, ^pk), y}
         )
@@ -632,11 +651,13 @@ defmodule Dx.Ecto.DataloaderSource do
       build_preload_lateral_query(rest, join_query, :join_last)
     end
 
-    defp maybe_distinct(query, [%Ecto.Association.Has{}, %Ecto.Association.BelongsTo{} | _]) do
-      distinct(query, true)
-    end
+    defp maybe_distinct(%Ecto.Query{distinct: dist} = query, _) when dist, do: query
+
+    defp maybe_distinct(query, [%Ecto.Association.Has{}, %Ecto.Association.BelongsTo{} | _]),
+      do: distinct(query, true)
 
     defp maybe_distinct(query, [%Ecto.Association.ManyToMany{} | _]), do: distinct(query, true)
+
     defp maybe_distinct(query, [_assoc | rest]), do: maybe_distinct(query, rest)
     defp maybe_distinct(query, []), do: query
 
@@ -677,6 +698,16 @@ defmodule Dx.Ecto.DataloaderSource do
         other ->
           other
       end
+    end
+
+    # Optionally use `async_stream/3` function from
+    # `opentelemetry_process_propagator` if available
+    if Code.ensure_loaded?(OpentelemetryProcessPropagator.Task) do
+      @spec async_stream(Enumerable.t(), (term -> term), keyword) :: Enumerable.t()
+      defdelegate async_stream(items, fun, opts), to: OpentelemetryProcessPropagator.Task
+    else
+      @spec async_stream(Enumerable.t(), (term -> term), keyword) :: Enumerable.t()
+      defdelegate async_stream(items, fun, opts), to: Task
     end
   end
 end
