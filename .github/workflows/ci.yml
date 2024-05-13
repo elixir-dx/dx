@@ -25,7 +25,7 @@ jobs:
       MIX_ENV: test
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup Erlang & Elixir
       uses: erlef/setup-beam@v1
@@ -35,7 +35,7 @@ jobs:
 
     # Caching
     - name: Dependencies cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: deps
         key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
@@ -43,7 +43,7 @@ jobs:
           ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
 
     - name: Build cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: _build
         key: ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
