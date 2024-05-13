@@ -1,29 +1,6 @@
 defmodule Dx.Ecto.Scope do
   import Ecto.Query
 
-  def resolve_and_build(queryable, scope) do
-    state = %{
-      queries: [],
-      cardinality: :many,
-      aggregate_default: nil,
-      aliases: MapSet.new(),
-      alias_types: Map.new(),
-      parent_aliases: MapSet.new(),
-      current_alias: nil,
-      current_alias_type: :unknown,
-      post_load: {:loaded}
-    }
-
-    # dbg(scope.plan)
-    # build(plan, state)
-
-    %{queries: [query]} = build(scope.plan, state)
-
-    {:ok, query, scope}
-  end
-
-  # defp to_query({%Query{} = query, %Ecto.Query.DynamicExpr{} = dynamic}), do: dynamic
-
   def to_query(_queryable, %{scope: scope}) do
     state = %{
       queries: [],

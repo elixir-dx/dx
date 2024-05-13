@@ -51,7 +51,7 @@ defmodule Dx.MixProject do
     [
       # util
       {:typed_struct, ">= 0.0.0"},
-      {:dataloader, "~> 1.0.0"},
+      {:dataloader, "~> 2.0"},
 
       # adapters
       {:ecto, "~> 3.8", optional: true},

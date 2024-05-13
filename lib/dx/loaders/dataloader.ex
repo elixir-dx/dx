@@ -163,40 +163,23 @@ defmodule Dx.Loaders.Dataloader do
   def init() do
     repo = config(:repo)
 
-    # workaround for dataloader incompatibility with transactions
-    #   -> https://github.com/absinthe-graphql/dataloader/issues/129#issuecomment-965492108
-    run_concurrently? = not db_conn_checked_out?(repo)
-
     source =
-      Dx.Ecto.DataloaderSource.new(repo,
-        query: &Dx.Ecto.Query.from_options/2,
-        # run_batch: &run_batch/5,
-        async: run_concurrently?
+      Dataloader.Ecto.new(repo,
+        query: &Dx.Ecto.Query.from_options/2
       )
 
     scope_source =
       Dx.Ecto.DataloaderSource.new(repo,
         query: &Dx.Ecto.Scope.to_query/2,
-        # query: &Dx.Ecto.Scope.resolve_and_build/2,
-        run_batch: &run_batch(config(:repo), &1, &2, &3, &4, &5),
-        async: run_concurrently?
+        run_batch: &run_batch(config(:repo), &1, &2, &3, &4, &5)
       )
 
     loader =
-      Dataloader.new(get_policy: :tuples, async: run_concurrently?)
+      Dataloader.new(get_policy: :tuples)
       |> Dataloader.add_source(:assoc, source)
       |> Dataloader.add_source(:dx_scope, scope_source)
 
     {loader, %{}}
-  end
-
-  defp db_conn_checked_out?(repo_name) do
-    case Ecto.Repo.Registry.lookup(repo_name) do
-      # Ecto < 3.8.0
-      {adapter, meta} -> adapter.checked_out?(meta)
-      # Ecto >= 3.8.0
-      %{adapter: adapter} = meta -> adapter.checked_out?(meta)
-    end
   end
 
   def load({cache, meta}, data_reqs) do
