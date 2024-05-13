@@ -60,7 +60,7 @@ defmodule Dx.MixProject do
       # dev & test
       {:postgrex, "~> 0.14", only: :test, runtime: false},
       {:timex, "~> 3.6", only: :test, runtime: false},
-      {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
+      {:refactory, "~> 0.1.0", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
