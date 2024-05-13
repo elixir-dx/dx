@@ -4,21 +4,23 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.28.3">
-    <meta name="project" content="dx v0.3.0">
+    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="project" content="dx v0.3.1">
 
-    <title>Dx.Loaders.Dataloader — dx v0.3.0</title>
-    <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-97823251d4.js"></script>
+    <title>Dx.Loaders.Dataloader — dx v0.3.1</title>
+    <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
-      <script src="docs_config.js"></script>
 
-    <script async src="dist/app-a088a6cc33ae3464193e.js"></script>
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
+    <script src="dist/sidebar_items-C3C0A9B0.js"></script>
+    <script src="docs_config.js"></script>
+    <script async src="dist/html-BHYOTRCH.js"></script>
 
 
   </head>
-  <body data-type="modules">
+  <body data-type="modules" class="page-module">
     <script>
 
       try {
@@ -33,135 +35,152 @@
       } catch (error) { }
     </script>
 
-<div class="main">
+<div class="body-wrapper">
 
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
 
-<section class="sidebar">
-  <button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
-    <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
-  </button>
-
-  <form class="sidebar-search" action="search.html">
-    <button type="submit" class="search-button" aria-label="Submit Search">
-      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
-    </button>
-    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
-      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
-    </button>
-    <label class="search-label">
-      <p class="sr-only">Search</p>
-      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" />
-    </label>
-  </form>
-
-  <div class="autocomplete">
-    <div class="autocomplete-results">
-    </div>
-  </div>
+<nav id="sidebar" class="sidebar">
 
   <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
 
-    <div class="sidebar-projectDetails">
-      <a href="welcome.html" class="sidebar-projectName" translate="no">
+      <div>
+        <a href="Dx.html" class="sidebar-projectName" translate="no">
 dx
-      </a>
-      <strong class="sidebar-projectVersion" translate="no">
-        v0.3.0
-      </strong>
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.3.1
+        </div>
+      </div>
     </div>
-    <ul class="sidebar-listNav">
-      <li><a id="extras-list-link" href="#full-list">Guides</a></li>
+    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
+      <li>
+        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
+Guides
+        </button>
+      </li>
 
-        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+        <li>
+          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
+            Modules
+          </button>
+        </li>
 
 
     </ul>
   </div>
 
-  <div class="gradient"></div>
-  <ul id="full-list" class="sidebar-fullList"></ul>
-</section>
+  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
+    <ul id="extras-full-list" class="full-list"></ul>
+  </div>
 
-<section class="content">
-  <div class="content-outer">
-    <div id="content" class="content-inner">
-
-<h1>
-<button class="settings display-settings">
-  <i class="ri-settings-3-line"></i>
-  <span class="sr-only">Settings</span>
-</button>
+    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
+      <ul id="modules-full-list" class="full-list"></ul>
+    </div>
 
 
-    <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L1" title="View Source" class="view-source" rel="help">
-      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-      <span class="sr-only">View Source</span>
-    </a>
+</nav>
 
-  <span translate="no">Dx.Loaders.Dataloader</span> 
-  <small class="app-vsn" translate="no">(dx v0.3.0)</small>
+<main class="content">
+  <output role="status" id="toast"></output>
 
-</h1>
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of dx</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+    <span translate="no">Dx.Loaders.Dataloader</span> 
+    <small class="app-vsn" translate="no">(dx v0.3.1)</small>
+
+  </h1>
 
 
-  <section id="moduledoc">
-<p>Uses <a href="https://hexdocs.pm/dataloader/1.0.10/Dataloader.html"><code class="inline">Dataloader</code></a> to load missing data incrementally.</p><h2 id="module-supported-options" class="section-heading">
-  <a href="#module-supported-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">supported-options</p>
+    <section id="moduledoc">
+<p>Uses <a href="https://hexdocs.pm/dataloader/2.0.0/Dataloader.html"><code class="inline">Dataloader</code></a> to load missing data incrementally.</p><h2 id="module-supported-options" class="section-heading">
+  <a href="#module-supported-options" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
   </a>
-  Supported options
+  <span class="text">Supported options</span>
 </h2>
-<p>These options are passed to <a href="https://hexdocs.pm/dataloader/1.0.10/Dataloader.Ecto.html#new/2"><code class="inline">Dataloader.Ecto.new/2</code></a>:</p><ul><li><strong>timeout</strong> Timeout in milliseconds for <a href="https://hexdocs.pm/dataloader/1.0.10/Dataloader.html"><code class="inline">Dataloader</code></a> to wait for all data to be loaded. Defaults to 15_000.</li><li><strong>repo_options</strong> Options passed to the <a href="https://hexdocs.pm/ecto/3.7.1/Ecto.Repo.html"><code class="inline">Ecto.Repo</code></a> when loading data. Defaults to <code class="inline">[]</code>.</li></ul>
-  </section>
+<p>These options are passed to <a href="https://hexdocs.pm/dataloader/2.0.0/Dataloader.Ecto.html#new/2"><code class="inline">Dataloader.Ecto.new/2</code></a>:</p><ul><li><code class="inline">timeout</code> - Timeout in milliseconds for <a href="https://hexdocs.pm/dataloader/2.0.0/Dataloader.html"><code class="inline">Dataloader</code></a> to wait for all data to be loaded. Defaults to 15_000.</li><li><code class="inline">repo_options</code> - Options passed to the <a href="https://hexdocs.pm/ecto/3.11.2/Ecto.Repo.html"><code class="inline">Ecto.Repo</code></a> when loading data. Defaults to <code class="inline">[]</code>.</li></ul>
+    </section>
 
+</div>
 
   <section id="summary" class="details-list">
     <h1 class="section-heading">
       <a class="hover-link" href="#summary">
         <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
       </a>
-      Summary
+      <span class="text">Summary</span>
     </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
 
-  <div class="summary-functions summary">
-    <h2>
-      <a href="#functions">Functions</a>
-    </h2>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#config/1" translate="no">config(atom)</a>
-
-        </div>
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#config/1" data-no-tooltip translate="no">config(atom)</a>
 
       </div>
 
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#init/1" translate="no">init(opts \\ [])</a>
+    </div>
 
-        </div>
-
-      </div>
-
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#load/2" translate="no">load(cache, data_reqs)</a>
-
-        </div>
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init/1" data-no-tooltip translate="no">init(opts \\ [])</a>
 
       </div>
 
-      <div class="summary-row">
-        <div class="summary-signature">
-          <a href="#lookup/2" translate="no">lookup(cache, data_req)</a>
+    </div>
 
-        </div>
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#load/2" data-no-tooltip translate="no">load(cache, data_reqs)</a>
 
       </div>
 
-  </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#lookup/2" data-no-tooltip translate="no">lookup(cache, data_req)</a>
+
+      </div>
+
+    </div>
+
+</div>
 
   </section>
 
@@ -170,21 +189,20 @@ dx
     <h1 class="section-heading">
       <a class="hover-link" href="#functions">
         <i class="ri-link-m" aria-hidden="true"></i>
-        <span class="sr-only">Link to this section</span>
       </a>
-Functions
+      <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
 <section class="detail" id="config/1">
 
   <div class="detail-header">
-    <a href="#config/1" class="detail-link" title="Link to this function">
+    <a href="#config/1" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">config(atom)</h1>
 
-      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L95" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L81" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -202,13 +220,13 @@ Functions
     <span id="init/0"></span>
 
   <div class="detail-header">
-    <a href="#init/1" class="detail-link" title="Link to this function">
+    <a href="#init/1" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">init(opts \\ [])</h1>
 
-      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L59" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L59" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -224,13 +242,13 @@ Functions
 <section class="detail" id="load/2">
 
   <div class="detail-header">
-    <a href="#load/2" class="detail-link" title="Link to this function">
+    <a href="#load/2" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">load(cache, data_reqs)</h1>
 
-      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L88" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L74" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -246,13 +264,13 @@ Functions
 <section class="detail" id="lookup/2">
 
   <div class="detail-header">
-    <a href="#lookup/2" class="detail-link" title="Link to this function">
+    <a href="#lookup/2" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">lookup(cache, data_req)</h1>
 
-      <a href="https://github.com/dx-beam/dx/blob/v0.3.0/lib/dx/loaders/dataloader.ex#L21" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L21" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -269,33 +287,39 @@ Functions
     </div>
   </section>
 
-      <footer class="footer">
+    <footer class="footer">
+      <p>
 
-          <p>
-            On Hex.pm:
+          <span class="line">
+            <a href="https://hex.pm/packages/dx/0.3.1" class="footer-hex-package">Hex Package</a>
 
-            <span class="line">
-              <a href="https://hex.pm/packages/dx/0.3.0" class="line footer-hex-package">Package</a>
-              <a href="https://preview.hex.pm/preview/dx/0.3.0" class="line">Preview</a>
+            <a href="https://preview.hex.pm/preview/dx/0.3.1">Hex Preview</a>
 
-                <a href="https://preview.hex.pm/preview/dx/0.3.0/show/lib/dx/loaders/dataloader.ex">(current file)</a>
+          </span>
 
-            </span>
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
 
-            <button class="line footer-button display-quick-switch">
-              Search
-            </button>
-          </p>
+            <a href="dx.epub" title="ePub version">
+              Download ePub version
+            </a>
 
-        <p>
-          Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.28.3) for the
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
-        </p>
-      </footer>
-    </div>
+
+      </p>
+
+    </footer>
   </div>
-</section>
+</main>
 </div>
 
 
