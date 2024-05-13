@@ -42,6 +42,7 @@ defmodule Dx.Test.Repo.Migrations.CreateBaseSchema do
     create table(:list_calendar_overrides) do
       add :list_id, references(:lists), null: false
       add :date, :date
+      add :comment, :string
       add :hourly_points, :float
     end
   end

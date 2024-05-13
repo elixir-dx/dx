@@ -232,25 +232,36 @@ defmodule Dx.Loaders.Dataloader do
 
   # Source overrides
 
-  def run_batch(repo, queryable, {query, post_load}, col, inputs, repo_opts) do
-    # {:ok, query, post_load} = Dx.Ecto.Scope.resolve_and_build(scope)
-
-    Dx.Ecto.DataloaderSource.run_batch(
-      repo,
-      queryable,
-      query,
-      col,
-      inputs,
-      repo_opts
-    )
-    |> Enum.map(&{&1, post_load})
-
-    # |> then(&{&1, post_load})
+  # no main condition
+  def run_batch(repo, _queryable, {query, scope}, nil, [nil], repo_opts) do
+    case {scope.cardinality, repo.all(query, repo_opts)} do
+      {:one, [result]} -> [{result.result, scope}]
+      {_, results} -> [{results, scope}]
+    end
   end
 
-  def run_batch(repo, queryable, query, col, inputs, repo_opts) do
-    dbg(col)
+  # aggregate
+  def run_batch(repo, _queryable, {query, %{cardinality: :one} = scope}, col, inputs, repo_opts) do
+    import Ecto.Query
 
+    expr = dynamic([x], field(x, ^col))
+
+    grouped_results =
+      query
+      |> group_by(^expr)
+      |> select_merge(^%{col => expr})
+      |> repo.all(repo_opts)
+      |> Map.new(&{Map.fetch!(&1, col), &1.result})
+
+    scope = %{scope | cardinality: :many}
+
+    for value <- inputs do
+      {Map.get(grouped_results, value, scope.aggregate_default), scope}
+    end
+  end
+
+  # all other cases
+  def run_batch(repo, queryable, {query, scope}, col, inputs, repo_opts) do
     Dx.Ecto.DataloaderSource.run_batch(
       repo,
       queryable,
@@ -259,6 +270,6 @@ defmodule Dx.Loaders.Dataloader do
       inputs,
       repo_opts
     )
-    |> dbg()
+    |> Enum.map(&{&1, scope})
   end
 end
