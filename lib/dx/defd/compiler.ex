@@ -145,9 +145,6 @@ defmodule Dx.Defd.Compiler do
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
       [{meta, args, [], ast}] ->
-        # Ast.p(ast, "ORIG #{name}/#{arity}")
-        # IO.puts("ORIG #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
-
         {scope_ast, _state} = Dx.Scope.Compiler.normalize(ast, state)
         args = Ast.mark_vars_as_generated(args)
 
@@ -156,19 +153,11 @@ defmodule Dx.Defd.Compiler do
             normalize(ast, %{state | rewrite_underscore?: false})
           end)
 
-        # |> load_scope()
-
-        # IO.puts("NORM #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
-        Ast.p(ast, "CODE #{name}/#{arity}")
-        Ast.p(scope_ast, "SCOPE #{name}/#{arity}")
-
         {{kind, meta, args, ast}, scope_ast, state}
 
       [{meta, _args, _, _} | _] = clauses ->
         case_clauses =
           Enum.map(clauses, fn {meta, args, [], ast} ->
-            # Ast.p(ast, "ORIG #{name}/#{arity}")
-            # IO.puts("ORIG #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
             {:->, meta, [[Ast.wrap_args(args)], ast]}
           end)
 
@@ -181,9 +170,6 @@ defmodule Dx.Defd.Compiler do
           Ast.with_root_args(state.all_args, state, fn state ->
             Dx.Defd.Case.normalize(case_ast, state)
           end)
-
-        # IO.puts("NORM #{name}/#{arity}:\n" <> inspect(ast, pretty: true, limit: 100) <> "\n")
-        Ast.p(ast, "CODE #{name}/#{arity}")
 
         {{kind, meta, state.all_args, ast}, scope_ast, state}
     end
@@ -199,17 +185,6 @@ defmodule Dx.Defd.Compiler do
         other
     end
   end
-
-  # def normalize(atom, state) when is_atom(atom) do
-  #   ast =
-  #     case Code.ensure_loaded(atom) do
-  #       {:module, module} -> Macro.escape(Dx.Scope.all(module))
-  #       {:error, _atom} -> atom
-  #     end
-
-  #   ast = {:ok, ast}
-  #   {ast, state}
-  # end
 
   def normalize(ast, state) when is_simple(ast) do
     ast = if state.in_scope?, do: {:ok, {:value, ast}}, else: {:ok, ast}
@@ -362,86 +337,6 @@ defmodule Dx.Defd.Compiler do
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
     normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state)
-  end
-
-  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
-    args = Ast.mark_vars_as_generated(args)
-
-    # Ast.with_args(args, state, fn state ->
-    {scope_body, _new_state} =
-      Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
-
-    # end)
-
-    # {scope_body, _state} = Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
-    # {scope_body, _state} = Dx.Scope.Compiler.normalize(body, state)
-    # {scope_body, _state} = normalize(body, %{state | in_scope?: true})
-
-    {body, new_state} =
-      Ast.with_args(args, state, fn state ->
-        normalize(body, state)
-      end)
-
-    {ok?, ok_body} =
-      case body do
-        {:ok, ok_body} -> {true, ok_body}
-        _ -> {false, nil}
-      end
-
-    line = meta[:line] || state.line
-
-    ast =
-      {:ok,
-       {:%, [line: line],
-        [
-          {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-          {:%{}, [line: line],
-           [
-             ok?: ok?,
-             fun: {:fn, meta, [{:->, meta2, [args, body]}]},
-             ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
-             scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
-           ]}
-        ]}}
-
-    {ast, new_state}
-  end
-
-  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, false, state) do
-    # {body, new_state} =
-    #   Ast.with_args(args, state, fn state ->
-    #     normalize(body, state)
-    #   end)
-
-    # {ok?, ok_body} =
-    #   case body do
-    #     {:ok, ok_body} -> {true, ok_body}
-    #     _ -> {false, nil}
-    #   end
-
-    # line = meta[:line] || state.line
-
-    # ast =
-    #   {:ok,
-    #    {:%, [line: line],
-    #     [
-    #       {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-    #       {:%{}, [line: line],
-    #        [
-    #          ok?: ok?,
-    #          fun: {:fn, meta, [{:->, meta2, [args, body]}]},
-    #          ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]}
-    #        ]}
-    #     ]}}
-
-    # {ast, new_state}
-    {body, new_state} =
-      Ast.with_root_args(args, state, fn state ->
-        normalize(body, state)
-      end)
-
-    ast = {:fn, meta, [{:->, meta2, [args, body]}]}
-    {ast, new_state}
   end
 
   # fun.()
@@ -613,9 +508,7 @@ defmodule Dx.Defd.Compiler do
 
   def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]}, %{in_scope?: true} = state) do
     {left, state} = normalize(left, state)
-    dbg(left)
     {right, state} = normalize(right, state)
-    dbg(right)
 
     quote line: meta[:line] do
       case {unquote(left), unquote(right)} do
@@ -648,7 +541,7 @@ defmodule Dx.Defd.Compiler do
         |> with_state(state)
 
       meta2[:no_parens] ->
-        case maybe_capture_loader(fun, state) |> dbg() do
+        case maybe_capture_loader(fun, state) do
           {:ok, loader_ast, state} ->
             add_loader(loader_ast, state)
             |> mark_scope_safe()
@@ -690,15 +583,6 @@ defmodule Dx.Defd.Compiler do
           true ->
             rewriter.rewrite(fun, state)
         end
-
-      # case rewriter.rewrite(fun, state) do
-      #   {{:ok, result}, state} ->
-      #     {{:ok, result}, state}
-
-      #   {loader, state} ->
-      #     add_loader(loader, state)
-      #     # |> mark_scope_safe()
-      # end
 
       state.in_scope? and Util.is_defd?(module, fun_name, arity) ->
         scope_name = Util.scope_name(fun_name)
@@ -761,13 +645,51 @@ defmodule Dx.Defd.Compiler do
     """)
   end
 
-  def load_scope({ast, state}) do
-    ast =
-      quote do
-        Dx.Scope.maybe_load(unquote(ast), unquote(state.eval_var))
+  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
+    args = Ast.mark_vars_as_generated(args)
+
+    {scope_body, _new_state} =
+      Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
+
+    {body, new_state} =
+      Ast.with_args(args, state, fn state ->
+        normalize(body, state)
+      end)
+
+    {ok?, ok_body} =
+      case body do
+        {:ok, ok_body} -> {true, ok_body}
+        _ -> {false, nil}
       end
 
-    {ast, state}
+    line = meta[:line] || state.line
+
+    ast =
+      {:ok,
+       {:%, [line: line],
+        [
+          {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+          {:%{}, [line: line],
+           [
+             ok?: ok?,
+             fun: {:fn, meta, [{:->, meta2, [args, body]}]},
+             ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
+             scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
+           ]}
+        ]}}
+
+    {ast, new_state}
+  end
+
+  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, false, state) do
+    {body, new_state} =
+      Ast.with_root_args(args, state, fn state ->
+        normalize(body, state)
+      end)
+
+    ast = {:fn, meta, [{:->, meta2, [args, body]}]}
+
+    {ast, new_state}
   end
 
   def maybe_load_scope(ast, %{in_scope?: true} = state) do
@@ -841,45 +763,14 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
-  # def add_loader(loader, state, scopable? \\ false)
-
-  # def add_loader(loader, state, true) do
-  #   data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
-
-  #   var = data_reqs[loader]
-  #   ast = {:ok, var}
-
-  #   {ast, %{state | data_reqs: data_reqs}}
-  # end
-
-  # def add_loader(loader, state, false) do
-  #   {{:ok, inner_var}, state} = add_loader(loader, state, true)
-
-  #   quote do
-  #     Dx.Scope.maybe_lookup(unquote(inner_var), unquote(state.eval_var))
-  #   end
-  #   |> add_loader(state, true)
-  # end
-
   # Access.get/2
   def maybe_capture_loader({{:., meta, [ast, fun_name]}, meta2, []}, state)
       when is_atom(fun_name) do
     if meta2[:no_parens] do
       case maybe_capture_loader(ast, state) do
         {:ok, ast, state} ->
-          # loader_ast = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
-
-          # state =
-          #   Map.update!(state, :data_reqs, fn data_reqs ->
-          #     Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
-          #   end)
-
-          # var = state.data_reqs[loader_ast]
-          # ast = {:ok, var}
-
-          # {:ok, ast, state}
-
           fun = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
+
           {:ok, fun, state}
 
         :error ->

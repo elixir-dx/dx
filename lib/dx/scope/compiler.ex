@@ -2,23 +2,13 @@ defmodule Dx.Scope.Compiler do
   alias Dx.Defd.Ast
   alias Dx.Defd.Util
 
-  import Dx.Defd.Ast.Guards
+  import Ast.Guards
 
-  @eval_var Macro.var(:eval, Dx.Defd.Compiler)
   @rewriters %{
     Enum => Dx.Enum,
     :erlang => Dx.Defd.Kernel,
     Kernel => Dx.Defd.Kernel
   }
-
-  # def normalize(ast) do
-  #   state = %{
-  #     defds: %{}
-  #   }
-
-  #   {ast, _state} = normalize(ast, state)
-  #   ast
-  # end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
     {body, state} = normalize(body, state)
@@ -88,7 +78,7 @@ defmodule Dx.Scope.Compiler do
   end
 
   # local_fun()
-  def normalize({fun_name, meta, args} = fun, state)
+  def normalize({fun_name, meta, args}, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
 
@@ -102,7 +92,6 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        # {:error, {:ok, fun}}
         :error
         |> with_state(state)
     end
@@ -137,12 +126,10 @@ defmodule Dx.Scope.Compiler do
             |> with_state(state)
 
           function_exported?(rewriter, fun_name, arity) ->
-            # {:error, {{:., meta, [rewriter, fun_name]}, meta2, args}}
             :error
             |> with_state(state)
 
           true ->
-            # {:error, {:ok, fun}}
             :error
             |> with_state(state)
         end
@@ -154,8 +141,6 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        # {:error, {:ok, fun}}
-        # :error
         quote do
           {:error, fn unquote_splicing(args ++ [state.eval_var]) -> {:ok, unquote(fun)} end}
         end
@@ -166,18 +151,6 @@ defmodule Dx.Scope.Compiler do
   def normalize(_other, state) do
     :error
     |> with_state(state)
-  end
-
-  defp if_all_ok(args, then_ast, else_ast) do
-    Enum.reduce(args, [], fn
-      {:ok, arg}, acc -> acc
-      ast, [] -> ast
-      ast, acc -> quote do: unquote(acc) and unquote(ast)
-    end)
-    |> case do
-      [] -> then_ast
-      cond_ast -> quote do: if(unquote(cond_ast), do: unquote(then_ast), else: unquote(else_ast))
-    end
   end
 
   defp with_state(ast, state), do: {ast, state}

@@ -1,50 +1,36 @@
 defmodule Dx.Ecto.Scope do
   import Ecto.Query
 
+  @state %{
+    queries: [],
+    cardinality: :many,
+    aggregate_default: nil,
+    aliases: MapSet.new(),
+    alias_types: Map.new(),
+    parent_aliases: MapSet.new(),
+    current_alias: nil,
+    current_alias_type: :unknown,
+    post_load: {:loaded}
+  }
+
   def to_query(_queryable, %{scope: scope}) do
-    state = %{
-      queries: [],
-      cardinality: :many,
-      aggregate_default: nil,
-      aliases: MapSet.new(),
-      alias_types: Map.new(),
-      parent_aliases: MapSet.new(),
-      current_alias: nil,
-      current_alias_type: :unknown,
-      post_load: {:loaded}
-    }
-
-    # dbg(scope.plan)
-
-    %{queries: [query]} = build(scope.plan, state)
-    # dbg(query)
+    %{queries: [query]} = build(scope.plan, @state)
 
     {query, scope}
   end
 
   def resolve(%Dx.Scope{} = scope) do
-    state = %{
-      queries: [],
-      cardinality: :many,
-      aggregate_default: nil,
-      aliases: MapSet.new(),
-      alias_types: Map.new(),
-      parent_aliases: MapSet.new(),
-      current_alias: nil,
-      current_alias_type: :unknown,
-      post_load: {:loaded}
-    }
-
-    case resolve(scope.plan, state) do
+    case resolve(scope.plan, @state) do
       {{:ok, plan}, state} ->
-        {:ok,
-         %{
-           scope
-           | plan: plan,
-             cardinality: state.cardinality,
-             aggregate_default: state.aggregate_default,
-             post_load: state.post_load
-         }}
+        scope = %{
+          scope
+          | plan: plan,
+            cardinality: state.cardinality,
+            aggregate_default: state.aggregate_default,
+            post_load: state.post_load
+        }
+
+        {:ok, scope}
 
       {other, _state} ->
         other
@@ -90,9 +76,7 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp resolve({:field, base, field}, state) do
-    # resolve(base, state)
-    # |> if_ok(&{:field, &1, field})
+  defp resolve({:field_or_assoc, base, field}, state) do
     resolve(base, state)
     |> if_ok(fn base, state ->
       case state.current_alias_type.__schema__(:association, field) do
@@ -155,11 +139,6 @@ defmodule Dx.Ecto.Scope do
     end)
   end
 
-  # defp resolve_condition({:error, %Dx.Defd.Fn{fun: fun}}, state)
-  #      when is_function(fun, 1) do
-  #   resolve_condition({:error, fun}, state)
-  # end
-
   defp resolve_condition({:error, fun}, state) when is_function(fun, 2) do
     state = %{state | post_load: {:filter, state.post_load, fun}}
     {:skip, state}
@@ -190,32 +169,10 @@ defmodule Dx.Ecto.Scope do
     end)
   end
 
-  # defp build({:ok, %Dx.Scope{} = scope}, state) do
-  #   build(scope, state)
-  # end
-
-  # defp build(%Dx.Scope{} = scope, state) do
-  #   {query, new_state} = build(scope.plan, state)
-
-  #   query =
-  #     if new_state.in_subquery? |> dbg() do
-  #       dynamic(subquery(query))
-  #     else
-  #       query
-  #     end
-
-  #   {query, %{new_state | in_subquery?: state.in_subquery?}}
-  # end
-
   defp build({:value, value}, state) do
     dynamic(^value)
     |> with_state(state)
   end
-
-  # defp build({:ref, ref}, state) do
-  #   dynamic([{^ref, x}], x)
-  #   |> with_state(state)
-  # end
 
   defp build({:queryable, module}, state) do
     next_index = Enum.count(state.aliases)
@@ -369,100 +326,11 @@ defmodule Dx.Ecto.Scope do
 
   def run_post_load(results, {:filter, {:loaded}, fun}, eval) do
     Dx.Defd.Result.filter(results, fun, eval)
-    # Dx.Enum.filter(enumerable, %Dx.Defd.Fn{fun: filter})
   end
 
-  def run_post_load(results, post_load, eval) do
+  def run_post_load(results, _post_load, _eval) do
     {:ok, results}
   end
-
-  # def to_query(queryable, %{scope: scope}) do
-  #   state = %{
-  #     aliases: MapSet.new()
-  #   }
-
-  #   {query, _state} =
-  #     {queryable, state}
-  #     |> add_root_alias()
-  #     |> apply_conditions(scope)
-  #     |> apply_cardinality(scope)
-
-  #   query
-  # end
-
-  # def apply_cardinality({queryable, state}, %{cardinality: :all}) do
-  #   {queryable, state}
-  # end
-
-  # def apply_cardinality({queryable, state}, %{cardinality: :count}) do
-  #   select(queryable, count())
-  #   |> with_state(state)
-  # end
-
-  # def apply_conditions({queryable, state}, %{query_conditions: true}) do
-  #   {queryable, state}
-  # end
-
-  # def apply_conditions({queryable, state}, scope) do
-  #   {fragment, state} = to_fragment(scope.query_conditions, state)
-  #   {where(queryable, ^fragment), state}
-  # end
-
-  # defp add_root_alias({queryable, state}) do
-  #   queryable = from(root in queryable, as: :root)
-  #   state = Map.update!(state, :aliases, &MapSet.put(&1, :root))
-
-  #   {queryable, state}
-  # end
-
-  # def to_fragment({:value, value}, state) do
-  #   dynamic(^value)
-  #   |> with_state(state)
-  # end
-
-  # def to_fragment({:ref, ref}, state) do
-  #   dynamic([{^ref, reff}], reff)
-  #   |> with_state(state)
-  # end
-
-  # def to_fragment({:field, {:ref, ref}, field}, state) when is_atom(field) do
-  #   dynamic([{^ref, x}], field(x, ^field))
-  #   |> with_state(state)
-  # end
-
-  # # def to_fragment({:field, base, field}, state) do
-  # #   {base_fragment, state} = to_fragment(base, state)
-  # #   {field_fragment, state} = to_fragment(field, state)
-
-  # #   dynamic(field(^base_fragment, ^field_fragment))
-  # #   |> with_state(state)
-  # # end
-
-  # def to_fragment({:eq, nil, ref}, state), do: to_fragment({:eq, ref, nil}, state)
-
-  # def to_fragment({:eq, ref, nil}, state) do
-  #   {fragment, state} = to_fragment(ref, state)
-
-  #   dynamic(is_nil(^fragment))
-  #   |> with_state(state)
-  # end
-
-  # def to_fragment({:eq, left, right}, state) do
-  #   {left_fragment, state} = to_fragment(left, state)
-  #   {right_fragment, state} = to_fragment(right, state)
-
-  #   dynamic(^left_fragment == ^right_fragment)
-  #   |> with_state(state)
-  # end
-
-  # def to_fragment({:all_of, conditions}, state) do
-  #   {condition_fragments, state} =
-  #     conditions
-  #     |> Enum.map_reduce(state, &to_fragment/2)
-
-  #   Enum.reduce(condition_fragments, &dynamic(^&2 and ^&1))
-  #   |> with_state(state)
-  # end
 
   defp with_state(term, state), do: {term, state}
   defp put_state({term, state}, key, value), do: {term, %{state | key => value}}
@@ -471,9 +339,6 @@ defmodule Dx.Ecto.Scope do
   defp if_ok({{:ok, result}, state}, fun) when is_function(fun, 2), do: fun.(result, state)
   defp if_ok({{:ok, result}, state}, fun), do: {{:ok, fun.(result)}, state}
   defp if_ok({:error, state}, _fun), do: {:error, state}
-
-  # defp if_ok_then({{:ok, result}, state}, fun), do: fun.(result, state)
-  # defp if_ok_then({:error, state}, _fun), do: {:error, state}
 
   defp collect({results, state}) do
     do_collect(results, [])
@@ -528,31 +393,4 @@ defmodule Dx.Ecto.Scope do
 
   defp aliased_join(queryable, left, key, 7),
     do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a7), :a7}
-
-  defp chase_down_queryable([field], schema) do
-    case schema.__schema__(:association, field) do
-      %{queryable: queryable} ->
-        queryable
-
-      %Ecto.Association.HasThrough{through: through} ->
-        chase_down_queryable(through, schema)
-
-      val ->
-        raise """
-        Valid association #{field} not found on schema #{inspect(schema)}
-        Got: #{inspect(val)}
-        """
-    end
-  end
-
-  defp chase_down_queryable([field | fields], schema) do
-    case schema.__schema__(:association, field) do
-      %{queryable: queryable} ->
-        chase_down_queryable(fields, queryable)
-
-      %Ecto.Association.HasThrough{through: [through_field | through_fields]} ->
-        [through_field | through_fields ++ fields]
-        |> chase_down_queryable(schema)
-    end
-  end
 end

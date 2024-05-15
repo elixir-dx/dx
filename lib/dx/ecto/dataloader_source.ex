@@ -294,7 +294,7 @@ defmodule Dx.Ecto.DataloaderSource do
         """
     end
 
-    defp normalize_value(queryable, []) do
+    defp normalize_value(_queryable, []) do
       {:not_primary, nil, nil}
     end
 
