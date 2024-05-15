@@ -37,33 +37,6 @@ defmodule Dx.Defd.ScopeTest do
     ]
   end
 
-  # test "list all", %{list_template: list_template} do
-  #   refute_stderr(fn ->
-  #     defmodule ScopeAllTest do
-  #       import Dx.Defd
-
-  #       defd run() do
-  #         List
-  #       end
-  #     end
-
-  #     assert {:ok, [%List{title: "Tasks"}]} = load(ScopeAllTest.run())
-  #   end)
-  # end
-
-  # test "list template efficiencyx" do
-  #   import Ecto.Query
-
-  #   select = %{
-  #     0 => dynamic([l], l),
-  #     1 => dynamic([l], l.id > 1)
-  #   }
-
-  #   from(l in List, select: ^select)
-  #   |> Repo.all()
-  #   |> dbg()
-  # end
-
   test "list template efficiency", %{list_template: list_template} do
     assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
       refute_stderr(fn ->
@@ -146,8 +119,7 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "list filter map", %{user: user, lists: lists} do
-    assert_queries(["\"title\" = ANY('{\"Tasks\"}')", "FROM \"users\""], fn ->
-      # refute_stderr(fn ->
+    refute_stderr(fn ->
       defmodule FilterMapTest do
         import Dx.Defd
 
@@ -156,9 +128,13 @@ defmodule Dx.Defd.ScopeTest do
         end
       end
 
-      assert [^user] = load!(FilterMapTest.run(List))
-      # assert [^user] = load!(FilterMapTest.run(lists))
-      # end)
+      assert_queries(["\"title\" = ANY('{\"Tasks\"}')", "FROM \"users\""], fn ->
+        assert [^user] = load!(FilterMapTest.run(List))
+      end)
+
+      assert_queries(["FROM \"users\""], fn ->
+        assert [^user] = load!(FilterMapTest.run(lists))
+      end)
     end)
   end
 

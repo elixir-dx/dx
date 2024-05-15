@@ -223,18 +223,8 @@ defmodule Dx.Enum do
 
   def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args}, orig_state) do
     arity = length(orig_args)
-    # dbg(meta)
-    # Ast.p(args, "ORIG Enum.#{fun_name}/#{arity} args")
-    # IO.inspect(args, label: "ORIG Enum.#{fun_name}/#{arity} args")
-    # dbg(args)
-    # {args, state} = Ast.with_state(state, %{in_external?: false}, fn state ->
-    #   Enum.map_reduce(args, state, &Compiler.normalize/2)
-    # end)
+
     {args, state} = Enum.map_reduce(orig_args, orig_state, &Compiler.normalize/2)
-    # IO.inspect(args, label: "NORM Enum.#{fun_name}/#{arity} args")
-    # dbg(args)
-    # Ast.p(args, "NORM Enum.#{fun_name}/#{arity} args")
-    # dbg(state.data_reqs)
 
     cond do
       __scopable?(fun_name, arity) ->
@@ -243,17 +233,10 @@ defmodule Dx.Enum do
         maybe_warn(meta, fun_name, arity, args, state)
 
         args = Enum.map(args, &Ast.unwrap/1)
-
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+        {ast, state} = Compiler.add_loader(ast, state)
 
-        if __returns_scope?(fun_name, arity) do
-          {ast, state} = Compiler.add_loader(ast, state)
-
-          {ast, %{state | scope_safe?: false}}
-        else
-          Compiler.add_loader(ast, state)
-          |> Compiler.mark_scope_safe()
-        end
+        {ast, %{state | scope_safe?: false}}
 
       args_ok?(args, __fn_args(fun_name, arity)) ->
         maybe_warn_static(meta, fun_name, arity, args, state)
@@ -278,24 +261,9 @@ defmodule Dx.Enum do
 
         {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
         args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
-
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
 
-        if __returns_scope?(fun_name, arity) do
-          {ast, state} = Compiler.add_loader(ast, state)
-
-          {ast, %{state | scope_safe?: false}}
-        else
-          Compiler.add_loader(ast, state)
-          |> Compiler.mark_scope_safe()
-        end
-
-      # function_exported?(Enum, fun_name, arity) ->
-      #   Compiler.compile_error!(meta, state, """
-      #   Enum.#{fun_name}/#{arity} is not supported by Dx yet.
-
-      #   Please check the issues in the repo, upvote, comment, or create an issue for it.
-      #   """)
+        Compiler.add_loader(ast, state)
 
       true ->
         maybe_warn_static(meta, fun_name, arity, args, state)
@@ -380,21 +348,29 @@ defmodule Dx.Enum do
     end)
   end
 
-  def __fn_args(_fun_name, arity), do: [arity - 1]
-
-  def __preload_scopes(:count, 1), do: []
-  def __preload_scopes(:filter, 2), do: []
-  def __preload_scopes(:zip, 2), do: [0, 1]
-  def __preload_scopes(:zip_with, 3), do: [0, 1]
-  def __preload_scopes(_fun_name, _arity), do: [0]
-
   def __scopable?(:count, 1), do: true
   def __scopable?(:filter, 2), do: true
   def __scopable?(_fun_name, _arity), do: false
 
-  def __returns_scope?(:count, 1), do: true
-  def __returns_scope?(:filter, 2), do: true
-  def __returns_scope?(_fun_name, _arity), do: false
+  def __preload_scopes(:zip, 2), do: [0, 1]
+  def __preload_scopes(:zip_with, 3), do: [0, 1]
+  def __preload_scopes(_fun_name, _arity), do: [0]
+
+  def __fn_args(:chunk_while, 4), do: [2, 3]
+  def __fn_args(:count_until, 3), do: [1]
+  def __fn_args(:filter_map, 3), do: [1, 2]
+  def __fn_args(:group_by, 3), do: [1, 2]
+  def __fn_args(:max, 3), do: [1, 2]
+  def __fn_args(:max_by, 3), do: [1, 2]
+  def __fn_args(:max_by, 4), do: [1, 2, 3]
+  def __fn_args(:min, 3), do: [1, 2]
+  def __fn_args(:min_by, 3), do: [1, 2]
+  def __fn_args(:min_by, 4), do: [1, 2, 3]
+  def __fn_args(:min_max_by, 3), do: [1, 2]
+  def __fn_args(:min_max_by, 4), do: [1, 2, 3]
+  def __fn_args(:sort_by, 3), do: [1, 2]
+  def __fn_args(_fun_name, 1), do: []
+  def __fn_args(_fun_name, arity), do: [arity - 1]
 
   def all?(enumerable, fun) do
     Result.all?(enumerable, fun)
@@ -515,18 +491,8 @@ defmodule Dx.Enum do
 
   def filter(%Dx.Scope{} = scope, conditions) do
     scope = Dx.Scope.add_conditions(scope, conditions)
-    # |> IO.inspect(label: :ADD)
 
     {:ok, scope}
-
-    # if conditions in scope.query_conditions do
-    #   %{scope | query_conditions: List.delete(scope.query_conditions, conditions)}
-    # else
-    #   Dx.Result.filter_map(
-    #     scope.data,
-    #     &Dx.Engine.evaluate_condition(conditions, &1, %{eval | root_subject: &1})
-    #   )
-    # end
   end
 
   def filter(enumerable, %Dx.Defd.Fn{fun: fun}) do
@@ -998,6 +964,7 @@ defmodule Dx.Enum do
     end)
   end
 
+  # TODO: implement fun version
   def with_index(enumerable, fun_or_offset \\ 0)
 
   def with_index(enumerable, offset) when is_integer(offset) do

@@ -27,12 +27,8 @@ defmodule Dx.Defd.Compiler do
       scope_args: [],
       eval_var: eval_var,
       in_call?: false,
-      in_scope?: false,
       scope_safe?: true,
-      is_loader?: false,
       data_reqs: %{},
-      # scopable_data_reqs: MapSet.new(),
-      scope_safe_vars: MapSet.new(),
       external_vars: %{},
       rewrite_underscore?: false
     }
@@ -187,7 +183,8 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(ast, state) when is_simple(ast) do
-    ast = if state.in_scope?, do: {:ok, {:value, ast}}, else: {:ok, ast}
+    ast = {:ok, ast}
+
     {ast, state}
   end
 
@@ -460,17 +457,6 @@ defmodule Dx.Defd.Compiler do
     arity = length(args)
 
     cond do
-      state.in_scope? and {fun_name, arity} in state.defds ->
-        scope_name = Util.scope_name(fun_name)
-
-        {args, state} = Enum.map_reduce(args, state, &normalize/2)
-
-        {scope_name, meta, args}
-        |> with_state(state)
-
-      state.in_scope? ->
-        {:error, state}
-
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
 
@@ -506,25 +492,6 @@ defmodule Dx.Defd.Compiler do
     end
   end
 
-  def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]}, %{in_scope?: true} = state) do
-    {left, state} = normalize(left, state)
-    {right, state} = normalize(right, state)
-
-    quote line: meta[:line] do
-      case {unquote(left), unquote(right)} do
-        {{:ok, left}, {:ok, right}} ->
-          {:ok, Dx.Scope.eq(left, right)}
-
-        # {{_, left}, {_, right}} -> {:error, {:ok, left == right}}
-        _else ->
-          :error
-      end
-
-      # {:eq, unquote(normalize(left)), unquote(normalize(right))}
-    end
-    |> with_state(state)
-  end
-
   # Mod.fun()
   def normalize({{:., meta, [module, fun_name]}, meta2, args} = fun, state)
       when is_atom(fun_name) and is_list(args) do
@@ -532,21 +499,10 @@ defmodule Dx.Defd.Compiler do
 
     cond do
       # Access.get/2
-      state.in_scope? and meta2[:no_parens] ->
-        {module, state} = normalize(module, state)
-
-        quote line: meta[:line] do
-          {:ok, Dx.Scope.field_or_assoc(unquote(module), unquote(fun_name))}
-        end
-        |> with_state(state)
-
       meta2[:no_parens] ->
         case maybe_capture_loader(fun, state) do
           {:ok, loader_ast, state} ->
             add_loader(loader_ast, state)
-            |> mark_scope_safe()
-
-          # {loader_ast, state}
 
           :error ->
             {module, state} = normalize(module, state)
@@ -570,28 +526,7 @@ defmodule Dx.Defd.Compiler do
         end)
 
       rewriter = @rewriters[module] ->
-        cond do
-          state.in_scope? and Util.is_scopable?(rewriter, fun_name, arity) ->
-            {args, state} = Enum.map_reduce(args, state, &normalize/2)
-
-            {{:., meta, [rewriter, fun_name]}, meta2, args}
-            |> with_state(state)
-
-          state.in_scope? ->
-            {:error, state}
-
-          true ->
-            rewriter.rewrite(fun, state)
-        end
-
-      state.in_scope? and Util.is_defd?(module, fun_name, arity) ->
-        scope_name = Util.scope_name(fun_name)
-
-        {{:., meta, [module, scope_name]}, meta2, args}
-        |> with_state(state)
-
-      state.in_scope? ->
-        {:error, state}
+        rewriter.rewrite(fun, state)
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
@@ -692,30 +627,18 @@ defmodule Dx.Defd.Compiler do
     {ast, new_state}
   end
 
-  def maybe_load_scope(ast, %{in_scope?: true} = state) do
-    {ast, state}
-  end
-
   def maybe_load_scope({:ok, module}, state) when is_atom(module) do
     quote do
       Dx.Scope.lookup(Dx.Scope.all(unquote(module)), unquote(state.eval_var))
     end
     |> add_loader(state)
-    |> mark_scope_safe()
   end
 
   def maybe_load_scope({:ok, var}, state) when is_var(var) do
-    var_id = Ast.var_id(var)
-
-    if var_id in state.scope_safe_vars do
-      {{:ok, var}, state}
-    else
-      quote do
-        Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
-      end
-      |> add_loader(state)
-      |> mark_scope_safe()
+    quote do
+      Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
     end
+    |> add_loader(state)
   end
 
   def maybe_load_scope({:ok, {:%{}, _meta, [{:__struct__, Dx.Scope} | _]} = ast}, state) do
@@ -723,7 +646,6 @@ defmodule Dx.Defd.Compiler do
       Dx.Scope.lookup(unquote(ast), unquote(state.eval_var))
     end
     |> add_loader(state)
-    |> mark_scope_safe()
   end
 
   def maybe_load_scope({:ok, ast}, state) do
@@ -733,11 +655,6 @@ defmodule Dx.Defd.Compiler do
   # for undefined variables
   def maybe_load_scope(other, state) do
     {other, state}
-  end
-
-  def mark_scope_safe({{:ok, var}, state}) do
-    state = Map.update!(state, :scope_safe_vars, &MapSet.put(&1, var))
-    {{:ok, var}, state}
   end
 
   def add_scope_loader_for({:ok, ast}, state) do

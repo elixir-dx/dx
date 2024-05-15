@@ -35,10 +35,6 @@ defmodule Dx.Defd.Kernel do
     arity = length(orig_args)
 
     {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
-    # args = if state.in_external? and state.in_fn?, do: args, else: Enum.map(args, &Ast.unwrap/1)
-
-    # ast = {{:., meta, [:erlang, fun_name]}, meta2, args}
-    # ast = if state.in_external? and state.in_fn?, do: ast, else: {:ok, ast}
 
     ast =
       cond do
@@ -46,15 +42,10 @@ defmodule Dx.Defd.Kernel do
           args = Enum.map(args, &Ast.unwrap_inner/1)
 
           quote do
-            # unquote({{:., meta, [IO, :inspect]}, meta2, [args, [label: fun_name]]})
             unquote({:ok, {{:., meta, [:erlang, fun_name]}, meta2, args}})
           end
 
         function_exported?(:erlang, fun_name, arity) ->
-          dbg(orig_args)
-          dbg(args)
-          args |> List.first() |> Ast.p("1st")
-
           Compiler.compile_error!(meta, state, """
           #{fun_name}/#{arity} is not supported by Dx yet.
 
@@ -62,8 +53,7 @@ defmodule Dx.Defd.Kernel do
           """)
 
         true ->
-          # {:ok, orig}
-          orig
+          {:ok, orig}
       end
 
     {ast, state}
