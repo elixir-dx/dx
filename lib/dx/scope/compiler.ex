@@ -153,5 +153,8 @@ defmodule Dx.Scope.Compiler do
     |> with_state(state)
   end
 
+  ## Helpers
+
+  @compile {:inline, with_state: 2}
   defp with_state(ast, state), do: {ast, state}
 end

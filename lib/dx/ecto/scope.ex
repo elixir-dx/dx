@@ -315,6 +315,9 @@ defmodule Dx.Ecto.Scope do
     {:ok, results}
   end
 
+  ## Helpers
+
+  @compile {:inline, with_state: 2, put_state: 3}
   defp with_state(term, state), do: {term, state}
   defp put_state({term, state}, key, value), do: {term, %{state | key => value}}
 

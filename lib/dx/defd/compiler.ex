@@ -183,14 +183,14 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize(ast, state) when is_simple(ast) do
-    ast = {:ok, ast}
-
-    {ast, state}
+    {:ok, ast}
+    |> with_state(state)
   end
 
   # []
   def normalize([], state) do
-    {{:ok, []}, state}
+    {:ok, []}
+    |> with_state(state)
   end
 
   # [...]
@@ -208,48 +208,46 @@ defmodule Dx.Defd.Compiler do
         {[elem | elems], state}
       end)
 
-    ast =
-      case {Dx.Defd.Result.collect_ok_reverse(ast, []), prepend_meta} do
-        {{:ok, reverse_ast}, nil} ->
-          # unwrapped at compile-time
-          {:ok, Enum.reverse(reverse_ast)}
+    case {Dx.Defd.Result.collect_ok_reverse(ast, []), prepend_meta} do
+      {{:ok, reverse_ast}, nil} ->
+        # unwrapped at compile-time
+        {:ok, Enum.reverse(reverse_ast)}
 
-        {{:ok, [last, prev_last | reverse_elems]}, prepend_meta} ->
-          # unwrapped at compile-time & prepend
-          {:ok, Enum.reverse(reverse_elems, [{:|, prepend_meta, [prev_last, last]}])}
+      {{:ok, [last, prev_last | reverse_elems]}, prepend_meta} ->
+        # unwrapped at compile-time & prepend
+        {:ok, Enum.reverse(reverse_elems, [{:|, prepend_meta, [prev_last, last]}])}
 
-        {:error, nil} ->
-          # unwrap at runtime
-          line =
-            case ast do
-              [{_, meta, _} | _] -> meta[:line] || state.line
-              _other -> state.line
-            end
-
-          quote line: line do
-            Dx.Defd.Result.collect(unquote(ast))
+      {:error, nil} ->
+        # unwrap at runtime
+        line =
+          case ast do
+            [{_, meta, _} | _] -> meta[:line] || state.line
+            _other -> state.line
           end
 
-        {:error, _prepend_meta} ->
-          # unwrap at runtime & prepend
-          line =
-            case ast do
-              [{_, meta, _} | _] -> meta[:line] || state.line
-              _other -> state.line
-            end
+        quote line: line do
+          Dx.Defd.Result.collect(unquote(ast))
+        end
 
-          quote line: line do
-            case Dx.Defd.Result.collect(unquote(ast)) do
-              {:ok, [last, prev_last | reverse_elems]} ->
-                {:ok, Enum.reverse(reverse_elems, [prev_last, last])}
-
-              other ->
-                other
-            end
+      {:error, _prepend_meta} ->
+        # unwrap at runtime & prepend
+        line =
+          case ast do
+            [{_, meta, _} | _] -> meta[:line] || state.line
+            _other -> state.line
           end
-      end
 
-    {ast, state}
+        quote line: line do
+          case Dx.Defd.Result.collect(unquote(ast)) do
+            {:ok, [last, prev_last | reverse_elems]} ->
+              {:ok, Enum.reverse(reverse_elems, [prev_last, last])}
+
+            other ->
+              other
+          end
+        end
+    end
+    |> with_state(state)
   end
 
   # {_, _}
@@ -257,74 +255,69 @@ defmodule Dx.Defd.Compiler do
     ast = [elem_0, elem_1]
     {ast, state} = Enum.map_reduce(ast, state, &normalize/2)
 
-    ast =
-      case Dx.Defd.Result.collect_ok(ast) do
-        {:ok, [elem_0, elem_1]} ->
-          # unwrapped at compile-time
-          {:ok, {elem_0, elem_1}}
+    case Dx.Defd.Result.collect_ok(ast) do
+      {:ok, [elem_0, elem_1]} ->
+        # unwrapped at compile-time
+        {:ok, {elem_0, elem_1}}
 
-        :error ->
-          # unwrap at runtime
-          quote do
-            Dx.Defd.Result.collect(unquote(ast))
-            |> Dx.Defd.Result.transform(fn [e0, e1] -> {e0, e1} end)
-          end
-      end
-
-    {ast, state}
+      :error ->
+        # unwrap at runtime
+        quote do
+          Dx.Defd.Result.collect(unquote(ast))
+          |> Dx.Defd.Result.transform(fn [e0, e1] -> {e0, e1} end)
+        end
+    end
+    |> with_state(state)
   end
 
   # {...}
   def normalize({:{}, meta, elems}, state) do
     {ast, state} = Enum.map_reduce(elems, state, &normalize/2)
 
-    ast =
-      case Dx.Defd.Result.collect_ok(ast) do
-        {:ok, list} ->
-          # unwrapped at compile-time
-          {:ok, {:{}, meta, list}}
+    case Dx.Defd.Result.collect_ok(ast) do
+      {:ok, list} ->
+        # unwrapped at compile-time
+        {:ok, {:{}, meta, list}}
 
-        :error ->
-          # unwrap at runtime
-          line = meta[:line] || state.line
+      :error ->
+        # unwrap at runtime
+        line = meta[:line] || state.line
 
-          quote line: line do
-            Dx.Defd.Result.collect(unquote(ast))
-            |> Dx.Defd.Result.transform(&List.to_tuple/1)
-          end
-      end
-
-    {ast, state}
+        quote line: line do
+          Dx.Defd.Result.collect(unquote(ast))
+          |> Dx.Defd.Result.transform(&List.to_tuple/1)
+        end
+    end
+    |> with_state(state)
   end
 
   # %{...}
   def normalize({:%{}, meta, pairs}, state) do
     {flat_ast, state} = pairs |> Ast.flatten_kv_list() |> Enum.map_reduce(state, &normalize/2)
 
-    ast =
-      case Dx.Defd.Result.collect_ok(flat_ast) do
-        {:ok, flat_ast} ->
-          # unwrapped at compile-time
-          {:ok, {:%{}, meta, Ast.unflatten_kv_list(flat_ast)}}
+    case Dx.Defd.Result.collect_ok(flat_ast) do
+      {:ok, flat_ast} ->
+        # unwrapped at compile-time
+        {:ok, {:%{}, meta, Ast.unflatten_kv_list(flat_ast)}}
 
-        :error ->
-          # unwrap at runtime
-          line =
-            case flat_ast do
-              [{_, meta, _} | _] -> meta[:line] || state.line
-              _other -> state.line
-            end
-
-          quote line: line do
-            Dx.Defd.Result.collect_map_pairs(unquote(flat_ast))
+      :error ->
+        # unwrap at runtime
+        line =
+          case flat_ast do
+            [{_, meta, _} | _] -> meta[:line] || state.line
+            _other -> state.line
           end
-      end
 
-    {ast, state}
+        quote line: line do
+          Dx.Defd.Result.collect_map_pairs(unquote(flat_ast))
+        end
+    end
+    |> with_state(state)
   end
 
   def normalize(var, state) when is_var(var) do
-    {{:ok, var}, state}
+    {:ok, var}
+    |> with_state(state)
   end
 
   def normalize({:call, _meta, [ast]}, state) do
@@ -364,43 +357,40 @@ defmodule Dx.Defd.Compiler do
     args = Macro.generate_arguments(arity, __MODULE__)
     line = meta[:line] || state.line
 
-    ast =
-      if {fun_name, arity} in state.defds do
-        defd_name = Util.defd_name(fun_name)
-        scope_name = Util.scope_name(fun_name)
+    if {fun_name, arity} in state.defds do
+      defd_name = Util.defd_name(fun_name)
+      scope_name = Util.scope_name(fun_name)
 
-        {:ok,
-         {:%, [line: line],
-          [
-            {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-            {:%{}, [line: line],
-             [
-               ok?: false,
-               fun:
-                 {:fn, meta, [{:->, meta, [args, {defd_name, meta, args ++ [state.eval_var]}]}]},
-               scope: {:fn, meta, [{:->, meta, [args, {scope_name, meta, args}]}]}
-             ]}
-          ]}}
-      else
-        if not state.in_call? do
-          warn(meta, state, """
-          #{fun_name}/#{arity} is not defined with defd.
+      {:ok,
+       {:%, [line: line],
+        [
+          {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+          {:%{}, [line: line],
+           [
+             ok?: false,
+             fun: {:fn, meta, [{:->, meta, [args, {defd_name, meta, args ++ [state.eval_var]}]}]},
+             scope: {:fn, meta, [{:->, meta, [args, {scope_name, meta, args}]}]}
+           ]}
+        ]}}
+    else
+      if not state.in_call? do
+        warn(meta, state, """
+        #{fun_name}/#{arity} is not defined with defd.
 
-          Either define it using defd (preferred) or wrap the call in the call/1 function:
+        Either define it using defd (preferred) or wrap the call in the call/1 function:
 
-              call(...(&#{fun_name}/#{arity}))
-          """)
-        end
-
-        quote line: line do
-          {:ok,
-           fn unquote_splicing(args) ->
-             {:ok, unquote(fun_name)(unquote_splicing(args))}
-           end}
-        end
+            call(...(&#{fun_name}/#{arity}))
+        """)
       end
 
-    {ast, state}
+      quote line: line do
+        {:ok,
+         fn unquote_splicing(args) ->
+           {:ok, unquote(fun_name)(unquote_splicing(args))}
+         end}
+      end
+    end
+    |> with_state(state)
   end
 
   # &Mod.fun/3
@@ -418,15 +408,13 @@ defmodule Dx.Defd.Compiler do
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
 
-        ast =
-          quote line: line do
-            {:ok,
-             fn unquote_splicing(args) ->
-               unquote(module).unquote(defd_name)(unquote_splicing(args), unquote(state.eval_var))
-             end}
-          end
-
-        {ast, state}
+        quote line: line do
+          {:ok,
+           fn unquote_splicing(args) ->
+             unquote(module).unquote(defd_name)(unquote_splicing(args), unquote(state.eval_var))
+           end}
+        end
+        |> with_state(state)
 
       true ->
         if not state.in_call? do
@@ -439,15 +427,13 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        ast =
-          quote line: line do
-            {:ok,
-             fn unquote_splicing(args) ->
-               {:ok, unquote(module).unquote(fun_name)(unquote_splicing(args))}
-             end}
-          end
-
-        {ast, state}
+        quote line: line do
+          {:ok,
+           fn unquote_splicing(args) ->
+             {:ok, unquote(module).unquote(fun_name)(unquote_splicing(args))}
+           end}
+        end
+        |> with_state(state)
     end
   end
 
@@ -460,16 +446,10 @@ defmodule Dx.Defd.Compiler do
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
 
-        {loader, state} =
-          normalize_call_args(args, state, fn args ->
-            {defd_name, meta, args ++ [state.eval_var]}
-          end)
-
-        data_reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
-        var = data_reqs[loader]
-        ast = {:ok, var}
-
-        {ast, %{state | data_reqs: data_reqs}}
+        normalize_call_args(args, state, fn args ->
+          {defd_name, meta, args ++ [state.eval_var]}
+        end)
+        |> add_loader()
 
       Util.has_function?(state.module, fun_name, arity) ->
         if not state.in_call? do
@@ -507,9 +487,8 @@ defmodule Dx.Defd.Compiler do
           :error ->
             {module, state} = normalize(module, state)
 
-            fun = Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
-
-            {fun, state}
+            Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
+            |> with_state(state)
         end
 
       # function call on dynamically computed module
@@ -599,21 +578,19 @@ defmodule Dx.Defd.Compiler do
 
     line = meta[:line] || state.line
 
-    ast =
-      {:ok,
-       {:%, [line: line],
-        [
-          {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-          {:%{}, [line: line],
-           [
-             ok?: ok?,
-             fun: {:fn, meta, [{:->, meta2, [args, body]}]},
-             ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
-             scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
-           ]}
-        ]}}
-
-    {ast, new_state}
+    {:ok,
+     {:%, [line: line],
+      [
+        {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+        {:%{}, [line: line],
+         [
+           ok?: ok?,
+           fun: {:fn, meta, [{:->, meta2, [args, body]}]},
+           ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
+           scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
+         ]}
+      ]}}
+    |> with_state(new_state)
   end
 
   def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, false, state) do
@@ -622,9 +599,8 @@ defmodule Dx.Defd.Compiler do
         normalize(body, state)
       end)
 
-    ast = {:fn, meta, [{:->, meta2, [args, body]}]}
-
-    {ast, new_state}
+    {:fn, meta, [{:->, meta2, [args, body]}]}
+    |> with_state(new_state)
   end
 
   def maybe_load_scope({:ok, module}, state) when is_atom(module) do
@@ -668,15 +644,14 @@ defmodule Dx.Defd.Compiler do
 
   def add_loader(loader, state) do
     if var = Map.get(state.data_reqs, loader) do
-      ast = {:ok, var}
-
-      {ast, state}
+      {:ok, var}
+      |> with_state(state)
     else
       var = Macro.var(:"dx#{state.var_index}", __MODULE__)
       data_reqs = Map.put(state.data_reqs, loader, var)
-      ast = {:ok, var}
 
-      {ast, %{state | data_reqs: data_reqs, var_index: state.var_index + 1}}
+      {:ok, var}
+      |> with_state(%{state | data_reqs: data_reqs, var_index: state.var_index + 1})
     end
   end
 
@@ -703,6 +678,7 @@ defmodule Dx.Defd.Compiler do
       :error
     else
       {ast, state} = maybe_load_scope({:ok, var}, state)
+
       {:ok, ast, state}
     end
   end
@@ -717,6 +693,7 @@ defmodule Dx.Defd.Compiler do
       # TODO: add all other syntaxes that can bind variables
       {:fn, _meta, [{:->, _meta2, [args, _body]}]} = fun, state ->
         state = Map.update!(state, :external_vars, &Ast.collect_vars(args, &1))
+
         {fun, state}
 
       {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
@@ -728,7 +705,7 @@ defmodule Dx.Defd.Compiler do
               subject = root_var_from_access_chain(fun)
               data_req = data_req_from_access_chain(fun, %{})
 
-              loader_ast =
+              {{:ok, var}, state} =
                 quote do
                   Dx.Defd.Util.fetch(
                     unquote(subject),
@@ -736,16 +713,10 @@ defmodule Dx.Defd.Compiler do
                     unquote(state.eval_var)
                   )
                 end
+                |> add_loader(state)
 
-              state =
-                Map.update!(state, :data_reqs, fn data_reqs ->
-                  Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
-                end)
-
-              var = state.data_reqs[loader_ast]
-              access_ast = replace_root_var(fun, var)
-
-              {access_ast, state}
+              replace_root_var(fun, var)
+              |> with_state(state)
 
             :error ->
               {fun, state}
@@ -791,8 +762,8 @@ defmodule Dx.Defd.Compiler do
           state = Map.put(state, :external_vars, Ast.collect_vars(args, %{}))
           {body, new_state} = normalize_external_fn(body, state)
 
-          ast = {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
-          {ast, new_state}
+          {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
+          |> with_state(new_state)
 
         {:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, [], []}, _arity]}]} = fun, state ->
           {{:ok, fun}, state}
@@ -813,13 +784,15 @@ defmodule Dx.Defd.Compiler do
   end
 
   defp do_normalize_call_args(args, state, fun) do
-    call_args = args |> Enum.map(&Ast.unwrap/1) |> fun.()
-
-    {call_args, state}
+    args
+    |> Enum.map(&Ast.unwrap/1)
+    |> fun.()
+    |> with_state(state)
   end
 
   ## Helpers
 
+  @compile {:inline, with_state: 2}
   defp with_state(ast, state), do: {ast, state}
 
   def compile_error!(meta, state, description) do
