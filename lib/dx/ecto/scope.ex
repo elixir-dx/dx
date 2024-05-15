@@ -5,11 +5,8 @@ defmodule Dx.Ecto.Scope do
     queries: [],
     cardinality: :many,
     aggregate_default: nil,
-    aliases: MapSet.new(),
     alias_types: Map.new(),
-    parent_aliases: MapSet.new(),
     current_alias: nil,
-    current_alias_type: :unknown,
     post_load: {:loaded}
   }
 
@@ -61,15 +58,14 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp resolve({:queryable, module}, state) do
-    next_index = Enum.count(state.aliases)
+    next_index = Enum.count(state.alias_types)
     new_alias = String.to_atom("a#{next_index}")
 
     state = %{
       state
       | cardinality: :many,
         current_alias: new_alias,
-        current_alias_type: module,
-        aliases: MapSet.put(state.aliases, new_alias)
+        alias_types: Map.put(state.alias_types, new_alias, module)
     }
 
     {:ok, {:queryable, module}}
@@ -79,36 +75,34 @@ defmodule Dx.Ecto.Scope do
   defp resolve({:field_or_assoc, base, field}, state) do
     resolve(base, state)
     |> if_ok(fn base, state ->
-      case state.current_alias_type.__schema__(:association, field) do
+      current_alias_type = state.alias_types[state.current_alias]
+
+      case current_alias_type.__schema__(:association, field) do
         nil ->
           {:ok, {:field, base, field}}
           |> with_state(state)
 
         %{cardinality: :one, queryable: module} ->
-          state = %{state | parent_aliases: MapSet.union(state.parent_aliases, state.aliases)}
-          next_index = Enum.count(state.aliases)
+          next_index = Enum.count(state.alias_types)
           new_alias = String.to_atom("a#{next_index}")
 
           state = %{
             state
             | current_alias: new_alias,
-              current_alias_type: module,
-              aliases: MapSet.put(state.aliases, new_alias)
+              alias_types: Map.put(state.alias_types, new_alias, module)
           }
 
           {:ok, {:assoc, base, field}}
           |> with_state(state)
 
         %{cardinality: :many, queryable: module} ->
-          state = %{state | parent_aliases: MapSet.union(state.parent_aliases, state.aliases)}
-          next_index = Enum.count(state.aliases)
+          next_index = Enum.count(state.alias_types)
           new_alias = String.to_atom("a#{next_index}")
 
           state = %{
             state
             | current_alias: new_alias,
-              current_alias_type: module,
-              aliases: MapSet.put(state.aliases, new_alias)
+              alias_types: Map.put(state.alias_types, new_alias, module)
           }
 
           {:ok, {:assoc, base, field}}
@@ -175,15 +169,13 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp build({:queryable, module}, state) do
-    next_index = Enum.count(state.aliases)
+    next_index = Enum.count(state.alias_types)
     {query, new_alias} = aliased_from(module, next_index)
 
     %{
       state
       | queries: [query | state.queries],
         current_alias: new_alias,
-        current_alias_type: module,
-        aliases: MapSet.put(state.aliases, new_alias),
         alias_types: Map.put(state.alias_types, new_alias, module)
     }
   end
@@ -198,7 +190,7 @@ defmodule Dx.Ecto.Scope do
 
     case type.__schema__(:association, field) do
       %{cardinality: :one, queryable: module} ->
-        next_index = Enum.count(state.aliases)
+        next_index = Enum.count(state.alias_types)
         [query | queries] = state.queries
         {query, new_alias} = aliased_join(query, ref, field, next_index)
 
@@ -206,14 +198,11 @@ defmodule Dx.Ecto.Scope do
           state
           | queries: [query | queries],
             current_alias: new_alias,
-            current_alias_type: module,
-            aliases: MapSet.put(state.aliases, new_alias),
             alias_types: Map.put(state.alias_types, new_alias, module)
         }
 
       %{cardinality: :many, queryable: module, related_key: related_key, owner_key: owner_key} ->
-        state = %{state | parent_aliases: MapSet.union(state.parent_aliases, state.aliases)}
-        next_index = Enum.count(state.aliases)
+        next_index = Enum.count(state.alias_types)
         {query, new_alias} = aliased_from(module, next_index)
 
         query =
@@ -226,8 +215,6 @@ defmodule Dx.Ecto.Scope do
           state
           | queries: [query | state.queries],
             current_alias: new_alias,
-            current_alias_type: module,
-            aliases: MapSet.put(state.aliases, new_alias),
             alias_types: Map.put(state.alias_types, new_alias, module)
         }
     end
@@ -236,14 +223,15 @@ defmodule Dx.Ecto.Scope do
   defp build({:field, base, field}, state) do
     state = %{} = build(base, state)
     current_alias = state.current_alias
+    current_alias_type = state.alias_types[current_alias]
 
-    case state.current_alias_type.__schema__(:association, field) do
+    case current_alias_type.__schema__(:association, field) do
       nil ->
         dynamic([{^current_alias, x}], field(x, ^field))
         |> with_state(state)
 
       %{cardinality: :one, queryable: module} ->
-        next_index = Enum.count(state.aliases)
+        next_index = Enum.count(state.alias_types)
         [query | queries] = state.queries
         {query, new_alias} = aliased_join(query, current_alias, field, next_index)
 
@@ -251,14 +239,11 @@ defmodule Dx.Ecto.Scope do
           state
           | queries: [query | queries],
             current_alias: new_alias,
-            current_alias_type: module,
-            aliases: MapSet.put(state.aliases, new_alias),
             alias_types: Map.put(state.alias_types, new_alias, module)
         }
 
       %{cardinality: :many, queryable: module, related_key: related_key, owner_key: owner_key} ->
-        state = %{state | parent_aliases: MapSet.union(state.parent_aliases, state.aliases)}
-        next_index = Enum.count(state.aliases)
+        next_index = Enum.count(state.alias_types)
         {query, new_alias} = aliased_from(module, next_index)
 
         query =
@@ -271,8 +256,6 @@ defmodule Dx.Ecto.Scope do
           state
           | queries: [query | state.queries],
             current_alias: new_alias,
-            current_alias_type: module,
-            aliases: MapSet.put(state.aliases, new_alias),
             alias_types: Map.put(state.alias_types, new_alias, module)
         }
     end
