@@ -221,7 +221,7 @@ defmodule Dx.Enum do
     {ast, state}
   end
 
-  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args} = orig, orig_state) do
+  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args}, orig_state) do
     arity = length(orig_args)
     # dbg(meta)
     # Ast.p(args, "ORIG Enum.#{fun_name}/#{arity} args")
@@ -256,27 +256,19 @@ defmodule Dx.Enum do
         end
 
       args_ok?(args, __fn_args(fun_name, arity)) ->
-        IO.inspect(args, label: "ALL OK: #{fun_name}/#{arity}")
         maybe_warn_static(meta, fun_name, arity, args, state)
 
         {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
         args = Enum.map(args, &Ast.unwrap_inner/1)
-        # args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
 
         ast =
           quote do
-            # unquote({{:., meta, [IO, :inspect]}, meta2, [args, [label: fun_name]]})
             unquote({:ok, {{:., meta, [Enum, fun_name]}, meta2, args}})
           end
 
         {ast, state}
 
-      # |> Ast.p("after2")
-
       function_exported?(__MODULE__, fun_name, arity) ->
-        IO.inspect(args, label: "NOT OK: #{fun_name}/#{arity}")
-        IO.inspect(orig_args, label: "ORIGINAL: #{fun_name}/#{arity}")
-        # IO.inspect(args, label: fun_name)
         maybe_warn_static(meta, fun_name, arity, args, state)
 
         {args, state} =
@@ -297,8 +289,6 @@ defmodule Dx.Enum do
           Compiler.add_loader(ast, state)
           |> Compiler.mark_scope_safe()
         end
-
-      # |> Ast.p("after1")
 
       # function_exported?(Enum, fun_name, arity) ->
       #   Compiler.compile_error!(meta, state, """
@@ -324,8 +314,8 @@ defmodule Dx.Enum do
 
   defp maybe_warn(meta, fun_name, arity, args, state) do
     cond do
-      fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2) |> dbg(), 2) |> dbg() and
-          not Ast.ok?(Enum.at(args, 2)) |> dbg() ->
+      fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2), 2) and
+          not Ast.ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @chunk_while_chunk_fun_warning)
 
       fun_name == :max and Ast.is_function(Enum.at(args, 1), 2) and

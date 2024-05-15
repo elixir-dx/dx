@@ -215,7 +215,9 @@ defmodule Dx.Defd.ScopeTest do
 
   test "filter count empty table" do
     assert_queries(
-      ["SELECT count(*), l0.\"comment\" FROM \"list_calendar_overrides\" AS l0 GROUP BY l0.\"comment\""],
+      [
+        "SELECT count(*), l0.\"comment\" FROM \"list_calendar_overrides\" AS l0 GROUP BY l0.\"comment\""
+      ],
       fn ->
         refute_stderr(fn ->
           defmodule FilterCountZeroTest do

@@ -107,32 +107,6 @@ defmodule Dx.Defd.Ast do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
   end
 
-  # defp ensure_loaded({:ok, var}, [{loader, var}], state) do
-  #   maybe_scopable(loader, state)
-  # end
-
-  # defp ensure_loaded(ast, [{loader, var}], state) do
-  #   quote do
-  #     case unquote(maybe_scopable(loader, state)) do
-  #       {:ok, unquote(var)} -> unquote(ast)
-  #       other -> other
-  #     end
-  #   end
-  # end
-
-  # defp ensure_loaded(ast, data_reqs, state) do
-  #   {loaders, vars} = Enum.unzip(data_reqs)
-
-  #   loaders = Enum.map(loaders, &maybe_scopable(&1, state))
-
-  #   quote do
-  #     case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
-  #       {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
-  #       other -> other
-  #     end
-  #   end
-  # end
-
   def cleanup({:__block__, meta, _lines} = block) do
     case cleanup_line(block) do
       [ast] -> ast
@@ -203,12 +177,6 @@ defmodule Dx.Defd.Ast do
         {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
         other -> other
       end
-    end
-  end
-
-  defp scopable(loader, state) do
-    quote do
-      Dx.Scope.maybe_lookup(unquote(loader), unquote(state.eval_var))
     end
   end
 
