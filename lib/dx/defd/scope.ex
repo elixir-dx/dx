@@ -102,23 +102,9 @@ defmodule Dx.Scope do
   end
 
   def to_data_req(%__MODULE__{} = scope) do
-    {candidates, scope} = extract_main_condition_candidates(scope)
-    nested_map = Dx.Util.Map.map_values(candidates, &MapSet.new([&1]))
+    {combination, scope} = extract_main_condition_candidates(scope)
 
-    %{
-      scope => %{
-        values: nested_map,
-        combinations: MapSet.new([candidates])
-      }
-    }
-  end
-
-  def detect_main_condition(scope, values) do
-    Enum.max_by(
-      scope.main_condition_candidates,
-      fn field -> MapSet.size(values[field]) end,
-      fn -> nil end
-    )
+    %{scope => MapSet.new([combination])}
   end
 
   def extract_main_condition_candidates(%__MODULE__{} = scope) do
