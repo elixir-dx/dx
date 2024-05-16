@@ -3,6 +3,7 @@ defmodule Dx.Loaders.Dataloader do
   Uses `Dataloader` to load missing data incrementally.
   """
 
+  alias Dx.Ecto.Query.Batches
   alias Dx.Result
 
   # Query = Wrapper around Loader ✅
@@ -183,12 +184,35 @@ defmodule Dx.Loaders.Dataloader do
   end
 
   def load({cache, meta}, data_reqs) do
+    batches =
+      data_reqs
+      |> Enum.reduce(Batches.new(), fn
+        {scope, combinations}, batches ->
+          Enum.reduce(combinations, batches, fn combination, batches ->
+            Batches.add_filters(batches, scope, combination)
+          end)
+
+        _other, batches ->
+          batches
+      end)
+      |> Batches.get_batches()
+
     meta =
-      Enum.reduce(data_reqs, meta, fn
-        {scope, scope_meta}, meta ->
-          main_condition_field = Dx.Scope.detect_main_condition(scope, scope_meta.values)
-          new_scope_meta = Map.new(scope_meta.combinations, &{&1, main_condition_field})
-          Dx.Util.deep_merge(%{scope => new_scope_meta}, meta)
+      Enum.reduce(batches, meta, fn
+        {scope, scope_batches}, meta ->
+          Enum.reduce(scope_batches, meta, fn
+            {}, meta ->
+              Batches.map_put_in(meta, [scope, %{}], nil)
+
+            {batch_field, batch_values, other_filters}, meta ->
+              new_entries =
+                Map.new(batch_values, fn value ->
+                  combination = Map.new([{batch_field, value} | other_filters])
+                  {combination, batch_field}
+                end)
+
+              Map.update(meta, scope, new_entries, &Map.merge(&1, new_entries))
+          end)
 
         _other, meta ->
           meta
@@ -196,8 +220,8 @@ defmodule Dx.Loaders.Dataloader do
 
     cache =
       Enum.reduce(data_reqs, cache, fn
-        {scope, scope_meta}, cache ->
-          Enum.reduce(scope_meta.combinations, cache, fn combination, cache ->
+        {scope, combinations}, cache ->
+          Enum.reduce(combinations, cache, fn combination, cache ->
             apply(Dataloader, :load, [
               cache | args_for(scope, combination, meta[scope][combination])
             ])
