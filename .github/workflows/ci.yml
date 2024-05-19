@@ -1,5 +1,8 @@
 on: push
 
+permissions:
+  contents: write
+
 jobs:
   checks:
     name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
