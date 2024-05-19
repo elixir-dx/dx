@@ -65,3 +65,23 @@ jobs:
 
     - name: Code format
       run: mix format --check-formatted --dry-run
+
+  docs:
+    name: Publish docs
+    needs: [checks]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/docs/')
+    uses: ./.github/workflows/publish-docs.yml
+    secrets: inherit
+    with:
+      elixir_version: 1.13.2
+      otp_version: 24.1.7
+
+  release:
+    name: Publish release
+    needs: [checks]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')
+    uses: ./.github/workflows/publish-release.yml
+    secrets: inherit
+    with:
+      elixir_version: 1.13.2
+      otp_version: 24.1.7
