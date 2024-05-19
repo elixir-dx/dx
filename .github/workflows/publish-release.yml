@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-tags: true
+        fetch-depth: 0
 
     - name: Setup Erlang & Elixir
       uses: erlef/setup-beam@v1
