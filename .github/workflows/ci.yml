@@ -82,7 +82,7 @@ jobs:
   release:
     name: Release
     needs: [checks]
-    # if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')
     uses: ./.github/workflows/publish-release.yml
     secrets: inherit
     with:
