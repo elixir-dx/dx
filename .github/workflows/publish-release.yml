@@ -13,6 +13,7 @@ on:
 
 jobs:
   publish-release:
+    name: Publish
     runs-on: ubuntu-20.04
 
     steps:

@@ -70,7 +70,7 @@ jobs:
       run: mix format --check-formatted --dry-run
 
   docs:
-    name: Publish docs
+    name: Docs
     needs: [checks]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/docs/')
     uses: ./.github/workflows/publish-docs.yml
@@ -80,7 +80,7 @@ jobs:
       otp_version: 24.1.7
 
   release:
-    name: Publish release
+    name: Release
     needs: [checks]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')
     uses: ./.github/workflows/publish-release.yml
