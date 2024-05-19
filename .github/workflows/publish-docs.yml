@@ -1,0 +1,49 @@
+on:
+  workflow_call:
+    inputs:
+      elixir_version:
+        required: true
+        type: string
+      otp_version:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-docs:
+    name: Publish
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Erlang & Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ inputs.elixir_version }}
+        otp-version: ${{ inputs.otp_version }}
+
+    # Caching
+    - name: Dependencies cache
+      uses: actions/cache/restore@v4
+      with:
+        path: deps
+        key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+
+    - name: Build cache
+      uses: actions/cache/restore@v4
+      with:
+        path: _build
+        key: ${{ runner.os }}-build-dev-${{inputs.elixir_version}}-${{inputs.otp_version}}-${{ hashFiles('mix.lock') }}
+
+    # Run
+    - name: Generate docs
+      run: mix docs
+
+    - name: Push docs
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages
+        folder: doc

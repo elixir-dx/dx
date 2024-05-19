@@ -2,12 +2,11 @@ defmodule Dx.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elixir-dx/dx"
-  @version "0.3.1"
 
   def project do
     [
       app: :dx,
-      version: @version,
+      version: version(),
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -21,7 +20,7 @@ defmodule Dx.MixProject do
   defp package do
     [
       description: "Inference engine written in Elixir",
-      files: ["lib", "mix.exs", "README*"],
+      files: ["lib", "mix.exs", "README*", "VERSION"],
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
       links: %{
@@ -74,7 +73,7 @@ defmodule Dx.MixProject do
       ],
       main: "Dx",
       source_url: @source_url,
-      source_ref: "v#{@version}"
+      source_ref: "v#{version()}"
     ]
   end
 
@@ -84,5 +83,11 @@ defmodule Dx.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.reset", "test"]
     ]
+  end
+
+  defp version do
+    "VERSION"
+    |> File.read!()
+    |> String.trim()
   end
 end
