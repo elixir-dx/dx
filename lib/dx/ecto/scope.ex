@@ -94,7 +94,7 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp resolve({:count, base}, refs) do
-    {base, ref, refs} = resolve(base, refs)
+    {base, _ref, refs} = resolve(base, refs)
     {{:count, base}, nil, refs}
   end
 
@@ -295,66 +295,15 @@ defmodule Dx.Ecto.Scope do
   def run_post_load(results, {:filter, fun, {:ref, :a0}, rest}, eval) do
     results
     |> run_post_load(rest, eval)
-    |> Dx.Defd.Result.then(&Dx.Defd.Result.filter(&1, rest, eval))
+    |> Dx.Defd.Result.then(&Dx.Defd.Result.filter(&1, fun, eval))
   end
 
-  def run_post_load(results, {:loaded}, eval) do
+  def run_post_load(results, {:loaded}, _eval) do
     results
   end
 
   ## Helpers
 
-  @compile {:inline, with_state: 2, put_state: 3}
+  @compile {:inline, with_state: 2}
   defp with_state(term, state), do: {term, state}
-  defp put_state({term, state}, key, value), do: {term, %{state | key => value}}
-
-  defp if_ok({:skip, state}, _fun), do: {:skip, state}
-  defp if_ok({{:ok, result}, state}, fun) when is_function(fun, 2), do: fun.(result, state)
-  defp if_ok({{:ok, result}, state}, fun), do: {{:ok, fun.(result)}, state}
-  defp if_ok({:error, state}, _fun), do: {:error, state}
-
-  defp collect({results, state}) do
-    do_collect(results, [])
-    |> with_state(state)
-  end
-
-  defp do_collect([], acc) do
-    {:ok, :lists.reverse(acc)}
-  end
-
-  defp do_collect([:skip | rest], acc) do
-    do_collect(rest, acc)
-  end
-
-  defp do_collect([:error | _rest], _acc) do
-    :error
-  end
-
-  defp do_collect([{:ok, result} | rest], acc) do
-    do_collect(rest, [result | acc])
-  end
-
-  defp aliased_join(queryable, left, key, 0),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a0), :a0}
-
-  defp aliased_join(queryable, left, key, 1),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a1), :a1}
-
-  defp aliased_join(queryable, left, key, 2),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a2), :a2}
-
-  defp aliased_join(queryable, left, key, 3),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a3), :a3}
-
-  defp aliased_join(queryable, left, key, 4),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a4), :a4}
-
-  defp aliased_join(queryable, left, key, 5),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a5), :a5}
-
-  defp aliased_join(queryable, left, key, 6),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a6), :a6}
-
-  defp aliased_join(queryable, left, key, 7),
-    do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a7), :a7}
 end
