@@ -37,35 +37,19 @@ defmodule Dx.Defd.ScopeTest do
     ]
   end
 
-  test "list template efficiency", %{list_template: list_template} do
-    assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
-      refute_stderr(fn ->
-        defmodule ScopeTest1 do
-          import Dx.Defd
+  test "load all", %{lists: lists} do
+    assert_queries(["FROM \"lists\""], fn ->
+      # refute_stderr(fn ->
+      defmodule ScopeAllTest do
+        import Dx.Defd
 
-          defd run() do
-            Enum.filter(List, &(&1.title == "Tasks"))
-          end
+        defd run() do
+          Dx.Scope.all(List)
         end
+      end
 
-        assert [%List{title: "Tasks"}] = load!(ScopeTest1.run())
-      end)
-    end)
-  end
-
-  test "filter twice", %{list: %{id: list_id}} do
-    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
-      refute_stderr(fn ->
-        defmodule ScopeTest2 do
-          import Dx.Defd
-
-          defd run() do
-            Enum.filter(Enum.filter(List, &(&1.title == "Tasks")), &(&1.hourly_points == 1.0))
-          end
-        end
-
-        assert [%List{title: "Tasks"}] = load!(ScopeTest2.run())
-      end)
+      assert load!(ScopeAllTest.run()) == lists
+      # end)
     end)
   end
 
@@ -98,6 +82,22 @@ defmodule Dx.Defd.ScopeTest do
 
         assert [^list] = load!(FilterTest.run(List))
         assert [^list] = load!(FilterTest.run(lists))
+      end)
+    end)
+  end
+
+  test "filter twice", %{list: %{id: list_id}} do
+    assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
+      refute_stderr(fn ->
+        defmodule ScopeTest2 do
+          import Dx.Defd
+
+          defd run() do
+            Enum.filter(Enum.filter(List, &(&1.title == "Tasks")), &(&1.hourly_points == 1.0))
+          end
+        end
+
+        assert [%List{title: "Tasks"}] = load!(ScopeTest2.run())
       end)
     end)
   end
@@ -469,6 +469,123 @@ defmodule Dx.Defd.ScopeTest do
         end
 
         assert [^list] = load!(FilterPartial2PrivTest.run())
+      end)
+    end)
+  end
+
+  test "filter partial condition 3 (indirect)", %{list: list} do
+    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
+      defmodule FilterPartial3IndirectTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &(title(&1) == "Tasks")),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        defd title(arg) do
+          arg.title
+        end
+      end
+
+      assert [^list] = load!(FilterPartial3IndirectTest.run())
+    end)
+  end
+
+  test "filter partial condition 3 (indirect 2)", %{list: list} do
+    assert_queries(["\"hourly_points\" = ANY('{1.0}')"], fn ->
+      assert_stderr("pass/1 is not defined with defd", fn ->
+        defmodule FilterPartial3Indirect2Test do
+          import Dx.Defd
+
+          defd run() do
+            Enum.filter(
+              Enum.filter(List, &(title(&1) == "Tasks")),
+              &(&1.hourly_points == 1.0)
+            )
+          end
+
+          defd title(arg) do
+            pass(arg.title)
+          end
+
+          defp pass(arg) do
+            arg
+          end
+        end
+
+        assert [^list] = load!(FilterPartial3Indirect2Test.run())
+      end)
+    end)
+  end
+
+  test "filter partial condition 4 (indirect assoc)", %{list: list} do
+    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"email\" = 'bob@carz.com'"]], fn ->
+      defmodule FilterPartial4IndirectTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &(user_email(&1) == "bob@carz.com")),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        defd user_email(list) do
+          list.created_by.email
+        end
+      end
+
+      assert [] = load!(FilterPartial4IndirectTest.run())
+    end)
+  end
+
+  test "filter partial condition 5 (indirect assoc)", %{list: list} do
+    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"name\" = 'Admin'"]], fn ->
+      defmodule FilterPartial5IndirectTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &(user_role(&1) == "Admin")),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        defd user_role(list) do
+          list.created_by.role.name
+        end
+      end
+
+      assert [] = load!(FilterPartial5IndirectTest.run())
+    end)
+  end
+
+  test "filter based on static condition", %{list: list} do
+    refute_stderr(fn ->
+      defmodule FilterStaticCondTest do
+        import Dx.Defd
+
+        defd run(field) do
+          Enum.filter(List, fn list ->
+            case field do
+              :title -> list.title == "Tasks"
+              :points -> list.hourly_points == 0.2
+            end
+          end)
+        end
+      end
+
+      # assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
+      assert_queries(["FROM \"lists\""], fn ->
+        load!(FilterStaticCondTest.run(:title))
+      end)
+
+      # assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
+      assert_queries(["FROM \"lists\""], fn ->
+        load!(FilterStaticCondTest.run(:points))
       end)
     end)
   end

@@ -19,66 +19,16 @@ defmodule Dx.Scope.Compiler do
   end
 
   def normalize(var, state) when is_var(var) do
-    {{:ok, var}, state}
+    {var, state}
   end
 
   def normalize(value, state) when is_simple(value) do
-    {:ok, {:value, value}}
+    {:value, value}
     |> with_state(state)
   end
 
-  # def normalize({{:., meta, [ast, fun_name]}, meta2, []}) do
-  #   cond do
-  #     meta2[:no_parens] ->
-  #       quote line: meta[:line] do
-  #         {:field, unquote(normalize(ast)), unquote(fun_name)}
-  #       end
-  #   end
-  # end
-
-  def normalize({{:., meta, [:erlang, :==]}, _meta2, [left, right]} = ast, state) do
-    {n_left, n_state} = normalize(left, state)
-    {n_right, n_state} = normalize(right, n_state)
-
-    case {n_left, n_right} do
-      {{:ok, left}, {:ok, right}} ->
-        quote line: meta[:line] do
-          {:ok, Dx.Scope.eq(unquote(left), unquote(right))}
-        end
-
-      _else ->
-        {fun, _state} =
-          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], ast]}]}
-          |> Dx.Defd.Compiler.normalize_fn(false, state)
-
-        case {n_left, n_right} do
-          {{:error, _}, _} ->
-            {:error, fun}
-
-          {_, {:error, _}} ->
-            {:error, fun}
-
-          _else ->
-            quote line: meta[:line] do
-              case {unquote(n_left), unquote(n_right)} do
-                {{:ok, left}, {:ok, right}} ->
-                  {:ok, Dx.Scope.eq(left, right)}
-
-                # {{_, left}, {_, right}} -> {:error, {:ok, left == right}}
-                _else ->
-                  # :error
-                  {:error, unquote(fun)}
-              end
-            end
-        end
-
-        # {:eq, unquote(normalize(left)), unquote(normalize(right))}
-    end
-    |> with_state(n_state)
-  end
-
   # local_fun()
-  def normalize({fun_name, meta, args}, state)
+  def normalize({fun_name, meta, args} = call, state)
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
 
@@ -92,7 +42,11 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        :error
+        {fun, _state} =
+          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], call]}]}
+          |> Dx.Defd.Compiler.normalize_fn(false, state)
+
+        {:error, fun}
         |> with_state(state)
     end
   end
@@ -107,8 +61,16 @@ defmodule Dx.Scope.Compiler do
       meta2[:no_parens] ->
         {module, state} = normalize(module, state)
 
-        quote line: meta[:line] do
-          {:ok, Dx.Scope.field_or_assoc(unquote(module), unquote(fun_name))}
+        case module do
+          {:ok, module} ->
+            quote line: meta[:line] do
+              {:ok, {:field_or_assoc, unquote(module), unquote(fun_name)}}
+            end
+
+          _other ->
+            quote line: meta[:line] do
+              {:field_or_assoc, unquote(module), unquote(fun_name)}
+            end
         end
         |> with_state(state)
 
@@ -119,6 +81,20 @@ defmodule Dx.Scope.Compiler do
 
       rewriter = @rewriters[module] ->
         cond do
+          function_exported?(rewriter, Util.scope_name(fun_name), arity + 1) ->
+            {args, state} = Enum.map_reduce(args, state, &normalize/2)
+
+            generate_fallback = fn ->
+              {fun, _state} =
+                {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
+                |> Dx.Defd.Compiler.normalize_fn(false, state)
+
+              fun
+            end
+
+            apply(rewriter, Util.scope_name(fun_name), args ++ [generate_fallback])
+            |> with_state(state)
+
           Util.is_scopable?(rewriter, fun_name, arity) ->
             {args, state} = Enum.map_reduce(args, state, &normalize/2)
 
@@ -141,15 +117,23 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        quote do
-          {:error, fn unquote_splicing(args ++ [state.eval_var]) -> {:ok, unquote(fun)} end}
-        end
+        {fun, _state} =
+          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
+          |> Dx.Defd.Compiler.normalize_fn(false, state)
+
+        {:error, fun}
         |> with_state(state)
     end
   end
 
-  def normalize(_other, state) do
-    :error
+  def normalize(other, state) do
+    meta = Ast.closest_meta(other)
+
+    {fun, _state} =
+      {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], other]}]}
+      |> Dx.Defd.Compiler.normalize_fn(false, state)
+
+    {:error, fun}
     |> with_state(state)
   end
 

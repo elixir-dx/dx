@@ -354,6 +354,11 @@ defmodule Dx.Defd.Ast do
 
   # Helpers
 
+  def closest_meta({_, meta, _}), do: meta
+  def closest_meta([elem | _rest]), do: closest_meta(elem)
+  def closest_meta({elem, _elem}), do: closest_meta(elem)
+  def closest_meta(_other), do: []
+
   def pp({ast, state}, label \\ nil) do
     p(ast, label)
     {ast, state}

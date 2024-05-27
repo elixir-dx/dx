@@ -89,11 +89,11 @@ defmodule Dx.Scope do
     eval.loader.lookup(eval.cache, scope, false)
     |> case do
       {:ok, [{results, scope}]} ->
-        results
+        {:ok, results}
         |> Dx.Ecto.Scope.run_post_load(scope.post_load, eval)
 
       {:ok, {result, scope}} ->
-        result
+        {:ok, result}
         |> Dx.Ecto.Scope.run_post_load(scope.post_load, eval)
 
       other ->
@@ -166,14 +166,6 @@ defmodule Dx.Scope do
 
   defp to_main_condition_candidates(other) do
     {%{}, other}
-  end
-
-  def field_or_assoc(base, field) do
-    %__MODULE__{plan: {:field_or_assoc, base, field}}
-  end
-
-  def eq(left, right) do
-    {:eq, left, right}
   end
 
   def add_conditions(scope, %Dx.Defd.Fn{scope: fun}) do
