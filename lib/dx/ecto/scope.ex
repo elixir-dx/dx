@@ -1,31 +1,47 @@
 defmodule Dx.Ecto.Scope do
   import Ecto.Query
 
+  defmodule Query do
+    defstruct [
+      :query,
+      :ref,
+      cardinality: :many,
+      aggregate_default: nil
+    ]
+  end
+
   @state %{
     queries: [],
     cardinality: :many,
     aggregate_default: nil,
     alias_types: Map.new(),
-    current_alias: nil,
     post_load: {:loaded}
   }
 
   def to_query(_queryable, %{scope: scope}) do
-    %{queries: [query]} = build(scope.plan, @state)
+    %{queries: [query]} =
+      state =
+      case build(scope.plan, @state) do
+        {_ref, state} -> state
+        state -> state
+      end
 
-    {query, scope}
+    scope = %{
+      scope
+      | cardinality: query.cardinality,
+        aggregate_default: query.aggregate_default,
+        post_load: state.post_load
+    }
+
+    {query.query, scope}
   end
 
+  # RESOLVE
+  # -------
   def resolve(%Dx.Scope{} = scope) do
-    case resolve(scope.plan, @state) do
-      {{:ok, plan}, state} ->
-        scope = %{
-          scope
-          | plan: plan,
-            cardinality: state.cardinality,
-            aggregate_default: state.aggregate_default,
-            post_load: state.post_load
-        }
+    case resolve(scope.plan, %{}) do
+      {plan, _ref, _state} ->
+        scope = %{scope | plan: plan}
 
         {:ok, scope}
 
@@ -34,150 +50,166 @@ defmodule Dx.Ecto.Scope do
     end
   end
 
-  defp resolve(fun, state) when is_function(fun, 1) do
-    resolve(fun.({:ref, state.current_alias}), state)
+  defp resolve(%Dx.Scope{} = scope, refs) do
+    resolve(scope.plan, refs)
   end
 
-  # TODO: Make this redundant & remove it
-  defp resolve({:ok, wrapped}, state) do
-    resolve(wrapped, state)
+  defp resolve({:error, defd_fallback}, refs) do
+    {{:error, defd_fallback}, nil, refs}
   end
 
-  defp resolve(%Dx.Scope{} = scope, state) do
-    resolve(scope.plan, state)
+  defp resolve({:value, val}, refs) do
+    {{:value, val}, nil, refs}
   end
 
-  defp resolve({:value, value}, state) do
-    {:ok, {:value, value}}
-    |> with_state(state)
+  defp resolve({:ref, ref}, refs) do
+    {{:ref, ref}, ref, refs}
   end
 
-  defp resolve({:ref, ref}, state) do
-    {:ok, {:ref, ref}}
-    |> with_state(state)
+  defp resolve({:queryable, queryable}, refs) do
+    {ref, refs} = new_ref(queryable, refs)
+
+    {{:as, ref, queryable, {:queryable, queryable}}, ref, refs}
   end
 
-  defp resolve({:queryable, module}, state) do
-    next_index = Enum.count(state.alias_types)
-    new_alias = String.to_atom("a#{next_index}")
+  defp resolve({:field_or_assoc, base, field}, refs) do
+    {base, ref, refs} = resolve(base, refs)
+    type = refs[ref]
 
-    state = %{
-      state
-      | cardinality: :many,
-        current_alias: new_alias,
-        alias_types: Map.put(state.alias_types, new_alias, module)
-    }
+    case type.__schema__(:association, field) do
+      nil ->
+        {{:field, base, field}, ref, refs}
 
-    {:ok, {:queryable, module}}
-    |> with_state(state)
-  end
+      %{cardinality: :one, queryable: module} ->
+        {ref, refs} = new_ref(module, refs)
 
-  defp resolve({:field_or_assoc, base, field}, state) do
-    resolve(base, state)
-    |> if_ok(fn base, state ->
-      current_alias_type = state.alias_types[state.current_alias]
+        {{:as, ref, module, {:assoc, :one, base, field}}, ref, refs}
 
-      case current_alias_type.__schema__(:association, field) do
-        nil ->
-          {:ok, {:field, base, field}}
-          |> with_state(state)
+      %{cardinality: :many, queryable: module} = assoc ->
+        {ref, refs} = new_ref(module, refs)
 
-        %{cardinality: :one, queryable: module} ->
-          next_index = Enum.count(state.alias_types)
-          new_alias = String.to_atom("a#{next_index}")
-
-          state = %{
-            state
-            | current_alias: new_alias,
-              alias_types: Map.put(state.alias_types, new_alias, module)
-          }
-
-          {:ok, {:assoc, base, field}}
-          |> with_state(state)
-
-        %{cardinality: :many, queryable: module} ->
-          next_index = Enum.count(state.alias_types)
-          new_alias = String.to_atom("a#{next_index}")
-
-          state = %{
-            state
-            | current_alias: new_alias,
-              alias_types: Map.put(state.alias_types, new_alias, module)
-          }
-
-          {:ok, {:assoc, base, field}}
-          |> with_state(state)
-      end
-    end)
-  end
-
-  defp resolve({:count, base}, state) do
-    resolve(base, state)
-    |> put_state(:cardinality, :one)
-    |> put_state(:aggregate_default, 0)
-    |> if_ok(&{:count, &1})
-  end
-
-  defp resolve({:filter, base, condition}, state) do
-    cardinality = state.cardinality
-    aggregate_default = state.aggregate_default
-
-    resolve(base, state)
-    |> put_state(:cardinality, cardinality)
-    |> put_state(:aggregate_default, aggregate_default)
-    |> if_ok(fn base, state ->
-      resolve_condition(condition, state)
-      |> put_state(:cardinality, cardinality)
-      |> put_state(:aggregate_default, aggregate_default)
-      |> if_ok(&{:filter, base, &1})
-    end)
-  end
-
-  defp resolve_condition({:error, fun}, state) when is_function(fun, 2) do
-    state = %{state | post_load: {:filter, state.post_load, fun}}
-    {:skip, state}
-  end
-
-  defp resolve_condition(fun, state) when is_function(fun, 1) do
-    case fun.({:ref, state.current_alias}) do
-      {:ok, condition} -> resolve_condition(condition, state)
-      {:error, condition} -> resolve_condition({:error, condition}, state)
-      :error -> {:error, state}
+        {{:as, ref, module, {:assoc, :many, assoc.owner_key, assoc.related_key, base, field}},
+         ref, refs}
     end
   end
 
-  defp resolve_condition({:all_of, conditions}, state) do
-    conditions
-    |> Enum.map_reduce(state, &resolve_condition/2)
-    |> collect()
-    |> if_ok(&{:all_of, &1})
+  defp resolve({:count, base}, refs) do
+    {base, ref, refs} = resolve(base, refs)
+    {{:count, base}, nil, refs}
   end
 
-  defp resolve_condition({:eq, left, right}, state) do
-    resolve(left, state)
-    |> if_ok(fn left, state ->
-      resolve(right, state)
-      |> if_ok(fn right ->
-        {:eq, left, right}
+  defp resolve({:filter, base, condition}, refs) do
+    {base, ref, refs} = resolve(base, refs)
+    {condition, _ref, refs} = resolve_condition(condition, ref, refs)
+    {{:filter, base, condition}, ref, refs}
+  end
+
+  defp new_ref(new_ref_type, refs) do
+    next_index = map_size(refs)
+    ref = :"a#{next_index}"
+    refs = Map.put(refs, ref, new_ref_type)
+
+    {ref, refs}
+  end
+
+  defp resolve_condition(fun, ref, refs) when is_function(fun, 1) do
+    case fun.({:ref, ref}) do
+      {:error, defd_fun} -> {{:error, defd_fun}, ref, refs}
+      condition -> resolve_condition(condition, ref, refs)
+    end
+  end
+
+  defp resolve_condition({:all_of, conditions}, ref, refs) do
+    {conditions, refs} =
+      Enum.map_reduce(conditions, refs, fn condition, refs ->
+        {condition, _ref, refs} = resolve_condition(condition, ref, refs)
+        {condition, refs}
       end)
-    end)
+
+    {{:all_of, conditions}, ref, refs}
   end
 
+  defp resolve_condition({:eq, {:error, _fallback}, _right, fallback}, ref, refs) do
+    {{:error, fallback}, ref, refs}
+  end
+
+  defp resolve_condition({:eq, :error, _right, fallback}, ref, refs) do
+    {{:error, fallback}, ref, refs}
+  end
+
+  defp resolve_condition({:eq, _left, {:error, _fallback}, fallback}, ref, refs) do
+    {{:error, fallback}, ref, refs}
+  end
+
+  defp resolve_condition({:eq, _left, :error, fallback}, ref, refs) do
+    {{:error, fallback}, ref, refs}
+  end
+
+  defp resolve_condition({:eq, left, right, _fallback}, ref, refs) do
+    {left, _ref, refs} = resolve(left, refs)
+    {right, _ref, refs} = resolve(right, refs)
+
+    {{:eq, left, right}, ref, refs}
+  end
+
+  # BUILD
+  # -----
   defp build({:value, value}, state) do
     dynamic(^value)
     |> with_state(state)
   end
 
-  defp build({:queryable, module}, state) do
-    next_index = Enum.count(state.alias_types)
-    {query, new_alias} = aliased_from(module, next_index)
+  defp build({:as, ref, type, {:queryable, queryable}}, state) do
+    query = from(x in queryable, as: ^ref)
 
-    %{
+    state = %{
       state
-      | queries: [query | state.queries],
-        current_alias: new_alias,
-        alias_types: Map.put(state.alias_types, new_alias, module)
+      | queries: [%Query{ref: ref, query: query} | state.queries],
+        alias_types: Map.put(state.alias_types, ref, type)
     }
+
+    {:ref, ref}
+    |> with_state(state)
+  end
+
+  defp build({:as, new_ref, type, {:assoc, :one, {:ref, ref}, field}}, state) do
+    state =
+      map_query(state, &join(&1, :inner, [{^ref, x}], y in assoc(x, ^field), as: ^new_ref))
+      |> Map.put(:alias_types, Map.put(state.alias_types, new_ref, type))
+
+    {:ref, new_ref}
+    |> with_state(state)
+  end
+
+  defp build({:as, new_ref, type, {:assoc, :one, base, field}}, state) do
+    {{:ref, ref}, state} = build(base, state)
+
+    state =
+      map_query(state, &join(&1, :inner, [{^ref, x}], y in assoc(x, ^field), as: ^new_ref))
+      |> Map.put(:alias_types, Map.put(state.alias_types, new_ref, type))
+
+    {:ref, new_ref}
+    |> with_state(state)
+  end
+
+  defp build(
+         {:as, new_ref, type, {:assoc, :many, owner_key, related_key, {:ref, ref}, _field}},
+         state
+       ) do
+    query =
+      from(x in type,
+        as: ^new_ref,
+        where: field(x, ^related_key) == field(parent_as(^ref), ^owner_key)
+      )
+
+    state = %{
+      state
+      | queries: [%Query{ref: new_ref, query: query} | state.queries],
+        alias_types: Map.put(state.alias_types, new_ref, type)
+    }
+
+    {:ref, new_ref}
+    |> with_state(state)
   end
 
   defp build({:field, {:ref, ref}, field}, state) do
@@ -185,111 +217,48 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:assoc, {:ref, ref}, field}, state) do
-    type = Map.fetch!(state.alias_types, ref)
-
-    case type.__schema__(:association, field) do
-      %{cardinality: :one, queryable: module} ->
-        next_index = Enum.count(state.alias_types)
-        [query | queries] = state.queries
-        {query, new_alias} = aliased_join(query, ref, field, next_index)
-
-        %{
-          state
-          | queries: [query | queries],
-            current_alias: new_alias,
-            alias_types: Map.put(state.alias_types, new_alias, module)
-        }
-
-      %{cardinality: :many, queryable: module, related_key: related_key, owner_key: owner_key} ->
-        next_index = Enum.count(state.alias_types)
-        {query, new_alias} = aliased_from(module, next_index)
-
-        query =
-          where(
-            query,
-            field(as(^new_alias), ^related_key) == field(parent_as(^ref), ^owner_key)
-          )
-
-        %{
-          state
-          | queries: [query | state.queries],
-            current_alias: new_alias,
-            alias_types: Map.put(state.alias_types, new_alias, module)
-        }
-    end
-  end
-
   defp build({:field, base, field}, state) do
-    state = %{} = build(base, state)
-    current_alias = state.current_alias
-    current_alias_type = state.alias_types[current_alias]
+    {{:ref, ref}, state} = build(base, state)
 
-    case current_alias_type.__schema__(:association, field) do
-      nil ->
-        dynamic([{^current_alias, x}], field(x, ^field))
-        |> with_state(state)
-
-      %{cardinality: :one, queryable: module} ->
-        next_index = Enum.count(state.alias_types)
-        [query | queries] = state.queries
-        {query, new_alias} = aliased_join(query, current_alias, field, next_index)
-
-        %{
-          state
-          | queries: [query | queries],
-            current_alias: new_alias,
-            alias_types: Map.put(state.alias_types, new_alias, module)
-        }
-
-      %{cardinality: :many, queryable: module, related_key: related_key, owner_key: owner_key} ->
-        next_index = Enum.count(state.alias_types)
-        {query, new_alias} = aliased_from(module, next_index)
-
-        query =
-          where(
-            query,
-            field(as(^new_alias), ^related_key) == field(parent_as(^current_alias), ^owner_key)
-          )
-
-        %{
-          state
-          | queries: [query | state.queries],
-            current_alias: new_alias,
-            alias_types: Map.put(state.alias_types, new_alias, module)
-        }
-    end
+    dynamic([{^ref, x}], field(x, ^field))
+    |> with_state(state)
   end
 
   defp build({:count, base}, state) do
-    state = %{} = build(base, state)
-    [query | queries] = state.queries
+    {_ref, state} = build(base, state)
 
-    query = select(query, %{result: count()})
-    %{state | queries: [query | queries], cardinality: :one}
+    map_query(state, &select(&1, %{result: count()}), cardinality: :one, aggregate_default: 0)
   end
 
   defp build({:filter, base, condition}, state) do
-    state = %{} = build(base, state)
-    {condition, state} = build_condition(condition, state)
-    [query | queries] = state.queries
-    query = where(query, ^condition)
+    {ref, state} = build(base, state)
+    {condition, state} = build_condition(condition, ref, state)
 
-    %{state | queries: [query | queries]}
+    state = map_query(state, &where(&1, ^condition))
+
+    {ref, state}
   end
 
-  defp build_condition(fun, state) when is_function(fun, 1) do
-    build_condition(fun.({:ref, state.current_alias}), state)
+  defp build_condition(fun, base, state) when is_function(fun, 1) do
+    base |> fun.() |> build_condition(base, state)
   end
 
-  defp build_condition({:all_of, conditions}, state) do
-    {conditions, state} = Enum.map_reduce(conditions, state, &build_condition/2)
+  defp build_condition({:error, defd_fun}, _base, state) do
+    %{queries: [%{ref: base_ref} | _queries]} = state
+
+    state = Map.update!(state, :post_load, &{:filter, defd_fun, {:ref, base_ref}, &1})
+
+    {true, state}
+  end
+
+  defp build_condition({:all_of, conditions}, base, state) do
+    {conditions, state} = Enum.map_reduce(conditions, state, &build_condition(&1, base, &2))
     conditions = Enum.reduce(conditions, &dynamic(^&2 and ^&1))
 
     {conditions, state}
   end
 
-  defp build_condition({:eq, left, right}, state) do
+  defp build_condition({:eq, left, right}, _base, state) do
     {left, state} = build_value(left, state)
     {right, state} = build_value(right, state)
 
@@ -299,7 +268,7 @@ defmodule Dx.Ecto.Scope do
 
   defp build_value(term, state) do
     case build(term, state) do
-      %{queries: [query | queries]} = state ->
+      %{queries: [%Query{query: query, cardinality: :one} | queries]} = state ->
         dynamic(subquery(query)) |> with_state(%{state | queries: queries})
 
       other ->
@@ -307,12 +276,30 @@ defmodule Dx.Ecto.Scope do
     end
   end
 
-  def run_post_load(results, {:filter, {:loaded}, fun}, eval) do
-    Dx.Defd.Result.filter(results, fun, eval)
+  defp map_query(%{queries: [query | queries]} = state, fun) do
+    %{state | queries: [Map.update!(query, :query, fun) | queries]}
   end
 
-  def run_post_load(results, _post_load, _eval) do
-    {:ok, results}
+  defp map_query(%{queries: [query | queries]} = state, fun, attributes) do
+    %{
+      state
+      | queries: [Map.merge(Map.update!(query, :query, fun), Map.new(attributes)) | queries]
+    }
+  end
+
+  def run_post_load(results, {:filter, fun, {:ref, :a0}, {:loaded}}, eval) do
+    results
+    |> Dx.Defd.Result.then(&Dx.Defd.Result.filter(&1, fun, eval))
+  end
+
+  def run_post_load(results, {:filter, fun, {:ref, :a0}, rest}, eval) do
+    results
+    |> run_post_load(rest, eval)
+    |> Dx.Defd.Result.then(&Dx.Defd.Result.filter(&1, rest, eval))
+  end
+
+  def run_post_load(results, {:loaded}, eval) do
+    results
   end
 
   ## Helpers
@@ -346,15 +333,6 @@ defmodule Dx.Ecto.Scope do
   defp do_collect([{:ok, result} | rest], acc) do
     do_collect(rest, [result | acc])
   end
-
-  defp aliased_from(queryable, 0), do: {from(q in queryable, as: :a0), :a0}
-  defp aliased_from(queryable, 1), do: {from(q in queryable, as: :a1), :a1}
-  defp aliased_from(queryable, 2), do: {from(q in queryable, as: :a2), :a2}
-  defp aliased_from(queryable, 3), do: {from(q in queryable, as: :a3), :a3}
-  defp aliased_from(queryable, 4), do: {from(q in queryable, as: :a4), :a4}
-  defp aliased_from(queryable, 5), do: {from(q in queryable, as: :a5), :a5}
-  defp aliased_from(queryable, 6), do: {from(q in queryable, as: :a6), :a6}
-  defp aliased_from(queryable, 7), do: {from(q in queryable, as: :a7), :a7}
 
   defp aliased_join(queryable, left, key, 0),
     do: {join(queryable, :inner, [{^left, l}], assoc(l, ^key), as: :a0), :a0}

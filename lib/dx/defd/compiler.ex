@@ -560,10 +560,10 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
+    state = Map.put(state, :scope_args, args)
     args = Ast.mark_vars_as_generated(args)
 
-    {scope_body, _new_state} =
-      Dx.Scope.Compiler.normalize(body, Map.put(state, :scope_args, args))
+    {scope_body, _new_state} = Dx.Scope.Compiler.normalize(body, state)
 
     {body, new_state} =
       Ast.with_args(args, state, fn state ->

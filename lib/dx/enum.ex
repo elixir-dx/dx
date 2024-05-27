@@ -3,6 +3,8 @@ defmodule Dx.Enum do
   alias Dx.Defd.Compiler
   alias Dx.Defd.Result
 
+  import Dx.Defd.Ext
+
   @chunk_while_chunk_fun_warning """
   Dx can't load data efficiently within functions passed as chunk_fun to Enum.chunk_while
 
@@ -423,6 +425,10 @@ defmodule Dx.Enum do
     end)
   end
 
+  defscope count(base, _generate_fallback) do
+    quote do: {:count, unquote(base)}
+  end
+
   def count(module) when is_atom(module) do
     Dx.Scope.all(module)
     |> count()
@@ -482,6 +488,10 @@ defmodule Dx.Enum do
   def each(enumerable, fun) do
     map(enumerable, fun)
     |> Result.transform(fn _ -> :ok end)
+  end
+
+  defscope filter(base, condition, _generate_fallback) do
+    quote do: {:filter, unquote(base), unquote(condition)}
   end
 
   def filter(module, conditions) when is_atom(module) do
