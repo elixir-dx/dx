@@ -563,6 +563,70 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "filter based on static value from argument", %{list: list} do
+    assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
+      refute_stderr(fn ->
+        defmodule FilterStaticValTest do
+          import Dx.Defd
+
+          defd run(score) do
+            Enum.filter(List, &(&1.hourly_points == score))
+          end
+        end
+
+        load!(FilterStaticValTest.run(0.2))
+      end)
+    end)
+  end
+
+  test "filter based on map value from argument", %{list: list} do
+    assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
+      refute_stderr(fn ->
+        defmodule FilterMapValTest do
+          import Dx.Defd
+
+          defd run(context) do
+            Enum.filter(List, &(&1.hourly_points == context.val))
+          end
+        end
+
+        load!(FilterMapValTest.run(%{val: 0.2}))
+      end)
+    end)
+  end
+
+  test "filter based on nested map value from argument", %{list: list} do
+    assert_queries(["\"hourly_points\" = ANY('{0.2}')"], fn ->
+      refute_stderr(fn ->
+        defmodule FilterNestedMapValTest do
+          import Dx.Defd
+
+          defd run(context) do
+            Enum.filter(List, &(&1.hourly_points == context.nested.val))
+          end
+        end
+
+        load!(FilterNestedMapValTest.run(%{nested: %{val: 0.2}}))
+      end)
+    end)
+  end
+
+  test "filter based on passed in schema field", %{user: user} do
+    assert_queries(["\"title\" = ANY('{\"#{user.first_name}\"}')"], fn ->
+      refute_stderr(fn ->
+        defmodule FilterFieldArgTest do
+          import Dx.Defd
+
+          defd run(user) do
+            Enum.filter(List, &(&1.title == user.first_name))
+          end
+        end
+
+        load!(FilterFieldArgTest.run(user))
+      end)
+    end)
+  end
+
   test "filter based on static condition", %{list: list} do
     refute_stderr(fn ->
       defmodule FilterStaticCondTest do
