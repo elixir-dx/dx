@@ -58,10 +58,6 @@ defmodule Dx.Ecto.Scope do
     {{:error, defd_fallback}, nil, refs}
   end
 
-  defp resolve({:value, val}, refs) do
-    {{:value, val}, nil, refs}
-  end
-
   defp resolve({:ref, ref}, refs) do
     {{:ref, ref}, ref, refs}
   end
@@ -72,24 +68,35 @@ defmodule Dx.Ecto.Scope do
     {{:as, ref, queryable, {:queryable, queryable}}, ref, refs}
   end
 
+  defp resolve({:field_or_assoc, map, field}, refs) when is_map(map) do
+    map
+    |> Map.fetch!(field)
+    |> resolve(refs)
+  end
+
   defp resolve({:field_or_assoc, base, field}, refs) do
-    {base, ref, refs} = resolve(base, refs)
-    type = refs[ref]
+    case resolve(base, refs) do
+      {base, nil, refs} ->
+        resolve({:field_or_assoc, base, field}, refs)
 
-    case type.__schema__(:association, field) do
-      nil ->
-        {{:field, base, field}, ref, refs}
+      {base, ref, refs} ->
+        type = refs[ref]
 
-      %{cardinality: :one, queryable: module} ->
-        {ref, refs} = new_ref(module, refs)
+        case type.__schema__(:association, field) do
+          nil ->
+            {{:field, base, field}, ref, refs}
 
-        {{:as, ref, module, {:assoc, :one, base, field}}, ref, refs}
+          %{cardinality: :one, queryable: module} ->
+            {ref, refs} = new_ref(module, refs)
 
-      %{cardinality: :many, queryable: module} = assoc ->
-        {ref, refs} = new_ref(module, refs)
+            {{:as, ref, module, {:assoc, :one, base, field}}, ref, refs}
 
-        {{:as, ref, module, {:assoc, :many, assoc.owner_key, assoc.related_key, base, field}},
-         ref, refs}
+          %{cardinality: :many, queryable: module} = assoc ->
+            {ref, refs} = new_ref(module, refs)
+
+            {{:as, ref, module, {:assoc, :many, assoc.owner_key, assoc.related_key, base, field}},
+             ref, refs}
+        end
     end
   end
 
@@ -102,6 +109,10 @@ defmodule Dx.Ecto.Scope do
     {base, ref, refs} = resolve(base, refs)
     {condition, _ref, refs} = resolve_condition(condition, ref, refs)
     {{:filter, base, condition}, ref, refs}
+  end
+
+  defp resolve(value, refs) do
+    {value, nil, refs}
   end
 
   defp new_ref(new_ref_type, refs) do
@@ -154,11 +165,6 @@ defmodule Dx.Ecto.Scope do
 
   # BUILD
   # -----
-  defp build({:value, value}, state) do
-    dynamic(^value)
-    |> with_state(state)
-  end
-
   defp build({:as, ref, type, {:queryable, queryable}}, state) do
     query = from(x in queryable, as: ^ref)
 
@@ -237,6 +243,11 @@ defmodule Dx.Ecto.Scope do
     state = map_query(state, &where(&1, ^condition))
 
     {ref, state}
+  end
+
+  defp build(value, state) do
+    dynamic(^value)
+    |> with_state(state)
   end
 
   defp build_condition(fun, base, state) when is_function(fun, 1) do
