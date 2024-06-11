@@ -627,6 +627,22 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "filter based on unloaded association field", %{user: user} do
+    assert_queries(["FROM \"lists\"", "FROM \"roles\""], fn ->
+      refute_stderr(fn ->
+        defmodule FilterUnloadedFieldArgTest do
+          import Dx.Defd
+
+          defd run(user) do
+            Enum.filter(List, &(&1.title == user.role.name))
+          end
+        end
+
+        load!(FilterUnloadedFieldArgTest.run(user))
+      end)
+    end)
+  end
+
   test "filter based on static condition", %{list: list} do
     refute_stderr(fn ->
       defmodule FilterStaticCondTest do
