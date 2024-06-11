@@ -69,9 +69,10 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp resolve({:field_or_assoc, map, field}, refs) when is_map(map) do
-    map
-    |> Map.fetch!(field)
-    |> resolve(refs)
+    case Map.fetch!(map, field) do
+      %Ecto.Association.NotLoaded{} -> :error
+      other -> resolve(other, refs)
+    end
   end
 
   defp resolve({:field_or_assoc, base, field}, refs) do
@@ -97,6 +98,9 @@ defmodule Dx.Ecto.Scope do
             {{:as, ref, module, {:assoc, :many, assoc.owner_key, assoc.related_key, base, field}},
              ref, refs}
         end
+
+      :error ->
+        :error
     end
   end
 
@@ -156,11 +160,13 @@ defmodule Dx.Ecto.Scope do
     {{:error, fallback}, ref, refs}
   end
 
-  defp resolve_condition({:eq, left, right, _fallback}, ref, refs) do
-    {left, _ref, refs} = resolve(left, refs)
-    {right, _ref, refs} = resolve(right, refs)
-
-    {{:eq, left, right}, ref, refs}
+  defp resolve_condition({:eq, left, right, fallback}, ref, refs) do
+    with {left, _ref, refs} <- resolve(left, refs),
+         {right, _ref, refs} <- resolve(right, refs) do
+      {{:eq, left, right}, ref, refs}
+    else
+      :error -> {{:error, fallback}, ref, refs}
+    end
   end
 
   # BUILD
