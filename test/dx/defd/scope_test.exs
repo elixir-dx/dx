@@ -285,6 +285,28 @@ defmodule Dx.Defd.ScopeTest do
     )
   end
 
+  test "filter using filter+count in condition", %{list: list} do
+    assert_queries([~r/FROM "lists" AS \w+ WHERE .*\(SELECT count\(\*\) FROM "tasks"/], fn ->
+      refute_stderr(fn ->
+        defmodule FilterCountFilterTest do
+          import Dx.Defd
+
+          defd run() do
+            Enum.filter(
+              List,
+              fn list ->
+                Enum.count(Enum.filter(list.tasks, &(&1.title == "TODO"))) ==
+                  1
+              end
+            )
+          end
+        end
+
+        load!(FilterCountFilterTest.run())
+      end)
+    end)
+  end
+
   test "filter using defd condition", %{list: list} do
     assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->
