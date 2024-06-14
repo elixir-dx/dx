@@ -1,5 +1,6 @@
 defmodule Dx.Scope.Compiler do
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.State
   alias Dx.Defd.Util
 
   import Ast.Guards
@@ -11,10 +12,16 @@ defmodule Dx.Scope.Compiler do
   }
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    {body, state} = normalize(body, state)
+    {body, state} =
+      State.pass_in(state, [scope_args: args], fn state ->
+        Ast.with_args_no_loaders!(args, state, fn state ->
+          normalize(body, state)
+        end)
+      end)
+
     args = Ast.mark_vars_as_generated(args)
 
-    {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
+    {:fn, meta, [{:->, meta2, [args, body]}]}
     |> with_state(state)
   end
 
@@ -80,6 +87,8 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       rewriter = @rewriters[module] ->
+        Code.ensure_loaded(rewriter)
+
         cond do
           function_exported?(rewriter, Util.scope_name(fun_name), arity + 1) ->
             {args, state} = Enum.map_reduce(args, state, &normalize/2)

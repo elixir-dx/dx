@@ -1,5 +1,6 @@
 defmodule Dx.Defd.Compiler do
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.State
   alias Dx.Defd.Util
 
   import Ast.Guards
@@ -29,7 +30,6 @@ defmodule Dx.Defd.Compiler do
       in_call?: false,
       scope_safe?: true,
       data_reqs: %{},
-      external_vars: %{},
       rewrite_underscore?: false
     }
 
@@ -51,12 +51,31 @@ defmodule Dx.Defd.Compiler do
     all_args = Macro.generate_arguments(arity, __MODULE__)
     state = Map.put(state, :all_args, all_args)
 
-    {{kind, meta, args, ast}, scope_ast, state} = get_and_normalize_defd_and_scope(def, state)
+    {{kind, meta, args, ast}, {scope_args, scope_ast}, state} =
+      get_and_normalize_defd_and_scope(def, state)
 
     defd_name = Util.defd_name(name)
     scope_name = Util.scope_name(name)
 
+    scope_ast =
+      case scope_ast do
+        {:error, _} ->
+          {:error,
+           {:&, meta, [{:/, [], [{{:., [], [state.module, defd_name]}, [], []}, arity + 1]}]}}
+
+        other ->
+          other
+      end
+
     scope_args =
+      Enum.with_index(scope_args, fn arg, i ->
+        case defaults do
+          %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
+          %{} -> arg
+        end
+      end)
+
+    defd_args =
       Enum.with_index(args, fn arg, i ->
         case defaults do
           %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
@@ -64,7 +83,7 @@ defmodule Dx.Defd.Compiler do
         end
       end)
 
-    defd_args = scope_args ++ [state.eval_var]
+    defd_args = defd_args ++ [state.eval_var]
 
     entrypoints =
       case Keyword.get(opts, :def, :warn) do
@@ -141,15 +160,20 @@ defmodule Dx.Defd.Compiler do
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
       [{meta, args, [], ast}] ->
-        {scope_ast, _state} = Dx.Scope.Compiler.normalize(ast, state)
-        args = Ast.mark_vars_as_generated(args)
+        scope_args = Ast.mark_vars_as_generated(args)
+        state = Map.put(state, :scope_args, scope_args)
+
+        {scope_ast, _state} =
+          Ast.with_args_no_loaders!(args, state, fn state ->
+            Dx.Scope.Compiler.normalize(ast, state)
+          end)
 
         {ast, state} =
           Ast.with_root_args(args, state, fn state ->
-            normalize(ast, %{state | rewrite_underscore?: false})
+            normalize(ast, state)
           end)
 
-        {{kind, meta, args, ast}, scope_ast, state}
+        {{kind, meta, args, ast}, {scope_args, scope_ast}, state}
 
       [{meta, _args, _, _} | _] = clauses ->
         case_clauses =
@@ -167,7 +191,7 @@ defmodule Dx.Defd.Compiler do
             Dx.Defd.Case.normalize(case_ast, state)
           end)
 
-        {{kind, meta, state.all_args, ast}, scope_ast, state}
+        {{kind, meta, state.all_args, ast}, {state.all_args, scope_ast}, state}
     end
   end
 
@@ -560,10 +584,14 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
-    state = Map.put(state, :scope_args, args)
-    args = Ast.mark_vars_as_generated(args)
+    scope_args = Ast.mark_vars_as_generated(args)
 
-    {scope_body, _new_state} = Dx.Scope.Compiler.normalize(body, state)
+    {scope_body, _state} =
+      State.pass_in(state, [scope_args: args], fn state ->
+        Ast.with_args_no_loaders!(args, state, fn state ->
+          Dx.Scope.Compiler.normalize(body, state)
+        end)
+      end)
 
     {body, new_state} =
       Ast.with_args(args, state, fn state ->
@@ -587,7 +615,7 @@ defmodule Dx.Defd.Compiler do
            ok?: ok?,
            fun: {:fn, meta, [{:->, meta2, [args, body]}]},
            ok_fun: ok? && {:fn, meta, [{:->, meta2, [args, ok_body]}]},
-           scope: {:fn, meta, [{:->, meta2, [args, scope_body]}]}
+           scope: {:fn, meta, [{:->, meta2, [scope_args, scope_body]}]}
          ]}
       ]}}
     |> with_state(new_state)
@@ -674,12 +702,12 @@ defmodule Dx.Defd.Compiler do
   end
 
   def maybe_capture_loader(var, state) when is_var(var) do
-    if Map.has_key?(state.external_vars, Ast.var_id(var)) do
-      :error
-    else
+    if Map.has_key?(state.args, Ast.var_id(var)) do
       {ast, state} = maybe_load_scope({:ok, var}, state)
 
       {:ok, ast, state}
+    else
+      :error
     end
   end
 
@@ -690,12 +718,6 @@ defmodule Dx.Defd.Compiler do
   # extracts only loaders based on variables bound outside of the external anonymous function
   defp normalize_external_fn(ast, state) do
     Macro.prewalk(ast, state, fn
-      # TODO: add all other syntaxes that can bind variables
-      {:fn, _meta, [{:->, _meta2, [args, _body]}]} = fun, state ->
-        state = Map.update!(state, :external_vars, &Ast.collect_vars(args, &1))
-
-        {fun, state}
-
       {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
       when is_atom(fun_name) and is_list(args) ->
         # Access.get/2
@@ -759,7 +781,6 @@ defmodule Dx.Defd.Compiler do
     {args, new_state} =
       Enum.map_reduce(args, state, fn
         {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
-          state = Map.put(state, :external_vars, Ast.collect_vars(args, %{}))
           {body, new_state} = normalize_external_fn(body, state)
 
           {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}

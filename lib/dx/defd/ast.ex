@@ -264,6 +264,27 @@ defmodule Dx.Defd.Ast do
     end
   end
 
+  def with_args_no_loaders!(args, state, fun) do
+    temp_state = Map.update!(state, :args, &collect_vars(args, &1))
+
+    case fun.(temp_state) do
+      {ast, updated_state} ->
+        if updated_state.data_reqs != state.data_reqs do
+          raise CompileError, """
+          Unallowed data requirement in code:
+
+          #{Macro.to_string(ast)}
+
+          Data reqs:
+
+          #{Enum.map_join(updated_state.data_reqs, "\n", fn {ast, var} -> "#{Macro.to_string(var)} -> #{Macro.to_string(ast)}" end)}
+          """
+        end
+
+        {ast, %{updated_state | args: state.args}}
+    end
+  end
+
   defp get_data_vars(data_reqs) do
     Map.new(data_reqs, fn {_loader_ast, data_var} -> {data_var, true} end)
   end
