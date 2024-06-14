@@ -10,6 +10,7 @@ defmodule Dx.Evaluation do
     field(:root_subject, map())
     field(:cache, any())
     field(:return_cache?, boolean(), default: false)
+    field(:finalize?, boolean(), default: true)
     field(:binds, map())
     field(:negate?, boolean(), default: false)
     field(:resolve_predicates?, boolean(), default: true)
@@ -66,24 +67,22 @@ defmodule Dx.Evaluation do
   end
 
   def load_all_data_reqs(eval, fun) do
-    case fun.(eval) do
-      {:not_loaded, data_reqs} -> load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
-      {:ok, result, _binds} -> {:ok, result, eval.cache}
-      {:ok, %Dx.Scope{} = scope} -> Dx.Scope.lookup(scope, eval) |> maybe_load_scope(scope, eval)
-      other -> other
+    case {fun.(eval), eval.finalize?} do
+      {{:not_loaded, data_reqs}, _} ->
+        load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
+
+      {{:ok, result, _binds}, _} ->
+        {:ok, result, eval.cache}
+
+      {{:ok, result}, true} ->
+        load_all_data_reqs(%{eval | finalize?: false}, &Dx.Defd.Runtime.finalize(result, &1))
+
+      {other, _} ->
+        other
     end
   rescue
     e ->
       # Remove Dx's inner stacktrace and convert defd function names
       Dx.Defd.Error.filter_and_reraise(e, __STACKTRACE__)
-  end
-
-  defp maybe_load_scope({:not_loaded, data_reqs}, scope, eval) do
-    eval = load_data_reqs(eval, data_reqs)
-    Dx.Scope.lookup(scope, eval)
-  end
-
-  defp maybe_load_scope(other, _scope, _eval) do
-    other
   end
 end

@@ -53,6 +53,82 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "return nested scope", %{lists: lists} do
+    assert_queries(["FROM \"lists\""], fn ->
+      # refute_stderr(fn ->
+      defmodule ReturnNestedScopeTest do
+        import Dx.Defd
+
+        defd run() do
+          {:ok, [result: %{nested: Dx.Scope.all(List)}]}
+        end
+      end
+
+      assert load!(ReturnNestedScopeTest.run()) == {:ok, [result: %{nested: lists}]}
+      # end)
+    end)
+  end
+
+  test "return nested fn without loaders", %{lists: lists} do
+    assert_queries([], fn ->
+      refute_stderr(fn ->
+        defmodule ReturnNestedOkFnTest do
+          import Dx.Defd
+
+          defd run(arg) do
+            {:ok, [result: %{nested: fn -> arg end}]}
+          end
+        end
+
+        assert {:ok, [result: %{nested: fun}]} = load!(ReturnNestedOkFnTest.run("Hi!"))
+        assert is_function(fun, 0)
+        assert fun.() == "Hi!"
+      end)
+    end)
+  end
+
+  test "return nested fn with loaders", %{task: task, preloaded_task: preloaded_task} do
+    assert_queries(["FROM \"users\""], fn ->
+      refute_stderr(fn ->
+        defmodule ReturnNestedLoadableFnTest do
+          import Dx.Defd
+
+          defd run(task) do
+            {:ok, [result: %{nested: fn -> task.created_by.first_name end}]}
+          end
+        end
+
+        assert {:ok, [result: %{nested: fun}]} = load!(ReturnNestedLoadableFnTest.run(task))
+        assert is_function(fun, 0)
+        assert fun.() == preloaded_task.created_by.first_name
+      end)
+    end)
+  end
+
+  test "return nested fn with externals+loaders", %{task: task, preloaded_task: preloaded_task} do
+    assert_queries(["FROM \"users\""], fn ->
+      refute_stderr(fn ->
+        defmodule ReturnNestedExternalLoadableFnTest do
+          import Dx.Defd
+
+          defd run(task) do
+            {:ok, [result: %{nested: fn -> call(first_name(task.created_by)) end}]}
+          end
+
+          defp first_name(user) do
+            user.first_name
+          end
+        end
+
+        assert {:ok, [result: %{nested: fun}]} =
+                 load!(ReturnNestedExternalLoadableFnTest.run(task))
+
+        assert is_function(fun, 0)
+        assert fun.() == preloaded_task.created_by.first_name
+      end)
+    end)
+  end
+
   test "list map", %{user: user} do
     assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
       refute_stderr(fn ->
