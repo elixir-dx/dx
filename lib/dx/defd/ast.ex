@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Ast do
+  alias Dx.Defd.Ast.State
+
   import __MODULE__.Guards
 
   # def apply({ast, state}, fun) when Kernel.is_function(fun, 1), do: {fun.(ast), state}
@@ -172,11 +174,25 @@ defmodule Dx.Defd.Ast do
 
     ast = cleanup({:__block__, [], assigns_ast ++ [ast]})
 
-    quote do
-      case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
-        {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
-        other -> other
-      end
+    case loaders do
+      [] ->
+        ast
+
+      [loader] ->
+        quote do
+          case unquote(loader) do
+            {:ok, unquote(List.first(vars))} -> unquote(ast)
+            other -> other
+          end
+        end
+
+      loaders ->
+        quote do
+          case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
+            {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
+            other -> other
+          end
+        end
     end
   end
 
@@ -265,24 +281,27 @@ defmodule Dx.Defd.Ast do
   end
 
   def with_args_no_loaders!(args, state, fun) do
-    temp_state = Map.update!(state, :args, &collect_vars(args, &1))
+    State.pass_in(state, [args: &collect_vars(args, &1), data_reqs: %{}], fn temp_state ->
+      case fun.(temp_state) do
+        {ast, updated_state} ->
+          if updated_state.data_reqs != %{} do
+            raise CompileError,
+              file: state.file,
+              line: state.line,
+              description: """
+              Unallowed data requirement in code:
 
-    case fun.(temp_state) do
-      {ast, updated_state} ->
-        if updated_state.data_reqs != state.data_reqs do
-          raise CompileError, """
-          Unallowed data requirement in code:
+              #{Macro.to_string(ast)}
 
-          #{Macro.to_string(ast)}
+              Data reqs:
 
-          Data reqs:
+              #{Enum.map_join(updated_state.data_reqs, "\n", fn {ast, var} -> "#{Macro.to_string(var)} -> #{Macro.to_string(ast)}" end)}
+              """
+          end
 
-          #{Enum.map_join(updated_state.data_reqs, "\n", fn {ast, var} -> "#{Macro.to_string(var)} -> #{Macro.to_string(ast)}" end)}
-          """
-        end
-
-        {ast, %{updated_state | args: state.args}}
-    end
+          {ast, updated_state}
+      end
+    end)
   end
 
   defp get_data_vars(data_reqs) do
