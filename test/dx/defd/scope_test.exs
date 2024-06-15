@@ -383,6 +383,33 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "filter using other scope with associations", %{list: list} do
+    assert_queries(
+      [~r/\(SELECT count\(\*\) FROM "tasks" .*\(SELECT count\(\*\) FROM "tasks"/],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterScopeAssocResultTest do
+            import Dx.Defd
+
+            defd run() do
+              task_count = Enum.count(Task)
+
+              Enum.filter(
+                List,
+                fn list ->
+                  Enum.count(Enum.filter(list.tasks, &(&1.title == "TODO"))) ==
+                    task_count
+                end
+              )
+            end
+          end
+
+          load!(FilterScopeAssocResultTest.run())
+        end)
+      end
+    )
+  end
+
   test "filter using defd condition", %{list: list} do
     assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->

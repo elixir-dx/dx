@@ -50,8 +50,10 @@ defmodule Dx.Scope.Compiler do
 
       true ->
         {fun, _state} =
-          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], call]}]}
-          |> Dx.Defd.Compiler.normalize_fn(false, state)
+          Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+            {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], call]}]}
+            |> Dx.Defd.Compiler.normalize_fn(false, state)
+          end)
 
         {:error, fun}
         |> with_state(state)
@@ -95,8 +97,10 @@ defmodule Dx.Scope.Compiler do
 
             generate_fallback = fn ->
               {fun, _state} =
-                {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
-                |> Dx.Defd.Compiler.normalize_fn(false, state)
+                Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+                  {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
+                  |> Dx.Defd.Compiler.normalize_fn(false, state)
+                end)
 
               fun
             end
@@ -127,8 +131,10 @@ defmodule Dx.Scope.Compiler do
 
       true ->
         {fun, _state} =
-          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
-          |> Dx.Defd.Compiler.normalize_fn(false, state)
+          Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+            {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], fun]}]}
+            |> Dx.Defd.Compiler.normalize_fn(false, state)
+          end)
 
         {:error, fun}
         |> with_state(state)
@@ -139,8 +145,10 @@ defmodule Dx.Scope.Compiler do
     meta = Ast.closest_meta(other)
 
     {fun, _state} =
-      {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], other]}]}
-      |> Dx.Defd.Compiler.normalize_fn(false, state)
+      Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+        {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], other]}]}
+        |> Dx.Defd.Compiler.normalize_fn(false, state)
+      end)
 
     {:error, fun}
     |> with_state(state)
