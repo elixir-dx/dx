@@ -87,7 +87,7 @@ defmodule Dx.Defd.CaseTest do
         defd indirect_enum_map(list) do
           case list do
             %List{created_by: user} ->
-              call(
+              non_dx(
                 defp_enum_map(list.tasks, fn _task ->
                   user.role.name
                 end)
@@ -113,7 +113,7 @@ defmodule Dx.Defd.CaseTest do
             %List{created_by: user} ->
               case user.role do
                 %{name: _role_name} ->
-                  call(
+                  non_dx(
                     defp_enum_map(list.tasks, fn _task ->
                       user.role.name
                     end)

@@ -1359,10 +1359,8 @@ defmodule Dx.Defd.EnumTest do
 
           @dx def: :original
           defd run(tasks) do
-            Enum.into(tasks, call(MapSet.new()), & &1.created_by.email)
+            Enum.into(tasks, non_dx(MapSet.new()), & &1.created_by.email)
           end
-
-          defp call(arg), do: arg
         end
 
         assert load(Into3LoadTest.run([])) == {:ok, MapSet.new()}
@@ -1377,10 +1375,8 @@ defmodule Dx.Defd.EnumTest do
 
           @dx def: :original
           defd run(map) do
-            Enum.into(map, call(MapSet.new()), fn {_id, task} -> task.created_by.email end)
+            Enum.into(map, non_dx(MapSet.new()), fn {_id, task} -> task.created_by.email end)
           end
-
-          defp call(arg), do: arg
         end
 
         assert load(Into3MapTest.run(%{})) == {:ok, MapSet.new()}
@@ -1429,11 +1425,7 @@ defmodule Dx.Defd.EnumTest do
           import Dx.Defd
 
           defd run(list) do
-            Enum.map(list.tasks, fn task -> call(email(task)) end)
-          end
-
-          def call(arg) do
-            arg
+            Enum.map(list.tasks, fn task -> non_dx(email(task)) end)
           end
 
           def email(task) do
@@ -2005,15 +1997,13 @@ defmodule Dx.Defd.EnumTest do
             Enum.max_by(
               map,
               fn {_, task} -> task.created_by.email end,
-              &call(simple(&1) >= simple(&2))
+              &non_dx(simple(&1) >= simple(&2))
             )
           end
 
           def simple(arg) do
             arg
           end
-
-          defp call(arg), do: arg
         end
 
         assert_raise Enum.EmptyError, fn ->
@@ -2370,15 +2360,13 @@ defmodule Dx.Defd.EnumTest do
             Enum.min_by(
               map,
               fn {_, task} -> task.created_by.email end,
-              &call(simple(&1) <= simple(&2))
+              &non_dx(simple(&1) <= simple(&2))
             )
           end
 
           def simple(arg) do
             arg
           end
-
-          defp call(arg), do: arg
         end
 
         assert_raise Enum.EmptyError, fn ->
@@ -2568,15 +2556,13 @@ defmodule Dx.Defd.EnumTest do
             Enum.min_max_by(
               map,
               fn {_, task} -> task.created_by.email end,
-              &call(simple(&1) <= simple(&2))
+              &non_dx(simple(&1) <= simple(&2))
             )
           end
 
           def simple(arg) do
             arg
           end
-
-          defp call(arg), do: arg
         end
 
         assert load(MinMaxBy3MapTest.run(%{a: task, b: task2})) ==
@@ -2734,7 +2720,7 @@ defmodule Dx.Defd.EnumTest do
             Enum.min_max_by(
               map,
               fn {_, task} -> task.created_by.email end,
-              &call(simple(&1) <= simple(&2)),
+              &non_dx(simple(&1) <= simple(&2)),
               fn -> :empty end
             )
           end
@@ -2742,8 +2728,6 @@ defmodule Dx.Defd.EnumTest do
           def simple(arg) do
             arg
           end
-
-          defp call(arg), do: arg
         end
 
         assert load(MinMaxBy4MapTest.run(%{})) == {:ok, :empty}
@@ -3122,7 +3106,9 @@ defmodule Dx.Defd.EnumTest do
           defd asc_datetime(tasks) do
             Enum.sort(
               tasks,
-              &call(DateTime.compare(&1.created_by.verified_at, &2.created_by.verified_at) != :gt)
+              &non_dx(
+                DateTime.compare(&1.created_by.verified_at, &2.created_by.verified_at) != :gt
+              )
             )
           end
 
@@ -3130,11 +3116,11 @@ defmodule Dx.Defd.EnumTest do
           defd desc_datetime(tasks) do
             Enum.sort(
               tasks,
-              &call(DateTime.compare(&1.created_by.verified_at, &2.created_by.verified_at) != :lt)
+              &non_dx(
+                DateTime.compare(&1.created_by.verified_at, &2.created_by.verified_at) != :lt
+              )
             )
           end
-
-          defp call(arg), do: arg
         end
 
         check all(
@@ -3433,15 +3419,13 @@ defmodule Dx.Defd.EnumTest do
             Enum.sort_by(
               map,
               fn {_, task} -> task.created_by.email end,
-              &call(simple(&1) >= simple(&2))
+              &non_dx(simple(&1) >= simple(&2))
             )
           end
 
           def simple(arg) do
             arg
           end
-
-          defp call(arg), do: arg
         end
 
         assert load!(SortBy3MapTest.run(%{a: task, b: task2})) ==

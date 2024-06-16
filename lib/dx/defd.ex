@@ -63,6 +63,14 @@ defmodule Dx.Defd do
     define_defd(:def, call, block, __CALLER__)
   end
 
+  @doc """
+  Used to wrap calls to non-Dx defined functions.
+  It doesn't run any code, but makes these calls explicit and mutes Dx compiler warnings.
+  """
+  def non_dx(code) do
+    code
+  end
+
   defp define_defd(kind, call, env) do
     assert_no_guards!(kind, call, env)
     # Note name here is not necessarily an atom due to unquote(name) support
