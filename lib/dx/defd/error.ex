@@ -13,6 +13,12 @@ defmodule Dx.Defd.Error do
      [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: 'test/dx/defd/enum_test.exs', line: 163]}]
 
      iex> rewrite_stacktrace([
+     ...>   {Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-__final_args:run__/2-fun-0-", 1,
+     ...>   [file: 'test/dx/defd/enum_test.exs', line: 163]}
+     ...> ])
+     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: 'test/dx/defd/enum_test.exs', line: 163]}]
+
+     iex> rewrite_stacktrace([
      ...>   {Enum, :"-map/2-lists^map/1-0-", 2, [file: 'lib/enum.ex', line: 1658]}
      ...> ])
      [{Enum, :"-map/2-lists^map/1-0-", 2, [file: 'lib/enum.ex', line: 1658]}]
@@ -72,30 +78,36 @@ defmodule Dx.Defd.Error do
 
   defp replace_defd_refs(atom, arity) when is_atom(atom) do
     case Atom.to_string(atom) do
-      "__defd:" <> _ = str ->
-        atom =
-          replace_fun_names_and_arities(str)
-          |> String.to_existing_atom()
+      "__final_args:" <> _ = str ->
+        {original_atom(str), remove_last_arg(arity)}
 
-        {atom, remove_last_arg(arity)}
+      "__defd:" <> _ = str ->
+        {original_atom(str), remove_last_arg(arity)}
+
+      "-__final_args:" <> _ = str ->
+        {original_atom(str), arity}
 
       "-__defd:" <> _ = str ->
-        atom =
-          replace_fun_names_and_arities(str)
-          |> String.to_atom()
-
-        {atom, arity}
+        {original_atom(str), arity}
 
       _ ->
         {atom, arity}
     end
   end
 
-  @regex ~r/__defd:([^\/]+)__(\/(\d+))?/
+  defp original_atom(suffix) do
+    replace_fun_names_and_arities(suffix)
+    |> String.to_atom()
+  end
+
+  @regex ~r/__(defd|final_args):([^\/]+)__(\/(\d+))?/
   defp replace_fun_names_and_arities(str) do
     Regex.replace(@regex, str, fn
-      _full, fun_name, _optional, "" -> fun_name
-      _full, fun_name, _optional, arity -> "#{fun_name}/#{String.to_integer(arity) - 1}"
+      _full, _defd_prefix, fun_name, _optional, "" ->
+        fun_name
+
+      _full, _defd_prefix, fun_name, _optional, arity ->
+        "#{fun_name}/#{String.to_integer(arity) - 1}"
     end)
   end
 

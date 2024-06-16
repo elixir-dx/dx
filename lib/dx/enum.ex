@@ -238,13 +238,13 @@ defmodule Dx.Enum do
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
         {ast, state} = Compiler.add_loader(ast, state)
 
-        {ast, %{state | scope_safe?: false}}
+        {ast, state}
 
       args_ok?(args, __fn_args(fun_name, arity)) ->
         maybe_warn_static(meta, fun_name, arity, args, state)
 
         {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
-        args = Enum.map(args, &Ast.unwrap_inner/1)
+        args = Enum.map(args, &Ast.unwrap_final_args_inner/1)
 
         ast =
           quote do
@@ -256,8 +256,7 @@ defmodule Dx.Enum do
       function_exported?(__MODULE__, fun_name, arity) ->
         maybe_warn_static(meta, fun_name, arity, args, state)
 
-        {args, state} =
-          Enum.map_reduce(orig_args, orig_state, &Compiler.normalize_scope_safe_arg/2)
+        {args, state} = Enum.map_reduce(orig_args, orig_state, &Compiler.normalize/2)
 
         maybe_warn(meta, fun_name, arity, args, state)
 
@@ -270,7 +269,7 @@ defmodule Dx.Enum do
       true ->
         maybe_warn_static(meta, fun_name, arity, args, state)
 
-        {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
+        {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
 
         maybe_warn(meta, fun_name, arity, args, state)
 
@@ -285,31 +284,31 @@ defmodule Dx.Enum do
   defp maybe_warn(meta, fun_name, arity, args, state) do
     cond do
       fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+          not Ast.final_args_ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @chunk_while_chunk_fun_warning)
 
       fun_name == :max and Ast.is_function(Enum.at(args, 1), 2) and
-          not Ast.ok?(Enum.at(args, 1)) ->
+          not Ast.final_args_ok?(Enum.at(args, 1)) ->
         Compiler.warn(meta, state, @max_warning)
 
       fun_name == :max_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+          not Ast.final_args_ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @sorter_warning)
 
       fun_name == :min and Ast.is_function(Enum.at(args, 1), 2) and
-          not Ast.ok?(Enum.at(args, 1)) ->
+          not Ast.final_args_ok?(Enum.at(args, 1)) ->
         Compiler.warn(meta, state, @min_warning)
 
       fun_name == :min_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+          not Ast.final_args_ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @sorter_warning)
 
       fun_name == :min_max_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+          not Ast.final_args_ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @sorter_warning)
 
       fun_name == :sort_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.ok?(Enum.at(args, 2)) ->
+          not Ast.final_args_ok?(Enum.at(args, 2)) ->
         Compiler.warn(meta, state, @sorter_warning)
 
       warning = Map.get(@warnings, {fun_name, arity}) ->
@@ -334,7 +333,7 @@ defmodule Dx.Enum do
     args
     |> Enum.with_index()
     |> Enum.all?(fn {arg, i} ->
-      Ast.ok?(arg, i in fn_arg_indexes)
+      Ast.final_args_ok?(arg, i in fn_arg_indexes)
     end)
   end
 
@@ -505,7 +504,7 @@ defmodule Dx.Enum do
     {:ok, scope}
   end
 
-  def filter(enumerable, %Dx.Defd.Fn{fun: fun}) do
+  def filter(enumerable, %Dx.Defd.Fn{final_args_fun: fun}) do
     Result.map_then_reduce_ok(enumerable, fun, [], fn elem, mapped, acc ->
       if mapped, do: [elem | acc], else: acc
     end)
@@ -515,7 +514,7 @@ defmodule Dx.Enum do
   @doc false
   @deprecated "Use Enum.filter/2 + Enum.map/2 or for comprehensions instead"
   def filter_map(enumerable, filter, mapper) do
-    filter(enumerable, %Dx.Defd.Fn{fun: filter})
+    filter(enumerable, %Dx.Defd.Fn{final_args_fun: filter})
     |> Result.then(&map(&1, mapper))
   end
 
