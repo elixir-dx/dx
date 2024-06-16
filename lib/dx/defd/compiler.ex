@@ -28,6 +28,7 @@ defmodule Dx.Defd.Compiler do
       scope_args: [],
       eval_var: eval_var,
       warn_non_dx?: true,
+      called_non_dx?: false,
       data_reqs: %{},
       finalized_vars: %{},
       rewrite_underscore?: false
@@ -368,9 +369,19 @@ defmodule Dx.Defd.Compiler do
     |> with_state(state)
   end
 
-  def normalize({{:., _meta, [Dx.Defd, :non_dx]}, _meta2, [ast]}, state) do
-    State.pass_in(state, [warn_non_dx?: false], fn state ->
-      normalize(ast, state)
+  def normalize({{:., meta, [Dx.Defd, :non_dx]}, _meta2, [ast]}, orig_state) do
+    State.pass_in(orig_state, [warn_non_dx?: false, called_non_dx?: false], fn state ->
+      {ast, state} = normalize(ast, state)
+
+      if orig_state.warn_non_dx? and not state.called_non_dx? do
+        warn(meta, state, """
+        No function was called that is not defined with defd.
+
+        Please remove the call to non_dx/1.
+        """)
+      end
+
+      {ast, state}
     end)
   end
 
@@ -426,6 +437,7 @@ defmodule Dx.Defd.Compiler do
              scope: {:&, meta, [{:/, [], [{scope_name, [], nil}, arity]}]}
            ]}
         ]}}
+      |> with_state(state)
     else
       if state.warn_non_dx? do
         warn(meta, state, """
@@ -443,8 +455,8 @@ defmodule Dx.Defd.Compiler do
            {:ok, unquote(fun_name)(unquote_splicing(args))}
          end}
       end
+      |> with_state(%{state | called_non_dx?: true})
     end
-    |> with_state(state)
   end
 
   # &Mod.fun/3
@@ -509,7 +521,7 @@ defmodule Dx.Defd.Compiler do
              {:ok, unquote(module).unquote(fun_name)(unquote_splicing(args))}
            end}
         end
-        |> with_state(state)
+        |> with_state(%{state | called_non_dx?: true})
     end
   end
 
@@ -538,10 +550,12 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        normalize_external_call_args(args, state, fn args ->
-          {fun_name, meta, args}
-        end)
-        |> Ast.ok()
+        {ast, state} =
+          normalize_external_call_args(args, state, fn args ->
+            {fun_name, meta, args}
+          end)
+
+        {{:ok, ast}, %{state | called_non_dx?: true}}
 
       true ->
         {fun, state}
@@ -591,6 +605,13 @@ defmodule Dx.Defd.Compiler do
         end)
         |> add_loader()
 
+      # avoid non_dx warning for `Dx.Scope.all/1`
+      {module, fun_name, arity} == {Dx.Scope, :all, 1} ->
+        normalize_external_call_args(args, state, fn args ->
+          {{:., meta, [module, fun_name]}, meta2, args}
+        end)
+        |> Ast.ok()
+
       Util.has_function?(module, fun_name, arity) ->
         if state.warn_non_dx? do
           warn(meta2, state, """
@@ -602,10 +623,12 @@ defmodule Dx.Defd.Compiler do
           """)
         end
 
-        normalize_external_call_args(args, state, fn args ->
-          {{:., meta, [module, fun_name]}, meta2, args}
-        end)
-        |> Ast.ok()
+        {ast, state} =
+          normalize_external_call_args(args, state, fn args ->
+            {{:., meta, [module, fun_name]}, meta2, args}
+          end)
+
+        {{:ok, ast}, %{state | called_non_dx?: true}}
 
       Code.ensure_loaded?(module) ->
         compile_error!(

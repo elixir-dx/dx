@@ -39,33 +39,33 @@ defmodule Dx.Defd.ScopeTest do
 
   test "load all", %{lists: lists} do
     assert_queries(["FROM \"lists\""], fn ->
-      # refute_stderr(fn ->
-      defmodule ScopeAllTest do
-        import Dx.Defd
+      refute_stderr(fn ->
+        defmodule ScopeAllTest do
+          import Dx.Defd
 
-        defd run() do
-          Dx.Scope.all(List)
+          defd run() do
+            Dx.Scope.all(List)
+          end
         end
-      end
 
-      assert load!(ScopeAllTest.run()) == lists
-      # end)
+        assert load!(ScopeAllTest.run()) == lists
+      end)
     end)
   end
 
   test "return nested scope", %{lists: lists} do
     assert_queries(["FROM \"lists\""], fn ->
-      # refute_stderr(fn ->
-      defmodule ReturnNestedScopeTest do
-        import Dx.Defd
+      refute_stderr(fn ->
+        defmodule ReturnNestedScopeTest do
+          import Dx.Defd
 
-        defd run() do
-          {:ok, [result: %{nested: Dx.Scope.all(List)}]}
+          defd run() do
+            {:ok, [result: %{nested: Dx.Scope.all(List)}]}
+          end
         end
-      end
 
-      assert load!(ReturnNestedScopeTest.run()) == {:ok, [result: %{nested: lists}]}
-      # end)
+        assert load!(ReturnNestedScopeTest.run()) == {:ok, [result: %{nested: lists}]}
+      end)
     end)
   end
 
@@ -892,11 +892,7 @@ defmodule Dx.Defd.ScopeTest do
 
             defd run() do
               Enum.map(
-                [
-                  non_dx(Dx.Scope.all(Task)),
-                  non_dx(Dx.Scope.all(List)),
-                  non_dx(Dx.Scope.all(User))
-                ],
+                [Dx.Scope.all(Task), Dx.Scope.all(List), Dx.Scope.all(User)],
                 &Enum.count(&1)
               )
             end
