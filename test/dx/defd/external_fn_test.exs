@@ -71,7 +71,7 @@ defmodule Dx.Defd.ExternalFnTest do
         @dx def: :original
         defd run(list) do
           Enum.map(list.tasks, fn task ->
-            call(
+            non_dx(
               simple_arg(
                 Enum.find(task.created_by.lists, fn list ->
                   Enum.count(list.tasks) > 1
@@ -84,7 +84,7 @@ defmodule Dx.Defd.ExternalFnTest do
         @dx def: :original
         defd run2(list) do
           Enum.map(list.tasks, fn task ->
-            call(
+            non_dx(
               __MODULE__.simple_arg(
                 Enum.find(task.created_by.lists, fn list ->
                   Enum.count(list.tasks) > 1
@@ -95,10 +95,6 @@ defmodule Dx.Defd.ExternalFnTest do
         end
 
         def simple_arg(arg) do
-          arg
-        end
-
-        defp call(arg) do
           arg
         end
       end
@@ -121,7 +117,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], & &1.created_by.email)
             end)
@@ -130,7 +126,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run2(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([%{a: %{b: task}}], & &1.a.b.created_by.email)
             end)
@@ -139,10 +135,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 
@@ -164,7 +156,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], & &1.created_by.email)
             end)
@@ -173,7 +165,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run2(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               enum_map([%{a: %{b: task}}], &(&1.a.b.created_by.email == task.created_by.email))
             end)
@@ -182,10 +174,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 
@@ -211,7 +199,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], & &1.unknown.email)
             end)
@@ -220,7 +208,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run2(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([%{a: %{b: task}}], & &1.a.b.unknown.email)
             end)
@@ -230,22 +218,18 @@ defmodule Dx.Defd.ExternalFnTest do
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
         end
-
-        defp call(arg) do
-          arg
-        end
       end
 
       assert_same_error(
         KeyError,
-        location(-25),
+        location(-21),
         fn -> load!(InvalidFieldInExtFnTest.run(preloaded_list)) end,
         fn -> InvalidFieldInExtFnTest.run(preloaded_list) end
       )
 
       assert_same_error(
         KeyError,
-        location(-23),
+        location(-19),
         fn -> load!(InvalidFieldInExtFnTest.run2(preloaded_list)) end,
         fn -> InvalidFieldInExtFnTest.run2(preloaded_list) end
       )
@@ -264,7 +248,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map(
                 [task],
@@ -276,10 +260,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 
@@ -300,7 +280,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], fn _ -> list.from_template.title end)
             end)
@@ -310,15 +290,11 @@ defmodule Dx.Defd.ExternalFnTest do
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
         end
-
-        defp call(arg) do
-          arg
-        end
       end
 
       assert_same_error(
         KeyError,
-        location(-16),
+        location(-12),
         fn -> load!(FieldOnNilInExtFnTest.run(list)) end,
         fn -> FieldOnNilInExtFnTest.run(preloaded_list) end
       )
@@ -335,7 +311,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], fn _ -> false && list.from_template.title end)
             end)
@@ -344,10 +320,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 
@@ -367,12 +339,12 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(enum_map(list.tasks, &created_by_email/1))
+          non_dx(enum_map(list.tasks, &created_by_email/1))
         end
 
         @dx def: :original
         defd run2(list) do
-          call(enum_map(list.tasks, &__MODULE__.created_by_email/1))
+          non_dx(enum_map(list.tasks, &__MODULE__.created_by_email/1))
         end
 
         def created_by_email(task) do
@@ -381,10 +353,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 
@@ -410,7 +378,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], &created_by_email/1)
             end)
@@ -419,7 +387,7 @@ defmodule Dx.Defd.ExternalFnTest do
 
         @dx def: :original
         defd run2(list) do
-          call(
+          non_dx(
             enum_map(list.tasks, fn task ->
               Enum.map([task], &__MODULE__.created_by_email/1)
             end)
@@ -432,10 +400,6 @@ defmodule Dx.Defd.ExternalFnTest do
 
         defp enum_map(enum, mapper) do
           Enum.map(enum, mapper)
-        end
-
-        defp call(arg) do
-          arg
         end
       end
 

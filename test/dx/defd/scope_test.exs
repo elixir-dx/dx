@@ -112,7 +112,7 @@ defmodule Dx.Defd.ScopeTest do
           import Dx.Defd
 
           defd run(task) do
-            {:ok, [result: %{nested: fn -> call(first_name(task.created_by)) end}]}
+            {:ok, [result: %{nested: fn -> non_dx(first_name(task.created_by)) end}]}
           end
 
           defp first_name(user) do
@@ -475,7 +475,7 @@ defmodule Dx.Defd.ScopeTest do
 
           defd run() do
             todos = Enum.filter(Task, &(&1.title == "My Task"))
-            call(task_descs(todos))
+            non_dx(task_descs(todos))
           end
 
           defp task_descs(tasks) do
@@ -496,7 +496,7 @@ defmodule Dx.Defd.ScopeTest do
 
           defd run() do
             todos = Enum.filter(Task, &(&1.title == "My Task"))
-            call(task_descs(%{todos: {:nested, todos}}))
+            non_dx(task_descs(%{todos: {:nested, todos}}))
           end
 
           defp task_descs(%{todos: {:nested, tasks}}) do
@@ -892,7 +892,11 @@ defmodule Dx.Defd.ScopeTest do
 
             defd run() do
               Enum.map(
-                [call(Dx.Scope.all(Task)), call(Dx.Scope.all(List)), call(Dx.Scope.all(User))],
+                [
+                  non_dx(Dx.Scope.all(Task)),
+                  non_dx(Dx.Scope.all(List)),
+                  non_dx(Dx.Scope.all(User))
+                ],
                 &Enum.count(&1)
               )
             end

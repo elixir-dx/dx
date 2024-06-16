@@ -27,7 +27,7 @@ defmodule Dx.Defd.Compiler do
       var_index: 1,
       scope_args: [],
       eval_var: eval_var,
-      in_call?: false,
+      warn_non_dx?: true,
       data_reqs: %{},
       finalized_vars: %{},
       rewrite_underscore?: false
@@ -172,7 +172,7 @@ defmodule Dx.Defd.Compiler do
         state = Map.put(state, :scope_args, scope_args)
 
         {scope_ast, _state} =
-          State.pass_in(state, [in_call?: true], fn state ->
+          State.pass_in(state, [warn_non_dx?: false], fn state ->
             Ast.with_args_no_loaders!(args, state, fn state ->
               Dx.Scope.Compiler.normalize(ast, state)
             end)
@@ -181,7 +181,7 @@ defmodule Dx.Defd.Compiler do
         {final_args_ast, _state} =
           State.pass_in(
             state,
-            [in_call?: true, finalized_vars: &Ast.collect_vars(args, &1)],
+            [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
             fn state ->
               Ast.with_root_args(args, state, fn state ->
                 normalize(ast, state)
@@ -206,14 +206,14 @@ defmodule Dx.Defd.Compiler do
         case_ast = {:case, [line: line], [Ast.wrap_args(state.all_args), [do: case_clauses]]}
 
         {scope_ast, _state} =
-          State.pass_in(state, [in_call?: true], fn state ->
+          State.pass_in(state, [warn_non_dx?: false], fn state ->
             Dx.Scope.Compiler.normalize(case_ast, state)
           end)
 
         {final_args_ast, _state} =
           State.pass_in(
             state,
-            [in_call?: true, finalized_vars: &Ast.collect_vars(state.all_args, &1)],
+            [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(state.all_args, &1)],
             fn state ->
               Ast.with_root_args(state.all_args, state, fn state ->
                 Dx.Defd.Case.normalize(case_ast, state)
@@ -368,9 +368,10 @@ defmodule Dx.Defd.Compiler do
     |> with_state(state)
   end
 
-  def normalize({:call, _meta, [ast]}, state) do
-    {ast, new_state} = normalize(ast, %{state | in_call?: true})
-    {ast, %{new_state | in_call?: state.in_call?}}
+  def normalize({{:., _meta, [Dx.Defd, :non_dx]}, _meta2, [ast]}, state) do
+    State.pass_in(state, [warn_non_dx?: false], fn state ->
+      normalize(ast, state)
+    end)
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
@@ -426,13 +427,13 @@ defmodule Dx.Defd.Compiler do
            ]}
         ]}}
     else
-      if not state.in_call? do
+      if state.warn_non_dx? do
         warn(meta, state, """
         #{fun_name}/#{arity} is not defined with defd.
 
-        Either define it using defd (preferred) or wrap the call in the call/1 function:
+        Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
 
-            call(...(&#{fun_name}/#{arity}))
+            non_dx(...(&#{fun_name}/#{arity}))
         """)
       end
 
@@ -492,13 +493,13 @@ defmodule Dx.Defd.Compiler do
         |> with_state(state)
 
       true ->
-        if not state.in_call? do
+        if state.warn_non_dx? do
           warn(meta, state, """
           #{fun_name}/#{arity} is not defined with defd.
 
-          Either define it using defd (preferred) or wrap the call in the call/1 function:
+          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
 
-              call(...(&#{module}.#{fun_name}/#{arity}))
+              non_dx(...(&#{module}.#{fun_name}/#{arity}))
           """)
         end
 
@@ -527,13 +528,13 @@ defmodule Dx.Defd.Compiler do
         |> add_loader()
 
       Util.has_function?(state.module, fun_name, arity) ->
-        if not state.in_call? do
+        if state.warn_non_dx? do
           warn(meta, state, """
           #{fun_name}/#{arity} is not defined with defd.
 
-          Either define it using defd (preferred) or wrap the call in the call/1 function:
+          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
 
-              call(#{fun_name}(...))
+              non_dx(#{fun_name}(...))
           """)
         end
 
@@ -591,13 +592,13 @@ defmodule Dx.Defd.Compiler do
         |> add_loader()
 
       Util.has_function?(module, fun_name, arity) ->
-        if not state.in_call? do
+        if state.warn_non_dx? do
           warn(meta2, state, """
           #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
 
-          Either define it using defd (preferred) or wrap the call in the call/1 function:
+          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
 
-              call(#{inspect(module)}.#{fun_name}(...))
+              non_dx(#{inspect(module)}.#{fun_name}(...))
           """)
         end
 
@@ -638,7 +639,7 @@ defmodule Dx.Defd.Compiler do
     scope_args = Ast.mark_vars_as_generated(args)
 
     {scope_body, _state} =
-      State.pass_in(state, [in_call?: true, scope_args: args], fn state ->
+      State.pass_in(state, [warn_non_dx?: false, scope_args: args], fn state ->
         Ast.with_args_no_loaders!(args, state, fn state ->
           Dx.Scope.Compiler.normalize(body, state)
         end)
@@ -647,7 +648,7 @@ defmodule Dx.Defd.Compiler do
     {final_args_body, _state} =
       State.pass_in(
         state,
-        [in_call?: true, finalized_vars: &Ast.collect_vars(args, &1)],
+        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
         fn state ->
           Ast.with_args(args, state, fn state ->
             normalize(body, state)

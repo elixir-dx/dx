@@ -144,7 +144,7 @@ defmodule Dx.Defd.BindTest do
           defd run(list) do
             user = list.created_by
             role = user.role
-            call(concat(user.email, role.name))
+            non_dx(concat(user.email, role.name))
           end
 
           defp concat(a, b), do: a <> b

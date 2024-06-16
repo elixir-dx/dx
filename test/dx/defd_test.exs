@@ -134,13 +134,13 @@ defmodule Dx.DefdTest do
       end)
     end
 
-    test "non-defd local function wrapped in call/1" do
+    test "non-defd local function wrapped in non_dx/1" do
       refute_stderr("do_add/2 is not defined with defd", fn ->
         defmodule Sample0 do
           import Dx.Defd
 
           defd add(a, b) do
-            call(do_add(a, b))
+            non_dx(do_add(a, b))
           end
 
           defp do_add(a, b), do: a + b
@@ -168,7 +168,7 @@ defmodule Dx.DefdTest do
       end)
     end
 
-    test "non-defd function in other module wrapped in call/1" do
+    test "non-defd function in other module wrapped in non_dx/1" do
       refute ExUnit.CaptureIO.capture_io(:stderr, fn ->
                defmodule Other1 do
                  def do_add(a, b), do: a + b
@@ -178,7 +178,7 @@ defmodule Dx.DefdTest do
                  import Dx.Defd
 
                  defd add(a, b) do
-                   call(Other1.do_add(a, b))
+                   non_dx(Other1.do_add(a, b))
                  end
                end
 
@@ -402,7 +402,7 @@ defmodule Dx.DefdTest do
         import Dx.Defd
 
         defd indirect_enum_map(list) do
-          call(
+          non_dx(
             defp_enum_map(list.tasks, fn _task ->
               list.created_by.email
             end)
@@ -421,7 +421,7 @@ defmodule Dx.DefdTest do
         import Dx.Defd
 
         defd indirect_enum_map(list) do
-          call(
+          non_dx(
             defp_enum_map(list.tasks, fn task ->
               task.created_by_id == list.created_by.id
             end)
@@ -440,7 +440,7 @@ defmodule Dx.DefdTest do
         import Dx.Defd
 
         defd double_mail(list) do
-          call(concat(list.created_by.email, list.created_by.email))
+          non_dx(concat(list.created_by.email, list.created_by.email))
         end
 
         defp concat(a, b), do: a <> b
@@ -458,7 +458,7 @@ defmodule Dx.DefdTest do
           concatd(list.created_by.email, list.created_by.email)
         end
 
-        defd(concatd(a, b), do: call(concat(a, b)))
+        defd(concatd(a, b), do: non_dx(concat(a, b)))
         defp concat(a, b), do: a <> b
       end
 
@@ -472,7 +472,7 @@ defmodule Dx.DefdTest do
         defp data(), do: %{a: %{b: %{c: :d}}}
 
         defd deeply_nested() do
-          call(data()).a.b.c
+          non_dx(data()).a.b.c
         end
       end
 
@@ -578,13 +578,9 @@ defmodule Dx.DefdTest do
           %{}
         end
 
-        defp call(arg) do
-          arg
-        end
-
         @dx def: :original
         defd invalid_external_key() do
-          call(map()).unknown
+          non_dx(map()).unknown
         end
       end
 
@@ -602,11 +598,9 @@ defmodule Dx.DefdTest do
       defmodule InvalidCallTest do
         import Dx.Defd
 
-        defp call(arg), do: arg
-
         @dx def: :original
         defd invalid_arg(list) do
-          call(String.to_integer(list))
+          non_dx(String.to_integer(list))
         end
       end
 
