@@ -34,6 +34,53 @@ defmodule Dx.Scope.Compiler do
     |> with_state(state)
   end
 
+  # &local_fun/2
+  def normalize({:&, meta, [{:/, [], [{fun_name, [], nil}, arity]}]} = ast, state) do
+    if {fun_name, arity} in state.defds do
+      scope_name = Util.scope_name(fun_name)
+      args = Macro.generate_arguments(arity, __MODULE__)
+
+      {:fn, meta, [{:->, meta, [args, {scope_name, meta, args}]}]}
+    else
+      {fun, _state} =
+        Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+          {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], ast]}]}
+          |> Dx.Defd.Compiler.normalize_fn(false, state)
+        end)
+
+      {:error, fun}
+    end
+    |> with_state(state)
+  end
+
+  # &Mod.fun/3
+  def normalize(
+        {:&, meta, [{:/, [], [{{:., [], [module, fun_name]}, [], []}, arity]}]} = ast,
+        state
+      ) do
+    cond do
+      rewriter = @rewriters[module] ->
+        rewriter.rewrite_scope(ast, state)
+
+      Util.is_defd?(module, fun_name, arity) ->
+        scope_name = Util.scope_name(fun_name)
+        args = Macro.generate_arguments(arity, __MODULE__)
+
+        {:fn, meta, [{:->, meta, [args, {{:., meta, [module, scope_name]}, meta, args}]}]}
+        |> with_state(state)
+
+      true ->
+        {fun, _state} =
+          Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
+            {:fn, meta, [{:->, meta, [state.scope_args, ast]}]}
+            |> Dx.Defd.Compiler.normalize_fn(false, state)
+          end)
+
+        {:error, fun}
+        |> with_state(state)
+    end
+  end
+
   # local_fun()
   def normalize({fun_name, meta, args} = call, state)
       when is_atom(fun_name) and is_list(args) do

@@ -162,6 +162,42 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  test "list filter with function reference", %{list: list, lists: lists} do
+    refute_stderr(fn ->
+      defmodule FilterFunRefTest do
+        import Dx.Defd
+
+        defd run(lists) do
+          Enum.filter(lists, &fun/1)
+        end
+
+        defd run2(lists) do
+          Enum.filter(lists, &__MODULE__.fun/1)
+        end
+
+        defd fun(list) do
+          list.title == "Tasks"
+        end
+      end
+
+      assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
+        assert [^list] = load!(FilterFunRefTest.run(List))
+      end)
+
+      assert_queries([], fn ->
+        assert [^list] = load!(FilterFunRefTest.run(lists))
+      end)
+
+      assert_queries(["\"title\" = ANY('{\"Tasks\"}')"], fn ->
+        assert [^list] = load!(FilterFunRefTest.run2(List))
+      end)
+
+      assert_queries([], fn ->
+        assert [^list] = load!(FilterFunRefTest.run2(lists))
+      end)
+    end)
+  end
+
   test "filter twice", %{list: %{id: list_id}} do
     assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->
@@ -410,6 +446,69 @@ defmodule Dx.Defd.ScopeTest do
     )
   end
 
+  test "passing in other scope", %{preloaded_task: preloaded_task} do
+    assert_queries(["FROM \"tasks\"", "FROM \"users\""], fn ->
+      refute_stderr(fn ->
+        defmodule PassInScopeTest do
+          import Dx.Defd
+
+          defd run() do
+            todos = Enum.filter(Task, &(&1.title == "My Task"))
+            map_creator_names(todos)
+          end
+
+          defd map_creator_names(tasks) do
+            Enum.map(tasks, & &1.created_by.first_name)
+          end
+        end
+
+        assert load!(PassInScopeTest.run()) == [preloaded_task.created_by.first_name]
+      end)
+    end)
+  end
+
+  test "passing in scope to external function", %{task: task} do
+    assert_queries(["FROM \"tasks\""], fn ->
+      refute_stderr(fn ->
+        defmodule PassScopeToExternalTest do
+          import Dx.Defd
+
+          defd run() do
+            todos = Enum.filter(Task, &(&1.title == "My Task"))
+            call(task_descs(todos))
+          end
+
+          defp task_descs(tasks) do
+            Enum.map(tasks, & &1.desc)
+          end
+        end
+
+        assert load!(PassScopeToExternalTest.run()) == [task.desc]
+      end)
+    end)
+  end
+
+  test "passing in nested scope to external function", %{task: task} do
+    assert_queries(["FROM \"tasks\""], fn ->
+      refute_stderr(fn ->
+        defmodule PassNestedScopeToExternalTest do
+          import Dx.Defd
+
+          defd run() do
+            todos = Enum.filter(Task, &(&1.title == "My Task"))
+            call(task_descs(%{todos: {:nested, todos}}))
+          end
+
+          defp task_descs(%{todos: {:nested, tasks}}) do
+            Enum.map(tasks, & &1.desc)
+          end
+        end
+
+        assert load!(PassNestedScopeToExternalTest.run()) == [task.desc]
+      end)
+    end)
+  end
+
   test "filter using defd condition", %{list: list} do
     assert_queries([["\"title\" = 'Tasks'", "\"hourly_points\" = ANY('{1.0}')"]], fn ->
       refute_stderr(fn ->
@@ -461,24 +560,35 @@ defmodule Dx.Defd.ScopeTest do
   end
 
   test "filter by defd condition", %{list: list} do
-    assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
-      refute_stderr(fn ->
-        defmodule FilterDefdRefTest do
-          import Dx.Defd
+    refute_stderr(fn ->
+      defmodule FilterDefdRefTest do
+        import Dx.Defd
 
-          defd run() do
-            Enum.filter(
-              Enum.filter(List, &title/1),
-              &(&1.hourly_points == 1.0)
-            )
-          end
-
-          defd title(list) do
-            list.title == "Tasks"
-          end
+        defd run() do
+          Enum.filter(
+            Enum.filter(List, &title/1),
+            &(&1.hourly_points == 1.0)
+          )
         end
 
+        defd run2() do
+          Enum.filter(
+            Enum.filter(List, &__MODULE__.title/1),
+            &(&1.hourly_points == 1.0)
+          )
+        end
+
+        defd title(list) do
+          list.title == "Tasks"
+        end
+      end
+
+      assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
         assert [^list] = load!(FilterDefdRefTest.run())
+      end)
+
+      assert_queries([["\"hourly_points\" = ANY('{1.0}')", "\"title\" = 'Tasks'"]], fn ->
+        assert [^list] = load!(FilterDefdRefTest.run2())
       end)
     end)
   end
@@ -766,6 +876,32 @@ defmodule Dx.Defd.ScopeTest do
         load!(FilterUnloadedFieldArgTest.run(user))
       end)
     end)
+  end
+
+  test "dynamically query schemas" do
+    assert_queries(
+      [
+        "SELECT count(*) FROM \"tasks\"",
+        "SELECT count(*) FROM \"lists\"",
+        "SELECT count(*) FROM \"users\""
+      ],
+      fn ->
+        refute_stderr(fn ->
+          defmodule DynamicQueryTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.map(
+                [call(Dx.Scope.all(Task)), call(Dx.Scope.all(List)), call(Dx.Scope.all(User))],
+                &Enum.count(&1)
+              )
+            end
+          end
+
+          assert [1, 2, 1] = load!(DynamicQueryTest.run())
+        end)
+      end
+    )
   end
 
   test "filter based on static condition", %{list: list} do

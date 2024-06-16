@@ -8,6 +8,7 @@ defmodule Dx.Defd.Util do
   @defd_exports_key :__defd_exports__
 
   def defd_name(name), do: :"__defd:#{name}__"
+  def final_args_name(name), do: :"__final_args:#{name}__"
   def scope_name(name), do: :"__scope:#{name}__"
 
   def maybe_call_defd(module, fun_name, args, eval) do

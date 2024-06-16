@@ -15,6 +15,7 @@ defmodule Dx.Defd.Ast do
             {:%{}, _,
              [
                {:ok?, _},
+               {:final_args_ok?, _},
                {:fun, {:fn, _, [{:->, _, [args, _body]}]}} | _
              ]}
           ]}},
@@ -63,6 +64,29 @@ defmodule Dx.Defd.Ast do
   def ok?({:ok, _}, _), do: true
   def ok?(_other, _), do: false
 
+  def final_args_ok?(ast, fn? \\ false)
+
+  def final_args_ok?(
+        {:ok,
+         {:%, _,
+          [
+            {:__aliases__, _, [:Dx, :Defd, :Fn]},
+            {:%{}, _,
+             [
+               {:ok?, _ok?},
+               {:final_args_ok?, final_args_ok?} | _
+             ]}
+          ]}},
+        _
+      ),
+      do: final_args_ok?
+
+  def final_args_ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, {:ok, _body}]}]}}, _), do: true
+  def final_args_ok?({:ok, {:fn, _meta, [{:->, _meta2, [_args, _body]}]}}, _), do: false
+  def final_args_ok?({:ok, _}, true), do: false
+  def final_args_ok?({:ok, _}, _), do: true
+  def final_args_ok?(_other, _), do: false
+
   def unwrap_inner({:ok, {:fn, meta, [{:->, meta2, [args, {:ok, body}]}]}}) do
     {:fn, meta, [{:->, meta2, [args, body]}]}
   end
@@ -70,6 +94,16 @@ defmodule Dx.Defd.Ast do
   def unwrap_inner({:ok, other}) do
     quote do
       Dx.Defd.Fn.maybe_unwrap_ok(unquote(other))
+    end
+  end
+
+  def unwrap_final_args_inner({:ok, {:fn, meta, [{:->, meta2, [args, {:ok, body}]}]}}) do
+    {:fn, meta, [{:->, meta2, [args, body]}]}
+  end
+
+  def unwrap_final_args_inner({:ok, other}) do
+    quote do
+      Dx.Defd.Fn.maybe_unwrap_final_args_ok(unquote(other))
     end
   end
 

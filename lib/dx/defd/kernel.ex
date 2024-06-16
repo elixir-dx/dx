@@ -34,7 +34,7 @@ defmodule Dx.Defd.Kernel do
   def rewrite({{:., meta, [:erlang, fun_name]}, meta2, orig_args} = orig, state) do
     arity = length(orig_args)
 
-    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize_scope_safe_arg/2)
+    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
 
     ast =
       cond do

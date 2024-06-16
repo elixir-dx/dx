@@ -42,14 +42,14 @@ defmodule Dx.Defd do
   end
 
   defp call_to_defd({{:., meta, [module, name]}, meta2, args}) do
-    defd_name = Util.defd_name(name)
+    defd_name = Util.final_args_name(name)
     args = args ++ [@eval_var]
 
     {{:., meta, [module, defd_name]}, meta2, args}
   end
 
   defp call_to_defd({name, meta, args}) do
-    defd_name = Util.defd_name(name)
+    defd_name = Util.final_args_name(name)
     args = args ++ [@eval_var]
 
     {defd_name, meta, args}
