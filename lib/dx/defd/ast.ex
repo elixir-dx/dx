@@ -166,8 +166,8 @@ defmodule Dx.Defd.Ast do
     {assigns, data_reqs} = Enum.split_with(data_reqs, &match?({{:ok, _}, _}, &1))
 
     assigns_ast =
-      Enum.map(assigns, fn {right, pattern} ->
-        {:=, [], [pattern, right]}
+      Enum.map(assigns, fn {{:ok, right}, pattern} ->
+        {:ok, {:=, [], [pattern, right]}}
       end)
 
     {loaders, vars} = Enum.unzip(data_reqs)
@@ -313,37 +313,15 @@ defmodule Dx.Defd.Ast do
     |> Enum.any?(fn {var, _} -> Map.has_key?(vars, var) end)
   end
 
-  def collect_vars({:%, _meta, [_type, map]}, acc) do
-    collect_vars(map, acc)
-  end
+  def collect_vars(ast, acc) do
+    Macro.prewalk(ast, acc, fn
+      {varname, _meta, mod} = var, acc when is_atom(varname) and is_atom(mod) ->
+        {var, Map.put(acc, var_id(var), true)}
 
-  def collect_vars({:%{}, _meta, pairs}, acc) do
-    Enum.reduce(pairs, acc, fn {k, v}, acc ->
-      acc = collect_vars(k, acc)
-      collect_vars(v, acc)
+      other, acc ->
+        {other, acc}
     end)
-  end
-
-  def collect_vars({_, _, args}, acc) when is_list(args) do
-    collect_vars(args, acc)
-  end
-
-  def collect_vars({arg0, arg1}, acc) do
-    acc = collect_vars(arg0, acc)
-    collect_vars(arg1, acc)
-  end
-
-  def collect_vars([ast | tail], acc) do
-    acc = collect_vars(ast, acc)
-    collect_vars(tail, acc)
-  end
-
-  def collect_vars(var, acc) when is_var(var) do
-    Map.put(acc, var_id(var), true)
-  end
-
-  def collect_vars(_other, acc) do
-    acc
+    |> elem(1)
   end
 
   def mark_vars_as_generated(ast) do
