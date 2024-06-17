@@ -7,7 +7,7 @@ defmodule Dx.MixProject do
     [
       app: :dx,
       version: version(),
-      elixir: "~> 1.10",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       package: package(),
@@ -53,13 +53,16 @@ defmodule Dx.MixProject do
       {:dataloader, "~> 2.0"},
 
       # adapters
-      {:ecto, ">= 3.4.3 and < 4.0.0", optional: true},
+      {:ecto, "~> 3.8", optional: true},
       {:ecto_sql, "~> 3.0", optional: true},
 
       # dev & test
       {:postgrex, "~> 0.14", only: :test, runtime: false},
       {:timex, "~> 3.6", only: :test, runtime: false},
       {:refactory, "~> 0.1.0", only: :test},
+      {:stream_data, "~> 0.6", only: [:dev, :test]},
+      {:pretty_print_formatter, github: "san650/pretty_print_formatter", only: [:dev, :test]},
+      # {:pretty_print_formatter, "~> 0.1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end

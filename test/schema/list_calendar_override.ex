@@ -7,6 +7,7 @@ defmodule Dx.Test.Schema.ListCalendarOverride do
   schema "list_calendar_overrides" do
     belongs_to :list, List
     field :date, :date
+    field :comment, :string
 
     field :hourly_points, :float
   end

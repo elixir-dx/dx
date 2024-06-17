@@ -91,25 +91,9 @@ defmodule Dx do
   end
 
   defp do_load(records, predicates, eval) do
-    load_all_data_reqs(eval, fn eval ->
+    Eval.load_all_data_reqs(eval, fn eval ->
       do_get(records, predicates, eval)
     end)
-  end
-
-  defp load_all_data_reqs(eval, fun) do
-    case fun.(eval) do
-      {:not_loaded, data_reqs} ->
-        Eval.load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
-
-      {:ok, result, _binds} ->
-        {:ok, result, eval.cache}
-
-      {:error, :timeout} ->
-        {:error, %Dx.Error.Timeout{configured_timeout: eval.loader_options[:timeout]}}
-
-      other ->
-        other
-    end
   end
 
   @doc """
@@ -177,7 +161,7 @@ defmodule Dx do
   defp do_filter(records, condition, eval) do
     if eval.debug?, do: IO.puts("Dx Filter: #{inspect(condition, pretty: true)}")
 
-    load_all_data_reqs(eval, fn eval ->
+    Eval.load_all_data_reqs(eval, fn eval ->
       Result.filter_map(
         records,
         &Engine.evaluate_condition(condition, &1, %{eval | root_subject: &1})
@@ -249,7 +233,7 @@ defmodule Dx do
   defp apply_select(records, %{select: nil}), do: records
 
   defp apply_select(records, %{select: mapping} = eval) do
-    load_all_data_reqs(eval, fn eval ->
+    Eval.load_all_data_reqs(eval, fn eval ->
       Result.map(records, &Engine.map_result(mapping, %{eval | root_subject: &1}))
     end)
     |> Result.unwrap!()

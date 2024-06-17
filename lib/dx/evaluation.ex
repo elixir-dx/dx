@@ -11,6 +11,7 @@ defmodule Dx.Evaluation do
     field(:root_subject, map())
     field(:cache, any())
     field(:return_cache?, boolean(), default: false)
+    field(:finalize?, boolean(), default: true)
     field(:binds, map())
     field(:negate?, boolean(), default: false)
     field(:resolve_predicates?, boolean(), default: true)
@@ -48,5 +49,45 @@ defmodule Dx.Evaluation do
   """
   def load_data_reqs(eval, data_reqs) do
     Map.update!(eval, :cache, &eval.loader.load(&1, data_reqs))
+  end
+
+  def load_all_data_reqs!(eval_opts, fun) when is_list(eval_opts) do
+    from_options(eval_opts)
+    |> load_all_data_reqs(fun)
+    |> Dx.Result.unwrap!()
+  end
+
+  def load_all_data_reqs!(eval, fun) do
+    eval
+    |> load_all_data_reqs(fun)
+    |> Dx.Result.unwrap!()
+  end
+
+  def load_all_data_reqs(eval_opts, fun) when is_list(eval_opts) do
+    from_options(eval_opts)
+    |> load_all_data_reqs(fun)
+  end
+
+  def load_all_data_reqs(eval, fun) do
+    case {fun.(eval), eval.finalize?} do
+      {{:not_loaded, data_reqs}, _} ->
+        load_data_reqs(eval, data_reqs) |> load_all_data_reqs(fun)
+
+      {{:ok, result, _binds}, _} ->
+        {:ok, result, eval.cache}
+
+      {{:ok, result}, true} ->
+        load_all_data_reqs(%{eval | finalize?: false}, &Dx.Defd.Runtime.finalize(result, &1))
+
+      {{:error, :timeout}, _} ->
+        {:error, %Dx.Error.Timeout{configured_timeout: eval.loader_options[:timeout]}}
+
+      {other, _} ->
+        other
+    end
+  rescue
+    e ->
+      # Remove Dx's inner stacktrace and convert defd function names
+      Dx.Defd.Error.filter_and_reraise(e, __STACKTRACE__)
   end
 end

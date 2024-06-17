@@ -494,6 +494,10 @@ defmodule Dx.Ecto.Query do
   def to_sql(repo, query) do
     {sql, params} = repo.to_sql(:all, query)
 
+    replace_params(sql, params)
+  end
+
+  def replace_params(sql, params) when is_binary(sql) and is_list(params) do
     params
     |> Enum.with_index(1)
     |> Enum.reverse()

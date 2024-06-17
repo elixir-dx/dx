@@ -3,7 +3,9 @@ defmodule Test.Support.Factories do
 
   def trait(Dx.Test.Schema.User, :default) do
     %{
-      email: "alice@acme.org"
+      email: "alice@acme.org",
+      first_name: "Alice",
+      last_name: "Cortez"
     }
   end
 
