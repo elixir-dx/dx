@@ -205,7 +205,9 @@ defmodule Dx.Defd.ScopeTest do
           import Dx.Defd
 
           defd run() do
-            Enum.filter(Enum.filter(List, &(&1.title == "Tasks")), &(&1.hourly_points == 1.0))
+            List
+            |> Enum.filter(&(&1.title == "Tasks"))
+            |> Enum.filter(&(&1.hourly_points == 1.0))
           end
         end
 
@@ -433,7 +435,7 @@ defmodule Dx.Defd.ScopeTest do
               Enum.filter(
                 List,
                 fn list ->
-                  Enum.count(Enum.filter(list.tasks, &(&1.title == "TODO"))) ==
+                  list.tasks |> Enum.filter(&(&1.title == "TODO")) |> Enum.count() ==
                     task_count
                 end
               )
