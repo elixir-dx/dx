@@ -76,8 +76,8 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets: inherit
     with:
-      elixir_version: 1.13.2
-      otp_version: 24.1.7
+      elixir_version: 1.14.4
+      otp_version: 25.2.3
 
   release:
     name: Release
@@ -86,5 +86,5 @@ jobs:
     uses: ./.github/workflows/publish-release.yml
     secrets: inherit
     with:
-      elixir_version: 1.13.2
-      otp_version: 24.1.7
+      elixir_version: 1.14.4
+      otp_version: 25.2.3
