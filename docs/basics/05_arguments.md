@@ -2,7 +2,7 @@
 
 To pass in data from the caller context and make it available in the rules, there's the `args` option.
 Any `args` passed to the `Dx` API function will be available in rules as if `args` was
-an association on the current current root record.
+an association on the current root record.
 
 Say we implement some authorization, where a user can archive a `Todo.List` only if they are an admin, or they are the owner of the list.
 We pass in the currently logged-in user struct, which was already loaded as part of authentication.

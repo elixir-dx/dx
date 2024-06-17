@@ -1,9 +1,10 @@
 defmodule Dx.Evaluation do
-  @moduledoc """
-  Represents an evaluation run in `Dx.Engine` according to the
-  [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
-  in Elixir.
-  """
+  # Represents an evaluation run in `Dx.Engine` according to the
+  # [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
+  # in Elixir.
+
+  @moduledoc false
+
   use TypedStruct
 
   typedstruct do
@@ -17,6 +18,7 @@ defmodule Dx.Evaluation do
 
     # Options
     field(:loader, module(), default: Dx.Loaders.Dataloader)
+    field(:loader_options, Keyword.t(), default: [])
     field(:args, map(), default: %{})
     field(:debug?, boolean(), default: false)
     field(:extra_rules, list(module()), default: [])
@@ -27,7 +29,7 @@ defmodule Dx.Evaluation do
     %__MODULE__{}
     |> add_options(opts)
     |> case do
-      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init())
+      %{cache: nil} = eval -> Map.put(eval, :cache, eval.loader.init(eval.loader_options))
       other -> other
     end
   end
@@ -38,7 +40,7 @@ defmodule Dx.Evaluation do
       {:debug, debug}, eval -> %{eval | debug?: debug}
       {:return_cache, return_cache}, eval -> %{eval | return_cache?: return_cache}
       {:args, args}, eval -> %{eval | args: Map.new(args)}
-      {key, val}, eval -> Map.replace!(eval, key, val)
+      {key, val}, eval -> %{eval | key => val}
     end)
   end
 
@@ -76,6 +78,9 @@ defmodule Dx.Evaluation do
 
       {{:ok, result}, true} ->
         load_all_data_reqs(%{eval | finalize?: false}, &Dx.Defd.Runtime.finalize(result, &1))
+
+      {{:error, :timeout}, _} ->
+        {:error, %Dx.Error.Timeout{configured_timeout: eval.loader_options[:timeout]}}
 
       {other, _} ->
         other

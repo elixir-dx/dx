@@ -1,7 +1,7 @@
 defmodule Dx.Util.Map do
-  @moduledoc """
-  Utility functions for working with `Map` data structures.
-  """
+  # Utility functions for working with `Map` data structures.
+
+  @moduledoc false
 
   def do_get_in(term, []), do: term
 

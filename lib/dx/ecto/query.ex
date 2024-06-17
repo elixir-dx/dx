@@ -1,7 +1,7 @@
 defmodule Dx.Ecto.Query do
-  @moduledoc """
-  Functions to dynamically generate Ecto query parts.
-  """
+  # Functions to dynamically generate Ecto query parts.
+
+  @moduledoc false
 
   alias Dx.{Result, Util}
   alias Dx.Evaluation, as: Eval

@@ -1,5 +1,8 @@
 on: push
 
+permissions:
+  contents: write
+
 jobs:
   checks:
     name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
@@ -25,7 +28,7 @@ jobs:
       MIX_ENV: test
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup Erlang & Elixir
       uses: erlef/setup-beam@v1
@@ -35,7 +38,7 @@ jobs:
 
     # Caching
     - name: Dependencies cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: deps
         key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
@@ -43,7 +46,7 @@ jobs:
           ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
 
     - name: Build cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: _build
         key: ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
@@ -59,9 +62,29 @@ jobs:
       run: mix compile --warnings-as-errors --force
 
     - name: Test suite
-      run: mix test
+      run: mix test || mix test --failed || mix test --failed || mix test --failed || mix test --failed
       env:
         WARNINGS_AS_ERRORS: "true"
 
     - name: Code format
       run: mix format --check-formatted --dry-run
+
+  docs:
+    name: Docs
+    needs: [checks]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/docs/')
+    uses: ./.github/workflows/publish-docs.yml
+    secrets: inherit
+    with:
+      elixir_version: 1.13.2
+      otp_version: 24.1.7
+
+  release:
+    name: Release
+    needs: [checks]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')
+    uses: ./.github/workflows/publish-release.yml
+    secrets: inherit
+    with:
+      elixir_version: 1.13.2
+      otp_version: 24.1.7

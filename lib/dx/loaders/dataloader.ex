@@ -1,6 +1,13 @@
 defmodule Dx.Loaders.Dataloader do
   @moduledoc """
   Uses `Dataloader` to load missing data incrementally.
+
+  ## Supported options
+
+  These options are passed to `Dataloader.Ecto.new/2`:
+
+  - `timeout` - Timeout in milliseconds for `Dataloader` to wait for all data to be loaded. Defaults to 15_000.
+  - `repo_options` - Options passed to the `Ecto.Repo` when loading data. Defaults to `[]`.
   """
 
   alias Dx.Ecto.Query.Batches
@@ -161,18 +168,22 @@ defmodule Dx.Loaders.Dataloader do
   defp where(opts, []), do: opts
   defp where(opts, conditions), do: Keyword.put(opts, :where, {:all, conditions})
 
-  def init() do
+  def init(opts \\ []) do
     repo = config(:repo)
 
     source =
       Dataloader.Ecto.new(repo,
-        query: &Dx.Ecto.Query.from_options/2
+        query: &Dx.Ecto.Query.from_options/2,
+        repo_opts: opts[:repo_options] || opts[:repo_opts] || [],
+        timeout: opts[:timeout] || Dataloader.default_timeout()
       )
 
     scope_source =
       Dx.Ecto.DataloaderSource.new(repo,
         query: &Dx.Ecto.Scope.to_query/2,
-        run_batch: &run_batch(config(:repo), &1, &2, &3, &4, &5)
+        run_batch: &run_batch(config(:repo), &1, &2, &3, &4, &5),
+        repo_opts: opts[:repo_options] || opts[:repo_opts] || [],
+        timeout: opts[:timeout] || Dataloader.default_timeout()
       )
 
     loader =

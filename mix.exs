@@ -1,13 +1,12 @@
 defmodule Dx.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/dx-beam/dx"
-  @version "0.3.0"
+  @source_url "https://github.com/elixir-dx/dx"
 
   def project do
     [
       app: :dx,
-      version: @version,
+      version: version(),
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -21,7 +20,7 @@ defmodule Dx.MixProject do
   defp package do
     [
       description: "Inference engine written in Elixir",
-      files: ["lib", "mix.exs", "README*"],
+      files: ["lib", "mix.exs", "README*", "VERSION"],
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
       links: %{
@@ -60,7 +59,7 @@ defmodule Dx.MixProject do
       # dev & test
       {:postgrex, "~> 0.14", only: :test, runtime: false},
       {:timex, "~> 3.6", only: :test, runtime: false},
-      {:refinery, "~> 0.1.0", github: "dx-beam/refinery", only: :test},
+      {:refactory, "~> 0.1.0", only: :test},
       {:stream_data, "~> 0.6", only: [:dev, :test]},
       {:pretty_print_formatter, github: "san650/pretty_print_formatter", only: [:dev, :test]},
       # {:pretty_print_formatter, "~> 0.1.0", only: [:dev, :test]},
@@ -71,14 +70,13 @@ defmodule Dx.MixProject do
   def docs do
     [
       extra_section: "Guides",
-      api_reference: false,
       extras: Path.wildcard("docs/**/*.md"),
       groups_for_extras: [
         Basics: Path.wildcard("docs/basics/*.md")
       ],
-      main: "welcome",
+      main: "Dx",
       source_url: @source_url,
-      source_ref: "v#{@version}"
+      source_ref: "v#{version()}"
     ]
   end
 
@@ -88,5 +86,11 @@ defmodule Dx.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.reset", "test"]
     ]
+  end
+
+  defp version do
+    "VERSION"
+    |> File.read!()
+    |> String.trim()
   end
 end

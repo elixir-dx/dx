@@ -1,7 +1,7 @@
 defmodule Dx.Util.Enum do
-  @moduledoc """
-  Utility functions for working with `Enum` data structures.
-  """
+  # Utility functions for working with `Enum` data structures.
+
+  @moduledoc false
 
   def zip(enum1, enum2, fun, reverse_result \\ [])
 

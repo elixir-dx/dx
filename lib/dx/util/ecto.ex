@@ -1,9 +1,9 @@
 defmodule Dx.Util.Ecto do
-  @moduledoc """
-  Utility functions to inspect Ecto schemas.
+  # Utility functions to inspect Ecto schemas.
+  #
+  # See: https://hexdocs.pm/ecto/Ecto.Schema.html#module-reflection
 
-  See: https://hexdocs.pm/ecto/Ecto.Schema.html#module-reflection
-  """
+  @moduledoc false
 
   def association_names(module) do
     module.__schema__(:associations)
