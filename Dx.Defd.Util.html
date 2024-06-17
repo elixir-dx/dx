@@ -8,7 +8,7 @@
     <meta name="project" content="dx v0.3.1">
 
 
-    <title>Dx.Rules — dx v0.3.1</title>
+    <title>Dx.Defd.Util — dx v0.3.1</title>
     <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
 
@@ -113,19 +113,19 @@ Guides
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">Dx.Rules</span> 
+    <span translate="no">Dx.Defd.Util</span> 
     <small class="app-vsn" translate="no">(dx v0.3.1)</small>
 
   </h1>
 
 
     <section id="moduledoc">
-<p>Used to define dedicated rules modules. See <a href="Dx.html"><code class="inline">Dx</code></a> for usage.</p>
+<p>Utility functions used in multiple Defd-related modules.</p>
     </section>
 
 </div>
@@ -144,17 +144,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#field_group/1" data-no-tooltip translate="no">field_group(opts)</a>
-
-      </div>
-
-        <div class="summary-synopsis"><p>Alias for <a href="#predicate_group/1"><code class="inline">predicate_group/1</code></a>.</p></div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#import_rules/2" data-no-tooltip translate="no">import_rules(mod, opts \\ [])</a>
+        <a href="#defd_name/1" data-no-tooltip translate="no">defd_name(name)</a>
 
       </div>
 
@@ -162,7 +152,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer/1" data-no-tooltip translate="no">infer(opts)</a>
+        <a href="#fetch/3" data-no-tooltip translate="no">fetch(subject, data_reqs, eval)</a>
 
       </div>
 
@@ -170,7 +160,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer/2" data-no-tooltip translate="no">infer(then, opts)</a>
+        <a href="#fetch/4" data-no-tooltip translate="no">fetch(map, val, key, eval)</a>
 
       </div>
 
@@ -178,7 +168,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer_alias/1" data-no-tooltip translate="no">infer_alias(opts)</a>
+        <a href="#final_args_name/1" data-no-tooltip translate="no">final_args_name(name)</a>
 
       </div>
 
@@ -186,7 +176,39 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#predicate_group/1" data-no-tooltip translate="no">predicate_group(opts)</a>
+        <a href="#has_function?/3" data-no-tooltip translate="no">has_function?(module, fun_name, arity)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#is_defd?/3" data-no-tooltip translate="no">is_defd?(module, fun_name, arity)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#is_scopable?/3" data-no-tooltip translate="no">is_scopable?(module, fun_name, arity)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#maybe_call_defd/4" data-no-tooltip translate="no">maybe_call_defd(module, fun_name, args, eval)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#scope_name/1" data-no-tooltip translate="no">scope_name(name)</a>
 
       </div>
 
@@ -205,48 +227,20 @@ Guides
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="field_group/1">
+<section class="detail" id="defd_name/1">
 
   <div class="detail-header">
-    <a href="#field_group/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#defd_name/1" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
+      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">field_group(opts)</h1>
+    <h1 class="signature" translate="no">defd_name(name)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L107" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L10" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
 
-
-      <span class="note">(macro)</span>
-
-  </div>
-
-  <section class="docstring">
-
-<p>Alias for <a href="#predicate_group/1"><code class="inline">predicate_group/1</code></a>.</p>
-  </section>
-</section>
-<section class="detail" id="import_rules/2">
-
-    <span id="import_rules/1"></span>
-
-  <div class="detail-header">
-    <a href="#import_rules/2" class="detail-link" data-no-tooltip title="Link to this macro">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
-    </a>
-    <h1 class="signature" translate="no">import_rules(mod, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L116" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-      <span class="note">(macro)</span>
 
   </div>
 
@@ -255,22 +249,20 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer/1">
+<section class="detail" id="fetch/3">
 
   <div class="detail-header">
-    <a href="#infer/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#fetch/3" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
+      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">infer(opts)</h1>
+    <h1 class="signature" translate="no">fetch(subject, data_reqs, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L88" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L69" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
 
-
-      <span class="note">(macro)</span>
 
   </div>
 
@@ -279,22 +271,20 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer/2">
+<section class="detail" id="fetch/4">
 
   <div class="detail-header">
-    <a href="#infer/2" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#fetch/4" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
+      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">infer(then, opts)</h1>
+    <h1 class="signature" translate="no">fetch(map, val, key, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L82" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L107" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
 
-
-      <span class="note">(macro)</span>
 
   </div>
 
@@ -303,22 +293,20 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer_alias/1">
+<section class="detail" id="final_args_name/1">
 
   <div class="detail-header">
-    <a href="#infer_alias/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#final_args_name/1" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
+      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">infer_alias(opts)</h1>
+    <h1 class="signature" translate="no">final_args_name(name)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L94" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L11" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
 
-
-      <span class="note">(macro)</span>
 
   </div>
 
@@ -327,22 +315,108 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="predicate_group/1">
+<section class="detail" id="has_function?/3">
 
   <div class="detail-header">
-    <a href="#predicate_group/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#has_function?/3" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
+      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">predicate_group(opts)</h1>
+    <h1 class="signature" translate="no">has_function?(module, fun_name, arity)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L100" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L55" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
 
 
-      <span class="note">(macro)</span>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="is_defd?/3">
+
+  <div class="detail-header">
+    <a href="#is_defd?/3" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">is_defd?(module, fun_name, arity)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L31" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="is_scopable?/3">
+
+  <div class="detail-header">
+    <a href="#is_scopable?/3" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">is_scopable?(module, fun_name, arity)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L26" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="maybe_call_defd/4">
+
+  <div class="detail-header">
+    <a href="#maybe_call_defd/4" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">maybe_call_defd(module, fun_name, args, eval)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L14" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="scope_name/1">
+
+  <div class="detail-header">
+    <a href="#scope_name/1" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">scope_name(name)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/util.ex#L12" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
 
   </div>
 

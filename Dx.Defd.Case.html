@@ -8,7 +8,7 @@
     <meta name="project" content="dx v0.3.1">
 
 
-    <title>Dx.Error.Generic — dx v0.3.1</title>
+    <title>Dx.Defd.Case — dx v0.3.1</title>
     <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
 
@@ -20,7 +20,7 @@
 
 
   </head>
-  <body data-type="modules" class="page-exception">
+  <body data-type="modules" class="page-module">
     <script>
 
       try {
@@ -113,12 +113,12 @@ Guides
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/error/generic.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/case.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">Dx.Error.Generic</span> <small>exception</small>
+    <span translate="no">Dx.Defd.Case</span> 
     <small class="app-vsn" translate="no">(dx v0.3.1)</small>
 
   </h1>
@@ -140,11 +140,33 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#message/1" data-no-tooltip translate="no">message(error)</a>
+        <a href="#normalize/2" data-no-tooltip translate="no">normalize(arg, state)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Callback implementation for <a href="https://hexdocs.pm/elixir/Exception.html#c:message/1"><code class="inline">Exception.message/1</code></a>.</p></div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#normalize_clause/2" data-no-tooltip translate="no">normalize_clause(arg, state)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#normalize_clauses/2" data-no-tooltip translate="no">normalize_clauses(clauses, state)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#quoted_data_req/1" data-no-tooltip translate="no">quoted_data_req(list)</a>
+
+      </div>
 
     </div>
 
@@ -161,16 +183,16 @@ Guides
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="message/1">
+<section class="detail" id="normalize/2">
 
   <div class="detail-header">
-    <a href="#message/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#normalize/2" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">message(error)</h1>
+    <h1 class="signature" translate="no">normalize(arg, state)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/error/generic.ex#L4" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/case.ex#L5" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -180,7 +202,73 @@ Guides
 
   <section class="docstring">
 
-<p>Callback implementation for <a href="https://hexdocs.pm/elixir/Exception.html#c:message/1"><code class="inline">Exception.message/1</code></a>.</p>
+
+  </section>
+</section>
+<section class="detail" id="normalize_clause/2">
+
+  <div class="detail-header">
+    <a href="#normalize_clause/2" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">normalize_clause(arg, state)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/case.ex#L62" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="normalize_clauses/2">
+
+  <div class="detail-header">
+    <a href="#normalize_clauses/2" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">normalize_clauses(clauses, state)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/case.ex#L58" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="quoted_data_req/1">
+
+  <div class="detail-header">
+    <a href="#quoted_data_req/1" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">quoted_data_req(list)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/case.ex#L83" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
   </section>
 </section>
 

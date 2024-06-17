@@ -8,7 +8,7 @@
     <meta name="project" content="dx v0.3.1">
 
 
-    <title>Dx.Rules — dx v0.3.1</title>
+    <title>Dx.Defd — dx v0.3.1</title>
     <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
 
@@ -113,20 +113,16 @@ Guides
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">Dx.Rules</span> 
+    <span translate="no">Dx.Defd</span> 
     <small class="app-vsn" translate="no">(dx v0.3.1)</small>
 
   </h1>
 
-
-    <section id="moduledoc">
-<p>Used to define dedicated rules modules. See <a href="Dx.html"><code class="inline">Dx</code></a> for usage.</p>
-    </section>
 
 </div>
 
@@ -144,17 +140,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#field_group/1" data-no-tooltip translate="no">field_group(opts)</a>
-
-      </div>
-
-        <div class="summary-synopsis"><p>Alias for <a href="#predicate_group/1"><code class="inline">predicate_group/1</code></a>.</p></div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#import_rules/2" data-no-tooltip translate="no">import_rules(mod, opts \\ [])</a>
+        <a href="#defd/1" data-no-tooltip translate="no">defd(call)</a>
 
       </div>
 
@@ -162,7 +148,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer/1" data-no-tooltip translate="no">infer(opts)</a>
+        <a href="#defd/2" data-no-tooltip translate="no">defd(call, list)</a>
 
       </div>
 
@@ -170,7 +156,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer/2" data-no-tooltip translate="no">infer(then, opts)</a>
+        <a href="#get/2" data-no-tooltip translate="no">get(call, opts \\ [])</a>
 
       </div>
 
@@ -178,7 +164,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#infer_alias/1" data-no-tooltip translate="no">infer_alias(opts)</a>
+        <a href="#get!/2" data-no-tooltip translate="no">get!(call, opts \\ [])</a>
 
       </div>
 
@@ -186,9 +172,28 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#predicate_group/1" data-no-tooltip translate="no">predicate_group(opts)</a>
+        <a href="#load/2" data-no-tooltip translate="no">load(call, opts \\ [])</a>
 
       </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#load!/2" data-no-tooltip translate="no">load!(call, opts \\ [])</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#non_dx/1" data-no-tooltip translate="no">non_dx(code)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Used to wrap calls to non-Dx defined functions.
+It doesn't run any code, but makes these calls explicit and mutes Dx compiler warnings.</p></div>
 
     </div>
 
@@ -205,42 +210,16 @@ Guides
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="field_group/1">
+<section class="detail" id="defd/1">
 
   <div class="detail-header">
-    <a href="#field_group/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#defd/1" class="detail-link" data-no-tooltip title="Link to this macro">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this macro</span>
     </a>
-    <h1 class="signature" translate="no">field_group(opts)</h1>
+    <h1 class="signature" translate="no">defd(call)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L107" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-      <span class="note">(macro)</span>
-
-  </div>
-
-  <section class="docstring">
-
-<p>Alias for <a href="#predicate_group/1"><code class="inline">predicate_group/1</code></a>.</p>
-  </section>
-</section>
-<section class="detail" id="import_rules/2">
-
-    <span id="import_rules/1"></span>
-
-  <div class="detail-header">
-    <a href="#import_rules/2" class="detail-link" data-no-tooltip title="Link to this macro">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
-    </a>
-    <h1 class="signature" translate="no">import_rules(mod, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L116" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L58" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -255,16 +234,16 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer/1">
+<section class="detail" id="defd/2">
 
   <div class="detail-header">
-    <a href="#infer/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#defd/2" class="detail-link" data-no-tooltip title="Link to this macro">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this macro</span>
     </a>
-    <h1 class="signature" translate="no">infer(opts)</h1>
+    <h1 class="signature" translate="no">defd(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L88" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L62" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -279,16 +258,18 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer/2">
+<section class="detail" id="get/2">
+
+    <span id="get/1"></span>
 
   <div class="detail-header">
-    <a href="#infer/2" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#get/2" class="detail-link" data-no-tooltip title="Link to this macro">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this macro</span>
     </a>
-    <h1 class="signature" translate="no">infer(then, opts)</h1>
+    <h1 class="signature" translate="no">get(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L82" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L27" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -303,16 +284,18 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="infer_alias/1">
+<section class="detail" id="get!/2">
+
+    <span id="get!/1"></span>
 
   <div class="detail-header">
-    <a href="#infer_alias/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#get!/2" class="detail-link" data-no-tooltip title="Link to this macro">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this macro</span>
     </a>
-    <h1 class="signature" translate="no">infer_alias(opts)</h1>
+    <h1 class="signature" translate="no">get!(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L94" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L37" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -327,16 +310,18 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="predicate_group/1">
+<section class="detail" id="load/2">
+
+    <span id="load/1"></span>
 
   <div class="detail-header">
-    <a href="#predicate_group/1" class="detail-link" data-no-tooltip title="Link to this macro">
+    <a href="#load/2" class="detail-link" data-no-tooltip title="Link to this macro">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this macro</span>
     </a>
-    <h1 class="signature" translate="no">predicate_group(opts)</h1>
+    <h1 class="signature" translate="no">load(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/rules.ex#L100" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L7" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -349,6 +334,55 @@ Guides
   <section class="docstring">
 
 
+  </section>
+</section>
+<section class="detail" id="load!/2">
+
+    <span id="load!/1"></span>
+
+  <div class="detail-header">
+    <a href="#load!/2" class="detail-link" data-no-tooltip title="Link to this macro">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this macro</span>
+    </a>
+    <h1 class="signature" translate="no">load!(call, opts \\ [])</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L17" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+      <span class="note">(macro)</span>
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="non_dx/1">
+
+  <div class="detail-header">
+    <a href="#non_dx/1" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">non_dx(code)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd.ex#L70" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+<p>Used to wrap calls to non-Dx defined functions.
+It doesn't run any code, but makes these calls explicit and mutes Dx compiler warnings.</p>
   </section>
 </section>
 

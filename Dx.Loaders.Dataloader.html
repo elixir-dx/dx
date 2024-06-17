@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-C3C0A9B0.js"></script>
+    <script src="dist/sidebar_items-B9655520.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-BHYOTRCH.js"></script>
 
@@ -166,7 +166,7 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#load/2" data-no-tooltip translate="no">load(cache, data_reqs)</a>
+        <a href="#load/2" data-no-tooltip translate="no">load(arg, data_reqs)</a>
 
       </div>
 
@@ -174,7 +174,15 @@ Guides
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#lookup/2" data-no-tooltip translate="no">lookup(cache, data_req)</a>
+        <a href="#lookup/3" data-no-tooltip translate="no">lookup(cache, data_req, third_elem \\ true)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#run_batch/6" data-no-tooltip translate="no">run_batch(repo, queryable, arg, col, inputs, repo_opts)</a>
 
       </div>
 
@@ -202,7 +210,7 @@ Guides
     </a>
     <h1 class="signature" translate="no">config(atom)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L81" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L249" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -226,7 +234,7 @@ Guides
     </a>
     <h1 class="signature" translate="no">init(opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L59" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L171" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -246,9 +254,9 @@ Guides
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">load(cache, data_reqs)</h1>
+    <h1 class="signature" translate="no">load(arg, data_reqs)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L74" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L197" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -261,16 +269,40 @@ Guides
 
   </section>
 </section>
-<section class="detail" id="lookup/2">
+<section class="detail" id="lookup/3">
+
+    <span id="lookup/2"></span>
 
   <div class="detail-header">
-    <a href="#lookup/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#lookup/3" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">lookup(cache, data_req)</h1>
+    <h1 class="signature" translate="no">lookup(cache, data_req, third_elem \\ true)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L21" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L22" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="run_batch/6">
+
+  <div class="detail-header">
+    <a href="#run_batch/6" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">run_batch(repo, queryable, arg, col, inputs, repo_opts)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/loaders/dataloader.ex#L254" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

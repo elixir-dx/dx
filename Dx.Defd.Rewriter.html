@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="project" content="dx v0.3.1">
+
+
+    <title>Dx.Defd.Rewriter — dx v0.3.1</title>
+    <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
+    <script src="dist/sidebar_items-B9655520.js"></script>
+    <script src="docs_config.js"></script>
+    <script async src="dist/html-BHYOTRCH.js"></script>
+
+
+  </head>
+  <body data-type="modules" class="page-module">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="Dx.html" class="sidebar-projectName" translate="no">
+dx
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.3.1
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
+      <li>
+        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
+Guides
+        </button>
+      </li>
+
+        <li>
+          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
+            Modules
+          </button>
+        </li>
+
+
+    </ul>
+  </div>
+
+  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
+    <ul id="extras-full-list" class="full-list"></ul>
+  </div>
+
+    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
+      <ul id="modules-full-list" class="full-list"></ul>
+    </div>
+
+
+</nav>
+
+<main class="content">
+  <output role="status" id="toast"></output>
+
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of dx</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.1/lib/dx/defd/rewriter.ex#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+    <span translate="no">Dx.Defd.Rewriter</span> 
+    <small class="app-vsn" translate="no">(dx v0.3.1)</small>
+
+  </h1>
+
+
+    <section id="moduledoc">
+<p>Used to define modules as replacements for specific other modules
+within functions defined with defd.</p><h2 id="module-examples" class="section-heading">
+  <a href="#module-examples" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Examples</span>
+</h2>
+<h3 id="module-overriding-specific-functions" class="section-heading">
+  <a href="#module-overriding-specific-functions" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Overriding specific functions</span>
+</h3>
+<p>Every function defined using <code class="inline">defd</code> or <code class="inline">defd_</code> will act as a
+replacement for a function with the same name and arity called
+in a function defined with defd.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Enum</span><span class="w"> </span><span class="k" data-group-id="0931892803-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="w">
+
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">load_if</span><span class="p" data-group-id="0931892803-2">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">load?</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="0931892803-2">)</span><span class="w"> </span><span class="k" data-group-id="0931892803-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">load?</span><span class="w"> </span><span class="k" data-group-id="0931892803-4">do</span><span class="w">
+      </span><span class="k">if</span><span class="w"> </span><span class="nc">Ecto</span><span class="o">.</span><span class="n">assoc_loaded?</span><span class="p" data-group-id="0931892803-5">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="0931892803-5">)</span><span class="w"> </span><span class="k" data-group-id="0931892803-6">do</span><span class="w">
+        </span><span class="p" data-group-id="0931892803-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="nc">Map</span><span class="o">.</span><span class="n">get</span><span class="p" data-group-id="0931892803-8">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="0931892803-8">)</span><span class="p" data-group-id="0931892803-7">}</span><span class="w">
+      </span><span class="k" data-group-id="0931892803-6">else</span><span class="w">
+        </span><span class="p" data-group-id="0931892803-9">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0931892803-10">{</span><span class="ss">:assoc</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="0931892803-10">}</span><span class="p" data-group-id="0931892803-9">}</span><span class="w">
+      </span><span class="k" data-group-id="0931892803-6">end</span><span class="w">
+    </span><span class="k" data-group-id="0931892803-4">else</span><span class="w">
+      </span><span class="p" data-group-id="0931892803-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p" data-group-id="0931892803-11">}</span><span class="w">
+    </span><span class="k" data-group-id="0931892803-4">end</span><span class="w">
+  </span><span class="k" data-group-id="0931892803-3">end</span><span class="w">
+</span><span class="k" data-group-id="0931892803-1">end</span></code></pre><h3 id="module-delegating-some-or-all-functions" class="section-heading">
+  <a href="#module-delegating-some-or-all-functions" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Delegating some or all functions</span>
+</h3>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Timex</span><span class="w"> </span><span class="k" data-group-id="7068829530-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="p">,</span><span class="w">
+    </span><span class="ss">delegate_to</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7068829530-2">[</span><span class="w">
+      </span><span class="nc">DateTime</span><span class="p">,</span><span class="w">
+      </span><span class="p" data-group-id="7068829530-3">{</span><span class="nc">Timex</span><span class="p">,</span><span class="w"> </span><span class="ss">except</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7068829530-4">[</span><span class="ss">inspect</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="7068829530-4">]</span><span class="p" data-group-id="7068829530-3">}</span><span class="w">
+    </span><span class="p" data-group-id="7068829530-2">]</span><span class="w">
+</span><span class="k" data-group-id="7068829530-1">end</span></code></pre><h3 id="module-delegating-specific-functions" class="section-heading">
+  <a href="#module-delegating-specific-functions" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Delegating specific functions</span>
+</h3>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Phoenix</span><span class="w"> </span><span class="k" data-group-id="2149300936-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="w">
+
+  </span><span class="n">defdelegated_call</span><span class="w"> </span><span class="n">render</span><span class="p" data-group-id="2149300936-2">(</span><span class="n">template</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="2149300936-2">)</span><span class="p">,</span><span class="w"> </span><span class="ss">to</span><span class="p">:</span><span class="w">
+</span><span class="k" data-group-id="2149300936-1">end</span></code></pre>
+    </section>
+
+</div>
+
+
+    <footer class="footer">
+      <p>
+
+          <span class="line">
+            <a href="https://hex.pm/packages/dx/0.3.1" class="footer-hex-package">Hex Package</a>
+
+            <a href="https://preview.hex.pm/preview/dx/0.3.1">Hex Preview</a>
+
+          </span>
+
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
+
+            <a href="dx.epub" title="ePub version">
+              Download ePub version
+            </a>
+
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+      </p>
+
+    </footer>
+  </div>
+</main>
+</div>
+
+
+  </body>
+</html>
