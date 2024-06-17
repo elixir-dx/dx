@@ -372,7 +372,7 @@ defmodule Dx.Defd.Ast do
     asty = {{:., [line: line], [ast, key]}, [no_parens: true, line: line], []}
 
     quote line: line do
-      Dx.Defd.Util.fetch(unquote(ast), unquote(asty), unquote(key), unquote(eval))
+      Dx.Defd.Runtime.fetch(unquote(ast), unquote(asty), unquote(key), unquote(eval))
     end
   end
 
@@ -384,8 +384,8 @@ defmodule Dx.Defd.Ast do
      [
        {:=, [], [var, ast]},
        {{:., [line: line],
-         [{:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Util]}, :fetch]}, [line: line],
-        [var, asty, key, eval]}
+         [{:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Runtime]}, :fetch]},
+        [line: line], [var, asty, key, eval]}
      ]}
   end
 
@@ -396,7 +396,7 @@ defmodule Dx.Defd.Ast do
     quote line: line do
       case unquote(ast) do
         {:ok, unquote(var)} ->
-          Dx.Defd.Util.fetch(unquote(var), unquote(asty), unquote(key), unquote(eval))
+          Dx.Defd.Runtime.fetch(unquote(var), unquote(asty), unquote(key), unquote(eval))
 
         other ->
           other

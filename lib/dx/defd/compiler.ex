@@ -585,7 +585,7 @@ defmodule Dx.Defd.Compiler do
       not is_atom(module) ->
         normalize_call_args(args, state, fn args ->
           quote do
-            Dx.Defd.Util.maybe_call_defd(
+            Dx.Defd.Runtime.maybe_call_defd(
               unquote(module),
               unquote(fun_name),
               unquote(args),
@@ -823,7 +823,7 @@ defmodule Dx.Defd.Compiler do
 
               {{:ok, var}, state} =
                 quote do
-                  Dx.Defd.Util.fetch(
+                  Dx.Defd.Runtime.fetch(
                     unquote(subject),
                     unquote(Macro.escape(data_req)),
                     unquote(state.eval_var)
