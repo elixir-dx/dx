@@ -30,7 +30,7 @@ defmodule Dx.Defd.Case do
         case_ast = {:case, meta, [subject_var, [do: clauses]]}
 
         quote do
-          case Dx.Defd.Util.fetch(
+          case Dx.Defd.Runtime.fetch(
                  unquote(subject),
                  unquote(Macro.escape(data_req)),
                  unquote(state.eval_var)

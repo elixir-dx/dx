@@ -19,7 +19,7 @@ defmodule Dx.Defd.Block do
     else
       loader_ast =
         quote do
-          Dx.Defd.Util.fetch(
+          Dx.Defd.Runtime.fetch(
             unquote(right),
             unquote(Macro.escape(data_req)),
             unquote(state.eval_var)
