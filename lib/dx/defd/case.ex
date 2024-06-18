@@ -61,7 +61,7 @@ defmodule Dx.Defd.Case do
 
   def normalize_clause({:->, meta, [[pattern], ast]}, state) do
     {ast, state} =
-      Ast.with_args(pattern, state, fn state ->
+      Ast.with_root_args(pattern, state, fn state ->
         Compiler.normalize(ast, state)
       end)
 

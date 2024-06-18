@@ -3,6 +3,13 @@ defmodule Dx.Defd.Block do
   alias Dx.Defd.Compiler
   alias Dx.Util
 
+  def normalize({:__block__, meta, lines}, state) do
+    case normalize_block_body(lines, state) do
+      {[ast], state} -> {ast, state}
+      {lines, state} -> {{:__block__, meta, lines}, state}
+    end
+  end
+
   def normalize({:=, meta, [pattern, right]}, state) do
     {right, state} = Compiler.normalize(right, state)
     right = Ast.unwrap(right)
@@ -17,7 +24,7 @@ defmodule Dx.Defd.Block do
 
       {ast, state}
     else
-      loader_ast =
+      {{:ok, var}, state} =
         quote do
           Dx.Defd.Runtime.fetch(
             unquote(right),
@@ -25,24 +32,16 @@ defmodule Dx.Defd.Block do
             unquote(state.eval_var)
           )
         end
+        |> Compiler.add_loader(state)
 
-      state =
-        Map.update!(state, :data_reqs, fn data_reqs ->
-          Map.put_new(data_reqs, loader_ast, Macro.unique_var(:data, __MODULE__))
-        end)
-
-      var = state.data_reqs[loader_ast]
       ast = {:ok, {:=, meta, [pattern, var]}}
 
       {ast, state}
     end
   end
 
-  def normalize({:__block__, meta, lines}, state) do
-    case normalize_block_body(lines, state) do
-      {[ast], state} -> {ast, state}
-      {lines, state} -> {{:__block__, meta, lines}, state}
-    end
+  def normalize(ast, state) do
+    Compiler.normalize(ast, state)
   end
 
   defp normalize_block_body([], state) do
@@ -50,13 +49,13 @@ defmodule Dx.Defd.Block do
   end
 
   defp normalize_block_body([ast], state) do
-    {ast, new_state} = Compiler.normalize(ast, state)
+    {ast, new_state} = normalize(ast, state)
 
     {[ast], new_state}
   end
 
   defp normalize_block_body([ast | rest], state) do
-    {ast, new_state} = Compiler.normalize(ast, state)
+    {ast, new_state} = normalize(ast, state)
 
     # remove {:ok, ...} for every line that's not the last in the block
     ast = maybe_unwrap(ast)

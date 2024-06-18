@@ -408,8 +408,30 @@ defmodule Dx.Defd.Compiler do
     Dx.Defd.Block.normalize(ast, state)
   end
 
-  def normalize({:=, _meta, [_pattern, _right]} = ast, state) do
-    Dx.Defd.Block.normalize(ast, state)
+  def normalize({:=, meta, [pattern, right]}, state) do
+    {right, state} = normalize(right, state)
+    right = Ast.unwrap(right)
+
+    state = Map.update!(state, :args, &Ast.collect_vars(pattern, &1))
+    data_req = Dx.Defd.Case.quoted_data_req(pattern)
+
+    if data_req == %{} do
+      {:ok, {:=, meta, [pattern, right]}}
+      |> with_state(state)
+    else
+      {{:ok, var}, state} =
+        quote do
+          Dx.Defd.Runtime.fetch(
+            unquote(right),
+            unquote(Macro.escape(data_req)),
+            unquote(state.eval_var)
+          )
+        end
+        |> add_loader(state)
+
+      {:ok, {:=, meta, [pattern, var]}}
+      |> with_state(state)
+    end
   end
 
   # &local_fun/2

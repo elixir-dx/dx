@@ -290,9 +290,17 @@ defmodule Dx.Defd.Ast do
 
     case fun.(temp_state) do
       {ast, updated_state} ->
+        data_reqs =
+          Enum.reject(updated_state.data_reqs, fn {loader_ast, _data_var} ->
+            Map.has_key?(state.data_reqs, loader_ast)
+          end)
+          |> Map.new()
+
+        updated_state = %{updated_state | data_reqs: data_reqs}
+
         {ast, updated_state} = ensure_all_loaded(ast, updated_state)
 
-        {ast, %{updated_state | args: state.args}}
+        {ast, %{updated_state | args: state.args, data_reqs: state.data_reqs}}
 
       other ->
         IO.inspect(other)
