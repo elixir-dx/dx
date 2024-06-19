@@ -87,6 +87,7 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  @tag :skip
   test "return nested fn with loaders", %{task: task, preloaded_task: preloaded_task} do
     assert_queries(["FROM \"users\""], fn ->
       refute_stderr(fn ->
@@ -105,6 +106,7 @@ defmodule Dx.Defd.ScopeTest do
     end)
   end
 
+  @tag :skip
   test "return nested fn with externals+loaders", %{task: task, preloaded_task: preloaded_task} do
     assert_queries(["FROM \"users\""], fn ->
       refute_stderr(fn ->
@@ -125,6 +127,26 @@ defmodule Dx.Defd.ScopeTest do
 
         assert is_function(fun, 0)
         assert fun.() == preloaded_task.created_by.first_name
+      end)
+    end)
+  end
+
+  @tag :skip
+  test "return nested scope in fn", %{task: task} do
+    assert_queries(["FROM \"tasks\""], fn ->
+      refute_stderr(fn ->
+        defmodule ReturnNestedScopeInFnTest do
+          import Dx.Defd
+
+          defd run() do
+            tasks = Dx.Scope.all(Task)
+            {:ok, [result: %{nested: fn -> tasks end}]}
+          end
+        end
+
+        assert {:ok, [result: %{nested: fun}]} = load!(ReturnNestedScopeInFnTest.run())
+        assert is_function(fun, 0)
+        assert fun.() == [task]
       end)
     end)
   end

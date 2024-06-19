@@ -329,20 +329,6 @@ defmodule Dx.Defd.Ast do
     end
   end
 
-  # merge given args into state.args for calling fun,
-  # then reset state.args to its original value
-  def with_args(args, state, fun) do
-    new_vars = collect_vars(args, %{})
-    temp_state = Map.update!(state, :args, &collect_vars(args, &1))
-
-    case fun.(temp_state) do
-      {ast, updated_state} ->
-        {ast, updated_state} = ensure_vars_loaded(ast, new_vars, updated_state)
-
-        {ast, %{updated_state | args: state.args}}
-    end
-  end
-
   def with_args_no_loaders!(args, state, fun) do
     State.pass_in(state, [args: &collect_vars(args, &1), data_reqs: %{}], fn temp_state ->
       case fun.(temp_state) do

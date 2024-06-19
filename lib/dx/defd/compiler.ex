@@ -699,7 +699,7 @@ defmodule Dx.Defd.Compiler do
         state,
         [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
         fn state ->
-          Ast.with_args(args, state, fn state ->
+          Ast.with_root_args(args, state, fn state ->
             normalize(body, state)
           end)
         end
@@ -712,7 +712,7 @@ defmodule Dx.Defd.Compiler do
       end
 
     {defd_body, new_state} =
-      Ast.with_args(args, state, fn state ->
+      Ast.with_root_args(args, state, fn state ->
         normalize(body, state)
       end)
 
