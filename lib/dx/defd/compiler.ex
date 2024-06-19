@@ -404,6 +404,10 @@ defmodule Dx.Defd.Compiler do
     Dx.Defd.Case.normalize(ast, state)
   end
 
+  def normalize({:cond, _meta, _args} = ast, state) do
+    Dx.Defd.Cond.normalize(ast, state)
+  end
+
   def normalize({:__block__, _meta, _lines} = ast, state) do
     Dx.Defd.Block.normalize(ast, state)
   end

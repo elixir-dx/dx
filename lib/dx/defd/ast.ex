@@ -263,7 +263,7 @@ defmodule Dx.Defd.Ast do
     end
   end
 
-  defp ensure_all_loaded(ast, state) do
+  def ensure_all_loaded(ast, state) do
     data_vars = get_data_vars(state.data_reqs)
 
     state.data_reqs
@@ -282,6 +282,27 @@ defmodule Dx.Defd.Ast do
         # ast = ensure_loaded(ast, local_data_reqs, state)
         ast = ensure_loaded(ast, local_data_reqs)
         {ast, state}
+    end
+  end
+
+  def with_new_loaders_loaded(state, fun) do
+    case fun.(state) do
+      {ast, updated_state} ->
+        data_reqs =
+          Enum.reject(updated_state.data_reqs, fn {loader_ast, _data_var} ->
+            Map.has_key?(state.data_reqs, loader_ast)
+          end)
+          |> Map.new()
+
+        updated_state = %{updated_state | data_reqs: data_reqs}
+
+        {ast, updated_state} = ensure_all_loaded(ast, updated_state)
+
+        {ast, %{updated_state | data_reqs: state.data_reqs}}
+
+      other ->
+        IO.inspect(other)
+        raise CompileError
     end
   end
 
