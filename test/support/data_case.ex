@@ -60,17 +60,42 @@ defmodule Dx.Test.DataCase do
       end
 
       :ok = :telemetry.attach(handler_id, [:dx, :test, :repo, :query], callback, nil)
-      fun.()
-      :telemetry.detach(handler_id)
+
+      result =
+        try do
+          fun.()
+        after
+          :telemetry.detach(handler_id)
+          nil
+        end
 
       queries = receive_queries()
 
-      {_matched, unmatched, remaining} =
+      {matched, unmatched, remaining} =
         Enum.reduce(queries, {[], [], expected_query_parts}, &query_matches_any?/2)
 
-      assert unmatched == []
-      assert remaining == []
+      error_message =
+        [Unmatched: unmatched, Remaining: remaining, Matched: matched]
+        |> Enum.reject(&match?({_label, []}, &1))
+        |> Enum.map_join("\n\n", &format_queries/1)
+
+      assert {unmatched, remaining} == {[], []}, error_message
+
+      result
     end
+
+    defp format_queries({label, queries}) do
+      """
+      #{label} queries:
+
+      #{Enum.map_join(queries, "\n\n", &format_query/1)}
+      """
+    end
+
+    defp format_query(query_parts) when is_list(query_parts),
+      do: Enum.join(query_parts, " ... ")
+
+    defp format_query(query), do: query
 
     defp receive_queries(timeout \\ 0, acc \\ []) do
       receive do

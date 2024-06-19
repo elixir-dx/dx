@@ -41,7 +41,7 @@ defmodule Dx.Ecto.Scope do
   def resolve(%Dx.Scope{} = scope) do
     case resolve(scope.plan, %{}) do
       {plan, _ref, _state} ->
-        scope = %{scope | plan: plan}
+        scope = %{scope | plan: normalize(plan)}
 
         {:ok, scope}
 
@@ -87,10 +87,11 @@ defmodule Dx.Ecto.Scope do
           nil ->
             {{:field, base, field}, ref, refs}
 
-          %{cardinality: :one, queryable: module} ->
+          %{cardinality: :one, queryable: module} = assoc ->
             {ref, refs} = new_ref(module, refs)
 
-            {{:as, ref, module, {:assoc, :one, base, field}}, ref, refs}
+            {{:as, ref, module, {:assoc, :one, assoc.owner_key, assoc.related_key, base, field}},
+             ref, refs}
 
           %{cardinality: :many, queryable: module} = assoc ->
             {ref, refs} = new_ref(module, refs)
@@ -169,6 +170,41 @@ defmodule Dx.Ecto.Scope do
     end
   end
 
+  # NORMALIZE
+  # ---------
+
+  defp normalize({:filter, base, condition}) do
+    {:filter, normalize(base), normalize_condition(condition)}
+  end
+
+  defp normalize(other), do: other
+
+  defp normalize_condition({:all_of, conditions}) do
+    {:all_of, Enum.map(conditions, &normalize_condition/1)}
+  end
+
+  defp normalize_condition({:eq, nil, right}) do
+    {:eq, right, nil}
+    |> normalize_condition()
+  end
+
+  defp normalize_condition(
+         {:eq, {:as, _, type, {:assoc, :one, foreign_key_field, related_key_field, base, _field}},
+          %type{} = struct}
+       ) do
+    {:eq, {:field, base, foreign_key_field}, Map.fetch!(struct, related_key_field)}
+    |> normalize_condition()
+  end
+
+  defp normalize_condition(
+         {:eq, {:as, _, _, {:assoc, :one, foreign_key_field, _, base, _field}}, nil}
+       ) do
+    {:eq, {:field, base, foreign_key_field}, nil}
+    |> normalize_condition()
+  end
+
+  defp normalize_condition(other), do: other
+
   # BUILD
   # -----
   defp build({:as, ref, type, {:queryable, queryable}}, state) do
@@ -184,7 +220,7 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:as, new_ref, type, {:assoc, :one, {:ref, ref}, field}}, state) do
+  defp build({:as, new_ref, type, {:assoc, :one, _, _, {:ref, ref}, field}}, state) do
     state =
       map_query(state, &join(&1, :inner, [{^ref, x}], y in assoc(x, ^field), as: ^new_ref))
       |> Map.put(:alias_types, Map.put(state.alias_types, new_ref, type))
@@ -193,7 +229,7 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:as, new_ref, type, {:assoc, :one, base, field}}, state) do
+  defp build({:as, new_ref, type, {:assoc, :one, _, _, base, field}}, state) do
     {{:ref, ref}, state} = build(base, state)
 
     state =
@@ -275,6 +311,13 @@ defmodule Dx.Ecto.Scope do
     {conditions, state}
   end
 
+  defp build_condition({:eq, left, nil}, _base, state) do
+    {left, state} = build_value(left, state)
+
+    dynamic(is_nil(^left))
+    |> with_state(state)
+  end
+
   defp build_condition({:eq, left, right}, _base, state) do
     {left, state} = build_value(left, state)
     {right, state} = build_value(right, state)
@@ -291,17 +334,6 @@ defmodule Dx.Ecto.Scope do
       other ->
         other
     end
-  end
-
-  defp map_query(%{queries: [query | queries]} = state, fun) do
-    %{state | queries: [Map.update!(query, :query, fun) | queries]}
-  end
-
-  defp map_query(%{queries: [query | queries]} = state, fun, attributes) do
-    %{
-      state
-      | queries: [Map.merge(Map.update!(query, :query, fun), Map.new(attributes)) | queries]
-    }
   end
 
   def run_post_load(results, {:filter, fun, {:ref, :a0}, {:loaded}}, eval) do
@@ -321,6 +353,17 @@ defmodule Dx.Ecto.Scope do
 
   ## Helpers
 
-  @compile {:inline, with_state: 2}
+  @compile {:inline, with_state: 2, map_query: 2, map_query: 3}
   defp with_state(term, state), do: {term, state}
+
+  defp map_query(%{queries: [query | queries]} = state, fun) do
+    %{state | queries: [Map.update!(query, :query, fun) | queries]}
+  end
+
+  defp map_query(%{queries: [query | queries]} = state, fun, attributes) do
+    %{
+      state
+      | queries: [Map.merge(Map.update!(query, :query, fun), Map.new(attributes)) | queries]
+    }
+  end
 end

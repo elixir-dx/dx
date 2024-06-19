@@ -35,6 +35,7 @@ defmodule Dx.Defd.Kernel do
     arity = length(orig_args)
 
     {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+    {args, state} = Compiler.finalize_args(args, state)
 
     ast =
       cond do

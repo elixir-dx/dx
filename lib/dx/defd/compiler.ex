@@ -916,22 +916,25 @@ defmodule Dx.Defd.Compiler do
           normalize(arg, state)
       end)
 
-    {args, new_state} =
-      Enum.map_reduce(args, new_state, fn {:ok, arg}, state ->
-        vars = Map.keys(Ast.collect_vars(arg, %{}))
-
-        if Enum.all?(vars, &Map.has_key?(state.finalized_vars, &1)) do
-          {:ok, arg}
-          |> with_state(state)
-        else
-          quote do
-            Dx.Defd.Runtime.finalize(unquote(arg), unquote(state.eval_var))
-          end
-          |> add_loader(state)
-        end
-      end)
+    {args, new_state} = finalize_args(args, new_state)
 
     do_normalize_call_args(args, new_state, fun)
+  end
+
+  def finalize_args(args, state) do
+    Enum.map_reduce(args, state, fn {:ok, arg}, state ->
+      vars = Map.keys(Ast.collect_vars(arg, %{}))
+
+      if Enum.all?(vars, &Map.has_key?(state.finalized_vars, &1)) do
+        {:ok, arg}
+        |> with_state(state)
+      else
+        quote do
+          Dx.Defd.Runtime.finalize(unquote(arg), unquote(state.eval_var))
+        end
+        |> add_loader(state)
+      end
+    end)
   end
 
   def normalize_call_args(args, state, fun) do

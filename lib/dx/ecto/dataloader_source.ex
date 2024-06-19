@@ -75,7 +75,7 @@ defmodule Dx.Ecto.DataloaderSource do
 
       _ ->
         query
-        |> where([q], field(q, ^col) in ^inputs)
+        |> build_inputs_where(col, inputs)
         |> repo.all(repo_opts)
     end
   end
@@ -84,7 +84,7 @@ defmodule Dx.Ecto.DataloaderSource do
     # Approximate a postgres unnest with a subquery
     inputs_query =
       queryable
-      |> where([q], field(q, ^col) in ^inputs)
+      |> build_inputs_where(col, inputs)
       |> select(^[col])
       |> distinct(true)
 
@@ -103,6 +103,16 @@ defmodule Dx.Ecto.DataloaderSource do
       [] -> results
       # Preloads can't be used in a subquery, using Repo.preload instead
       preloads -> repo.preload(results, preloads, repo_opts)
+    end
+  end
+
+  defp build_inputs_where(queryable, field, values) do
+    case Enum.split_with(values, &is_nil/1) do
+      {[], values} ->
+        where(queryable, [q], field(q, ^field) in ^values)
+
+      {_nil, values} ->
+        where(queryable, [q], is_nil(field(q, ^field)) or field(q, ^field) in ^values)
     end
   end
 
