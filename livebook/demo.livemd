@@ -1,0 +1,262 @@
+<!-- livebook:{"file_entries":[{"name":"dx_demo_task_lists_v1.sqlite","type":"url","url":"https://s3.eu-central-1.amazonaws.com/elixir-dx-demo/dx_demo_task_lists_v1.sqlite"}]} -->
+
+# Dx Demo
+
+```elixir
+Mix.install(
+  [
+    {:dx, github: "dx-beam/dx"},
+    {:kino, "~> 0.11"},
+    {:kino_db, ">= 0.0.0"},
+    {:ecto_dbg, "~> 0.4"},
+    {:ecto_erd, "~> 0.5"},
+    {:ecto_sqlite3, "~> 0.13"}
+  ],
+  config: [dx: [repo: Repo]]
+)
+
+Logger.configure(level: :warning)
+```
+
+## Repo setup
+
+```elixir
+defmodule Repo do
+  use Ecto.Repo,
+    otp_app: :demo,
+    adapter: Ecto.Adapters.SQLite3,
+    database: Kino.FS.file_path("dx_demo_task_lists_v1.sqlite")
+end
+```
+
+```elixir
+defmodule Repo.QueryLogger do
+  require Logger
+
+  def handle_event([:repo, :query], _measurements, metadata, _config) do
+    sql = EctoDbg.inline_params(metadata.query, metadata.params, metadata.repo.__adapter__())
+
+    case SqlFmt.format_query(sql) do
+      {:ok, formatted} -> IO.puts(formatted <> "\n\n")
+      _else -> :ok
+    end
+  end
+end
+
+:telemetry.detach("ecto-queries")
+:ok = :telemetry.attach("ecto-queries", [:repo, :query], &Repo.QueryLogger.handle_event/4, nil)
+```
+
+```elixir
+{:ok, conn} = Kino.start_child({Repo, database: Kino.FS.file_path("dx_demo_task_lists_v1.sqlite")})
+
+Repo.query!("PRAGMA table_list")
+```
+
+## Data schema
+
+````elixir
+defmodule Schema.User do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "users" do
+    field(:email, :string)
+    field(:verified_at, :utc_datetime)
+
+    field(:first_name, :string)
+    field(:last_name, :string)
+
+    has_many(:lists, Schema.List, foreign_key: :created_by_id)
+    belongs_to(:role, Schema.Role)
+  end
+end
+
+defmodule Schema.Role do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "roles" do
+    field(:name, :string)
+
+    has_many(:users, Schema.User)
+  end
+end
+
+defmodule Schema.List do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "lists" do
+    field(:title, :string)
+
+    belongs_to(:created_by, Schema.User)
+    belongs_to(:from_template, Schema.ListTemplate)
+    has_many(:tasks, Schema.Task)
+
+    field(:archived_at, :utc_datetime)
+    field(:hourly_points, :float)
+    timestamps()
+  end
+end
+
+defmodule Schema.ListTemplate do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "list_templates" do
+    field(:title, :string)
+
+    field(:hourly_points, :float)
+
+    has_many(:lists, Schema.List, foreign_key: :from_template_id)
+  end
+end
+
+defmodule Schema.Task do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "tasks" do
+    field(:title, :string)
+    field(:desc, :string)
+
+    belongs_to(:list, Schema.List)
+    belongs_to(:created_by, Schema.User)
+
+    field(:due_on, :date)
+    field(:completed_at, :utc_datetime)
+    field(:archived_at, :utc_datetime)
+    timestamps()
+  end
+end
+
+diagram =
+  [Schema.User, Schema.Role, Schema.List, Schema.ListTemplate, Schema.Task]
+  |> Ecto.ERD.Document.render(".mmd", &Function.identity/1, [])
+
+Kino.Markdown.new("""
+```mermaid
+#{diagram}
+```
+""")
+
+# %KinoEcto.EntityRelationship{schema: Schema.List}
+````
+
+## Dx basics
+
+```elixir
+defmodule Core.Users do
+  import Dx.Defd
+
+  defd get_author_names(tasks) do
+    Enum.map(tasks, & &1.created_by.last_name)
+  end
+end
+
+require Dx.Defd
+
+tasks = Schema.Task |> Repo.all()
+Dx.Defd.load!(Core.Users.get_author_names(tasks))
+```
+
+```elixir
+defmodule Core.Users2 do
+  import Dx.Defd
+
+  defd get_author_names(tasks) do
+    Enum.map(tasks, &author_last_name/1)
+  end
+
+  defd author_last_name(task) do
+    task.created_by.last_name
+  end
+end
+
+Core.Users2.get_author_names(tasks)
+```
+
+## Use case: Authorization
+
+```elixir
+defmodule Core.Authorization do
+  import Dx.Defd
+
+  defd visible_lists(users) when is_list(users) do
+    Enum.map(users, &{&1, visible_lists(&1)})
+  end
+
+  defd visible_lists(user) do
+    if admin?(user) do
+      Dx.Scope.all(Schema.List)
+    else
+      user.lists
+    end
+  end
+
+  defd admin?(user) do
+    user.role.name == "Admin"
+  end
+
+  defd get_an_admin() do
+    Enum.find(Schema.User, &admin?/1)
+  end
+
+  defd get_an_non_admin() do
+    Enum.find(Schema.User, &(not admin?(&1)))
+  end
+end
+
+user = Dx.Defd.load!(Core.Authorization.get_an_non_admin())
+users = Schema.User |> Repo.all()
+Dx.Defd.load!(Core.Authorization.visible_lists(users))
+```
+
+## Use case: Detect dormant users
+
+```elixir
+defmodule Core.User.Filters do
+  import Dx.Defd
+
+  defd dormant_users(min_days_old) do
+    threshold = DateTime.shift(DateTime.utc_now(), day: -min_days_old)
+
+    Schema.User
+    |> Enum.filter(&(Enum.count(&1.lists) == 0))
+    |> Enum.filter(&DateTime.before?(&1.verified_at, threshold))
+  end
+end
+
+require Dx.Defd
+
+Dx.Defd.load!(Core.User.Filters.dormant_users(90))
+```
+
+## Use case: Commands
+
+```elixir
+defmodule Core.Workflow do
+  import Dx.Defd
+
+  defd next_action(user) do
+    cond do
+      not verified?(user) ->
+        :send_verification_reminder
+
+      Enum.count(user.lists) == 0 ->
+        :send_beginner_tutorial
+
+      not Enum.any?(user.lists, fn list -> Enum.any?(list.tasks, &task_completed?/1) end) ->
+        :send_advanced_tutorial
+
+      true ->
+        nil
+    end
+  end
+
+  defd task_completed?(task), do: not is_nil(task.completed_at)
+
+  defd verified?(user), do: not is_nil(user.verified_at)
+end
+```
