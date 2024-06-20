@@ -21,6 +21,7 @@ defmodule Dx.Test.Repo.Migrations.CreateBaseSchema do
 
     create table(:lists) do
       add :title, :string, null: false
+      add :published?, :boolean, null: false, default: false
       add :created_by_id, references(:users), null: false
       add :from_template_id, references(:list_templates)
       add :hourly_points, :float

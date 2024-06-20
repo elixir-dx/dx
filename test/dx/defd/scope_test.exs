@@ -17,6 +17,7 @@ defmodule Dx.Defd.ScopeTest do
       create(List, %{
         title: "Irrelevant",
         hourly_points: 0.2,
+        published?: true,
         created_by: user,
         from_template: list_template
       })
@@ -360,6 +361,44 @@ defmodule Dx.Defd.ScopeTest do
         assert [^list] = load!(FilterEmptyTest.run())
       end)
     end)
+  end
+
+  test "filter by boolean field", %{list2: list2} do
+    assert_queries(
+      [~s[WHERE (l0."published?" = ANY('{TRUE}'))]],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterBooleanFieldTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, & &1.published?)
+            end
+          end
+
+          assert load!(FilterBooleanFieldTest.run()) == [list2]
+        end)
+      end
+    )
+  end
+
+  test "filter by negated boolean field", %{list: list} do
+    assert_queries(
+      [~s[WHERE (NOT (l0."published?" = TRUE))]],
+      fn ->
+        refute_stderr(fn ->
+          defmodule FilterNotBooleanFieldTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, &(not &1.published?))
+            end
+          end
+
+          assert load!(FilterNotBooleanFieldTest.run()) == [list]
+        end)
+      end
+    )
   end
 
   test "filter comparing two fields", %{list: list} do

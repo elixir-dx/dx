@@ -85,19 +85,26 @@ defmodule Dx.Ecto.Scope do
 
         case type.__schema__(:association, field) do
           nil ->
-            {{:field, base, field}, ref, refs}
+            field_type = type.__schema__(:type, field)
+            {{:field, field_type, base, field}, ref, refs}
 
           %{cardinality: :one, queryable: module} = assoc ->
             {ref, refs} = new_ref(module, refs)
+            owner_key_type = assoc.owner.__schema__(:type, assoc.owner_key)
+            related_key_type = assoc.related.__schema__(:type, assoc.related_key)
 
-            {{:as, ref, module, {:assoc, :one, assoc.owner_key, assoc.related_key, base, field}},
-             ref, refs}
+            {{:as, ref, module,
+              {:assoc, :one, owner_key_type, assoc.owner_key, related_key_type, assoc.related_key,
+               base, field}}, ref, refs}
 
           %{cardinality: :many, queryable: module} = assoc ->
             {ref, refs} = new_ref(module, refs)
+            owner_key_type = assoc.owner.__schema__(:type, assoc.owner_key)
+            related_key_type = assoc.related.__schema__(:type, assoc.related_key)
 
-            {{:as, ref, module, {:assoc, :many, assoc.owner_key, assoc.related_key, base, field}},
-             ref, refs}
+            {{:as, ref, module,
+              {:assoc, :many, owner_key_type, assoc.owner_key, related_key_type,
+               assoc.related_key, base, field}}, ref, refs}
         end
 
       :error ->
@@ -162,11 +169,6 @@ defmodule Dx.Ecto.Scope do
     resolve_condition({:and, condition, then, fallback}, ref, refs)
   end
 
-  defp resolve_condition({:field_or_assoc, _base, _field} = field_or_assoc, ref, refs) do
-    {field_or_assoc, _ref, refs} = resolve(field_or_assoc, refs)
-    {{:not, {:eq, field_or_assoc, nil}}, ref, refs}
-  end
-
   defp resolve_condition({:eq, {:error, _fallback}, _right, fallback}, ref, refs) do
     {{:error, fallback}, ref, refs}
   end
@@ -192,6 +194,10 @@ defmodule Dx.Ecto.Scope do
     end
   end
 
+  defp resolve_condition(other, _ref, refs) do
+    resolve(other, refs)
+  end
+
   # NORMALIZE
   # ---------
 
@@ -214,18 +220,51 @@ defmodule Dx.Ecto.Scope do
     |> normalize_condition()
   end
 
+  # assoc == %struct{}
   defp normalize_condition(
-         {:eq, {:as, _, type, {:assoc, :one, foreign_key_field, related_key_field, base, _field}},
-          %type{} = struct}
+         {:eq,
+          {:as, _, type,
+           {:assoc, :one, foreign_key_type, foreign_key_field, _related_key_type,
+            related_key_field, base, _field}}, %type{} = struct}
        ) do
-    {:eq, {:field, base, foreign_key_field}, Map.fetch!(struct, related_key_field)}
+    {:eq, {:field, foreign_key_type, normalize(base), foreign_key_field},
+     Map.fetch!(struct, related_key_field)}
     |> normalize_condition()
   end
 
+  # boolean field as condition
+  defp normalize_condition({:field, :boolean, base, field}) do
+    {:eq, {:field, :boolean, normalize(base), field}, true}
+    |> normalize_condition()
+  end
+
+  # non-boolean field as condition
+  defp normalize_condition({:field, type, base, field}) do
+    {:not, {:eq, {:field, type, normalize(base), field}, nil}}
+    |> normalize_condition()
+  end
+
+  # assoc as condition
   defp normalize_condition(
-         {:eq, {:as, _, _, {:assoc, :one, foreign_key_field, _, base, _field}}, nil}
+         {:as, ref, type,
+          {:assoc, :one, foreign_key_type, foreign_key_field, related_key_type, related_key_field,
+           base, field}}
        ) do
-    {:eq, {:field, base, foreign_key_field}, nil}
+    {:not,
+     {:eq,
+      {:as, ref, type,
+       {:assoc, :one, foreign_key_type, foreign_key_field, related_key_type, related_key_field,
+        normalize(base), field}}, nil}}
+    |> normalize_condition()
+  end
+
+  # assoc == nil
+  defp normalize_condition(
+         {:eq,
+          {:as, _, _, {:assoc, :one, foreign_key_type, foreign_key_field, _, _, base, _field}},
+          nil}
+       ) do
+    {:eq, {:field, foreign_key_type, normalize(base), foreign_key_field}, nil}
     |> normalize_condition()
   end
 
@@ -246,7 +285,7 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:as, new_ref, type, {:assoc, :one, _, _, {:ref, ref}, field}}, state) do
+  defp build({:as, new_ref, type, {:assoc, :one, _, _, _, _, {:ref, ref}, field}}, state) do
     state =
       map_query(state, &join(&1, :inner, [{^ref, x}], y in assoc(x, ^field), as: ^new_ref))
       |> Map.put(:alias_types, Map.put(state.alias_types, new_ref, type))
@@ -255,7 +294,7 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:as, new_ref, type, {:assoc, :one, _, _, base, field}}, state) do
+  defp build({:as, new_ref, type, {:assoc, :one, _, _, _, _, base, field}}, state) do
     {{:ref, ref}, state} = build(base, state)
 
     state =
@@ -267,7 +306,7 @@ defmodule Dx.Ecto.Scope do
   end
 
   defp build(
-         {:as, new_ref, type, {:assoc, :many, owner_key, related_key, {:ref, ref}, _field}},
+         {:as, new_ref, type, {:assoc, :many, _, owner_key, _, related_key, {:ref, ref}, _field}},
          state
        ) do
     query =
@@ -286,12 +325,12 @@ defmodule Dx.Ecto.Scope do
     |> with_state(state)
   end
 
-  defp build({:field, {:ref, ref}, field}, state) do
+  defp build({:field, _type, {:ref, ref}, field}, state) do
     dynamic([{^ref, x}], field(x, ^field))
     |> with_state(state)
   end
 
-  defp build({:field, base, field}, state) do
+  defp build({:field, _type, base, field}, state) do
     {{:ref, ref}, state} = build(base, state)
 
     dynamic([{^ref, x}], field(x, ^field))

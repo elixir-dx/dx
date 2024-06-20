@@ -6,6 +6,7 @@ defmodule Dx.Test.Schema.List do
 
   schema "lists" do
     field :title, :string
+    field :published?, :boolean
 
     belongs_to :created_by, User
     belongs_to :from_template, ListTemplate

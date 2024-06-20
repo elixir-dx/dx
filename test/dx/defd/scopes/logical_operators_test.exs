@@ -21,6 +21,7 @@ defmodule Dx.Defd.Scopes.LogicalOperatorsTest do
       create(List, %{
         title: "Irrelevant",
         hourly_points: 0.2,
+        published?: true,
         created_by: user,
         from_template: list_template2
       })
@@ -177,6 +178,25 @@ defmodule Dx.Defd.Scopes.LogicalOperatorsTest do
             end
 
             assert load!(AmpersandsTest.run()) == lists
+          end)
+        end
+      )
+    end
+
+    test "filter by boolean field", %{list2: list2} do
+      assert_queries(
+        [["\"published?\" = ANY('{TRUE}'))", " AND ", "NOT ", "\"hourly_points\" IS NULL)"]],
+        fn ->
+          refute_stderr(fn ->
+            defmodule AmpersandsBooleanFieldTest do
+              import Dx.Defd
+
+              defd run() do
+                Enum.filter(List, &(&1.published? && &1.hourly_points))
+              end
+            end
+
+            assert load!(AmpersandsBooleanFieldTest.run()) == [list2]
           end)
         end
       )

@@ -158,12 +158,12 @@ defmodule Dx.Scope do
     end
   end
 
-  defp to_main_condition_candidates({:eq, {:field, {:ref, :a0}, field}, value})
+  defp to_main_condition_candidates({:eq, {:field, _type, {:ref, :a0}, field}, value})
        when is_simple(value) do
     {%{field => value}, true}
   end
 
-  defp to_main_condition_candidates({:eq, value, {:field, {:ref, :a0}, field}})
+  defp to_main_condition_candidates({:eq, value, {:field, _type, {:ref, :a0}, field}})
        when is_simple(value) do
     {%{field => value}, true}
   end
@@ -178,7 +178,7 @@ defmodule Dx.Scope do
 
   def add_conditions(scope, new_conditions) when is_map(new_conditions) do
     Enum.reduce(new_conditions, scope, fn {field, value}, scope ->
-      add_conditions(scope, {:eq, {:field, {:ref, :a0}, field}, value})
+      add_conditions(scope, {:eq, {:field, :unknown, {:ref, :a0}, field}, value})
     end)
   end
 
