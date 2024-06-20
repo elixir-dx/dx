@@ -1,11 +1,9 @@
 defmodule Dx.Defd.Ast do
+  @moduledoc false
+
   alias Dx.Defd.Ast.State
 
   import __MODULE__.Guards
-
-  # def apply({ast, state}, fun) when Kernel.is_function(fun, 1), do: {fun.(ast), state}
-  # def apply({ast, state}, fun) when Kernel.is_function(fun, 2), do: {fun.(ast, state), state}
-  # def apply2({ast, state}, fun), do: fun.(ast, state)
 
   def is_function(
         {:ok,
@@ -232,11 +230,6 @@ defmodule Dx.Defd.Ast do
 
   def ensure_vars_loaded(ast, filter_vars, state) do
     data_vars = get_data_vars(state.data_reqs)
-
-    # IO.puts("")
-    # IO.puts("---")
-    # IO.inspect(Map.keys(filter_vars), label: "filter_vars")
-    # IO.inspect(Map.keys(data_vars), label: "data_vars")
 
     state.data_reqs
     |> Enum.split_with(fn {loader_ast, _data_var} ->

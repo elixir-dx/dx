@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Block do
+  @moduledoc false
+
   alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
   alias Dx.Util

@@ -1,4 +1,6 @@
 defmodule Dx.Scope.Case do
+  @moduledoc false
+
   alias Dx.Defd.Ast
 
   # and/2

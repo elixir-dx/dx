@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Fn do
+  @moduledoc false
+
   defstruct [:ok?, :final_args_ok?, :fun, :ok_fun, :final_args_fun, :final_args_ok_fun, :scope]
 
   def maybe_unwrap(%__MODULE__{fun: fun}), do: fun

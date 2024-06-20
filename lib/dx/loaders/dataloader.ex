@@ -1,24 +1,18 @@
+# Uses `Dataloader` to load missing data incrementally.
+#
+# ## Supported options
+#
+# These options are passed to `Dataloader.Ecto.new/2`:
+#
+# - `timeout` - Timeout in milliseconds for `Dataloader` to wait for all data to be loaded. Defaults to 15_000.
+# - `repo_options` - Options passed to the `Ecto.Repo` when loading data. Defaults to `[]`.
+#
 defmodule Dx.Loaders.Dataloader do
-  @moduledoc """
-  Uses `Dataloader` to load missing data incrementally.
-
-  ## Supported options
-
-  These options are passed to `Dataloader.Ecto.new/2`:
-
-  - `timeout` - Timeout in milliseconds for `Dataloader` to wait for all data to be loaded. Defaults to 15_000.
-  - `repo_options` - Options passed to the `Ecto.Repo` when loading data. Defaults to `[]`.
-  """
+  @moduledoc false
 
   alias Dx.Ecto.Query.Batches
   alias Dx.Result
 
-  # Query = Wrapper around Loader ✅
-  # 1. extract the part that can be translated to query
-  #   -> can use lookup, may return {:not_loaded, data_reqs}
-  # 2. pass translatable part to lookup (unchanged)
-  # 3. later: optimize batching
-  # 4. on successful lookup, if not all translated, return {:partial, result, condition} for Dx.Engine
   def lookup(cache, data_req, third_elem \\ true)
 
   def lookup(cache, {:subset, %type{} = subject, subset}, third_elem) do
@@ -78,10 +72,6 @@ defmodule Dx.Loaders.Dataloader do
 
       {:ok, data} ->
         if third_elem, do: Result.ok(data), else: Dx.Defd.Result.ok(data)
-
-      # if third_elem,
-      #   do: Result.ok(%Dx.Scope.Loaded{data: data, scope: scope}),
-      #   else: Dx.Defd.Result.ok(%Dx.Scope.Loaded{data: data, scope: scope})
 
       other ->
         other

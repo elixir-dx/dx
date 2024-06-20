@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Compiler do
+  @moduledoc false
+
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.State
   alias Dx.Defd.Util

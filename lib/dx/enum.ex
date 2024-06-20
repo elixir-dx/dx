@@ -1,4 +1,6 @@
 defmodule Dx.Enum do
+  @moduledoc false
+
   alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
   alias Dx.Defd.Result

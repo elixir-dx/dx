@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Ext do
+  @moduledoc false
+
   alias Dx.Defd.Util
 
   defmacro defscope(call) do

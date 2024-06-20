@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Result do
+  @moduledoc false
+
   # Shorthand to conveniently declare optional functions as `fun \\ &identity/1`.
   defp identity(term), do: term
 

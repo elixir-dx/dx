@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Case do
+  @moduledoc false
+
   alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
 

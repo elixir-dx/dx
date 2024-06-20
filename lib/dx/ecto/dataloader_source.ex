@@ -1,4 +1,7 @@
+# copied from dataloader
 defmodule Dx.Ecto.DataloaderSource do
+  @moduledoc false
+
   defstruct [
     :repo,
     :query,

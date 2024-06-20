@@ -1,7 +1,11 @@
 defmodule Dx.Ecto.Scope do
+  @moduledoc false
+
   import Ecto.Query
 
   defmodule Query do
+    @moduledoc false
+
     defstruct [
       :query,
       :ref,

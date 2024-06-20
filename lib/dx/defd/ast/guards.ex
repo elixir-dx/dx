@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Ast.Guards do
+  @moduledoc false
+
   defguard is_var(var)
            when is_tuple(var) and tuple_size(var) == 3 and is_atom(elem(var, 0)) and
                   is_atom(elem(var, 2))

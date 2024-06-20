@@ -1,4 +1,6 @@
 defmodule Dx.Defd.Error do
+  @moduledoc false
+
   @strip_modules [Dx.Evaluation]
 
   @doc """
