@@ -140,43 +140,43 @@ within functions defined with defd.</p><h2 id="module-examples" class="section-h
 </h3>
 <p>Every function defined using <code class="inline">defd</code> or <code class="inline">defd_</code> will act as a
 replacement for a function with the same name and arity called
-in a function defined with defd.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Enum</span><span class="w"> </span><span class="k" data-group-id="5730849525-1">do</span><span class="w">
+in a function defined with defd.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Enum</span><span class="w"> </span><span class="k" data-group-id="6659617488-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="w">
 
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">load_if</span><span class="p" data-group-id="5730849525-2">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">load?</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="5730849525-2">)</span><span class="w"> </span><span class="k" data-group-id="5730849525-3">do</span><span class="w">
-    </span><span class="k">if</span><span class="w"> </span><span class="n">load?</span><span class="w"> </span><span class="k" data-group-id="5730849525-4">do</span><span class="w">
-      </span><span class="k">if</span><span class="w"> </span><span class="nc">Ecto</span><span class="o">.</span><span class="n">assoc_loaded?</span><span class="p" data-group-id="5730849525-5">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="5730849525-5">)</span><span class="w"> </span><span class="k" data-group-id="5730849525-6">do</span><span class="w">
-        </span><span class="p" data-group-id="5730849525-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="nc">Map</span><span class="o">.</span><span class="n">get</span><span class="p" data-group-id="5730849525-8">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="5730849525-8">)</span><span class="p" data-group-id="5730849525-7">}</span><span class="w">
-      </span><span class="k" data-group-id="5730849525-6">else</span><span class="w">
-        </span><span class="p" data-group-id="5730849525-9">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5730849525-10">{</span><span class="ss">:assoc</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="5730849525-10">}</span><span class="p" data-group-id="5730849525-9">}</span><span class="w">
-      </span><span class="k" data-group-id="5730849525-6">end</span><span class="w">
-    </span><span class="k" data-group-id="5730849525-4">else</span><span class="w">
-      </span><span class="p" data-group-id="5730849525-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p" data-group-id="5730849525-11">}</span><span class="w">
-    </span><span class="k" data-group-id="5730849525-4">end</span><span class="w">
-  </span><span class="k" data-group-id="5730849525-3">end</span><span class="w">
-</span><span class="k" data-group-id="5730849525-1">end</span></code></pre><h3 id="module-delegating-some-or-all-functions" class="section-heading">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">load_if</span><span class="p" data-group-id="6659617488-2">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">load?</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="6659617488-2">)</span><span class="w"> </span><span class="k" data-group-id="6659617488-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">load?</span><span class="w"> </span><span class="k" data-group-id="6659617488-4">do</span><span class="w">
+      </span><span class="k">if</span><span class="w"> </span><span class="nc">Ecto</span><span class="o">.</span><span class="n">assoc_loaded?</span><span class="p" data-group-id="6659617488-5">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="6659617488-5">)</span><span class="w"> </span><span class="k" data-group-id="6659617488-6">do</span><span class="w">
+        </span><span class="p" data-group-id="6659617488-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="nc">Map</span><span class="o">.</span><span class="n">get</span><span class="p" data-group-id="6659617488-8">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="6659617488-8">)</span><span class="p" data-group-id="6659617488-7">}</span><span class="w">
+      </span><span class="k" data-group-id="6659617488-6">else</span><span class="w">
+        </span><span class="p" data-group-id="6659617488-9">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="6659617488-10">{</span><span class="ss">:assoc</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="p" data-group-id="6659617488-10">}</span><span class="p" data-group-id="6659617488-9">}</span><span class="w">
+      </span><span class="k" data-group-id="6659617488-6">end</span><span class="w">
+    </span><span class="k" data-group-id="6659617488-4">else</span><span class="w">
+      </span><span class="p" data-group-id="6659617488-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">record</span><span class="p" data-group-id="6659617488-11">}</span><span class="w">
+    </span><span class="k" data-group-id="6659617488-4">end</span><span class="w">
+  </span><span class="k" data-group-id="6659617488-3">end</span><span class="w">
+</span><span class="k" data-group-id="6659617488-1">end</span></code></pre><h3 id="module-delegating-some-or-all-functions" class="section-heading">
   <a href="#module-delegating-some-or-all-functions" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
   <span class="text">Delegating some or all functions</span>
 </h3>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Timex</span><span class="w"> </span><span class="k" data-group-id="0844015299-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Timex</span><span class="w"> </span><span class="k" data-group-id="0659694854-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="p">,</span><span class="w">
-    </span><span class="ss">delegate_to</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0844015299-2">[</span><span class="w">
+    </span><span class="ss">delegate_to</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0659694854-2">[</span><span class="w">
       </span><span class="nc">DateTime</span><span class="p">,</span><span class="w">
-      </span><span class="p" data-group-id="0844015299-3">{</span><span class="nc">Timex</span><span class="p">,</span><span class="w"> </span><span class="ss">except</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0844015299-4">[</span><span class="ss">inspect</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="0844015299-4">]</span><span class="p" data-group-id="0844015299-3">}</span><span class="w">
-    </span><span class="p" data-group-id="0844015299-2">]</span><span class="w">
-</span><span class="k" data-group-id="0844015299-1">end</span></code></pre><h3 id="module-delegating-specific-functions" class="section-heading">
+      </span><span class="p" data-group-id="0659694854-3">{</span><span class="nc">Timex</span><span class="p">,</span><span class="w"> </span><span class="ss">except</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0659694854-4">[</span><span class="ss">inspect</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="0659694854-4">]</span><span class="p" data-group-id="0659694854-3">}</span><span class="w">
+    </span><span class="p" data-group-id="0659694854-2">]</span><span class="w">
+</span><span class="k" data-group-id="0659694854-1">end</span></code></pre><h3 id="module-delegating-specific-functions" class="section-heading">
   <a href="#module-delegating-specific-functions" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
   <span class="text">Delegating specific functions</span>
 </h3>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Phoenix</span><span class="w"> </span><span class="k" data-group-id="6762622915-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Dx.Phoenix</span><span class="w"> </span><span class="k" data-group-id="3183388701-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd.Rewriter</span><span class="w">
 
-  </span><span class="n">defdelegated_call</span><span class="w"> </span><span class="n">render</span><span class="p" data-group-id="6762622915-2">(</span><span class="n">template</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="6762622915-2">)</span><span class="p">,</span><span class="w"> </span><span class="ss">to</span><span class="p">:</span><span class="w">
-</span><span class="k" data-group-id="6762622915-1">end</span></code></pre>
+  </span><span class="n">defdelegated_call</span><span class="w"> </span><span class="n">render</span><span class="p" data-group-id="3183388701-2">(</span><span class="n">template</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="3183388701-2">)</span><span class="p">,</span><span class="w"> </span><span class="ss">to</span><span class="p">:</span><span class="w">
+</span><span class="k" data-group-id="3183388701-1">end</span></code></pre>
     </section>
 
 </div>
