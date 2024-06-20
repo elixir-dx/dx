@@ -1,0 +1,172 @@
+<!-- livebook:{"file_entries":[{"name":"dx_test.sqlite","type":"attachment"}]} -->
+
+# Dx Demo
+
+```elixir
+Mix.install(
+  [
+    {:dx, github: "dx-beam/dx"},
+    {:kino, "~> 0.11"},
+    {:kino_db, ">= 0.0.0"},
+    {:ecto_erd, "~> 0.5"},
+    {:ecto_sqlite3, "~> 0.13"}
+  ],
+  config: [dx: [repo: Repo]]
+)
+```
+
+## Section
+
+```elixir
+defmodule Repo do
+  use Ecto.Repo,
+    otp_app: :demo,
+    adapter: Ecto.Adapters.SQLite3,
+    database: Kino.FS.file_path("dx_test.sqlite")
+end
+```
+
+```elixir
+{:ok, conn} = Kino.start_child({Repo, database: Kino.FS.file_path("dx_test.sqlite")})
+
+Repo.query!("PRAGMA table_list")
+```
+
+## Data schema
+
+````elixir
+defmodule Schema.User do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "users" do
+    field(:email, :string)
+    field(:verified_at, :utc_datetime)
+
+    field(:first_name, :string)
+    field(:last_name, :string)
+
+    has_many(:lists, Schema.List, foreign_key: :created_by_id)
+    belongs_to(:role, Schema.Role)
+  end
+end
+
+defmodule Schema.Role do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "roles" do
+    field(:name, :string)
+
+    has_many(:users, Schema.User)
+  end
+end
+
+defmodule Schema.List do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "lists" do
+    field(:title, :string)
+
+    belongs_to(:created_by, Schema.User)
+    belongs_to(:from_template, Schema.ListTemplate)
+    has_many(:tasks, Schema.Task)
+
+    field(:archived_at, :utc_datetime)
+    field(:hourly_points, :float)
+    timestamps()
+  end
+end
+
+defmodule Schema.ListTemplate do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "list_templates" do
+    field(:title, :string)
+
+    field(:hourly_points, :float)
+
+    has_many(:lists, Schema.List, foreign_key: :from_template_id)
+  end
+end
+
+defmodule Schema.Task do
+  use Ecto.Schema
+  use Dx.Ecto.Schema, repo: Repo
+
+  schema "tasks" do
+    field(:title, :string)
+    field(:desc, :string)
+
+    belongs_to(:list, Schema.List)
+    belongs_to(:created_by, Schema.User)
+
+    field(:due_on, :date)
+    field(:completed_at, :utc_datetime)
+    field(:archived_at, :utc_datetime)
+    timestamps()
+  end
+end
+
+diagram =
+  [Schema.User, Schema.Role, Schema.List, Schema.ListTemplate, Schema.Task]
+  |> Ecto.ERD.Document.render(".mmd", &Function.identity/1, [])
+
+Kino.Markdown.new("""
+```mermaid
+#{diagram}
+```
+""")
+
+# %KinoEcto.EntityRelationship{schema: Schema.List}
+````
+
+## defd functions (Core)
+
+```elixir
+defmodule Core.User do
+  import Dx.Defd
+
+  defd user_count() do
+    Enum.count(Schema.User)
+  end
+
+  defd email(user) do
+    user.email
+  end
+end
+```
+
+## defd calls
+
+```elixir
+import Ecto.Query
+require Dx.Defd
+
+# user = Repo.get_by!(User, email: "sam@klonk.xyz")
+user = Schema.User |> limit(1) |> Repo.one!()
+Dx.Defd.load!(Core.User.email(user))
+```
+
+```elixir
+require Dx.Defd
+
+Dx.Defd.load!(Core.User.user_count())
+```
+
+```elixir
+defmodule Core.User.Filters do
+  import Dx.Defd
+
+  defd users_with_no_lists() do
+    Schema.User
+    |> Enum.filter(&(Enum.count(&1.lists) == 0))
+  end
+end
+
+require Dx.Defd
+
+Dx.Defd.load!(Core.User.Filters.users_with_no_lists())
+```

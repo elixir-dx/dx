@@ -39,6 +39,10 @@ and will be fully translated to a database call.
 It still works the same when you call other `defd` functions,
 so you can organize your code cleanly.
 
+## Demo
+
+[![Run in Livebook](https://livebook.dev/badge/v1/pink.svg)](https://livebook.dev/run?url=https%3A%2F%2Fraw.githubusercontent.com%2Felixir-dx%2Fdx%2Fdocs%2Flivebook%2Flivebook%2Fdemo.livemd)
+
 ## Installation
 
 Add `dx` to your list of dependencies in `mix.exs`:
