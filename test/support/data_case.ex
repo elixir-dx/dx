@@ -93,9 +93,10 @@ defmodule Dx.Test.DataCase do
     end
 
     defp format_query(query_parts) when is_list(query_parts),
-      do: Enum.join(query_parts, " ... ")
+      do: Enum.map_join(query_parts, " ... ", &format_query/1)
 
-    defp format_query(query), do: query
+    defp format_query(query) when is_binary(query), do: query
+    defp format_query(query_pattern), do: inspect(query_pattern)
 
     defp receive_queries(timeout \\ 0, acc \\ []) do
       receive do

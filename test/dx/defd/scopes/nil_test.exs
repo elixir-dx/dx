@@ -48,7 +48,7 @@ defmodule Dx.Defd.Scopes.NilTest do
       roles: unload([role, role2]),
       preloaded_list: %{list | tasks: [task]},
       preloaded_list2: %{list2 | tasks: []},
-      lists: unload([list, list2, list3]) |> dbg(),
+      lists: unload([list, list2, list3]),
       list: unload(list),
       list2: unload(list2),
       list3: unload(list3),

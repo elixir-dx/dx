@@ -56,6 +56,80 @@ defmodule Dx.Defd.KernelTest do
     end
   end
 
+  describe "&&/2" do
+    test "works with booleans", %{list: list, task: task} do
+      defmodule AmpersandsTest do
+        import Dx.Defd
+
+        defd run(list) do
+          list.hourly_points > 1.0 && list.created_by.role.name == "Assistant"
+        end
+      end
+
+      assert load!(AmpersandsTest.run(list)) == true
+    end
+
+    test "works with truthy", %{list: list, task: task} do
+      defmodule AmpersandsTest do
+        import Dx.Defd
+
+        defd run(list) do
+          list && list.hourly_points && list.hourly_points > 1.0 && list.created_by.role.name
+        end
+      end
+
+      assert_queries(["FROM \"users\"", "FROM \"roles\""], fn ->
+        assert load!(AmpersandsTest.run(list)) == "Assistant"
+      end)
+
+      assert_queries([], fn ->
+        assert load!(AmpersandsTest.run(%{list | hourly_points: nil})) == nil
+        assert load!(AmpersandsTest.run(%{list | hourly_points: false})) == false
+        assert load!(AmpersandsTest.run(%{list | hourly_points: 0.0})) == false
+      end)
+    end
+
+    test "skips erroneous code", %{list: list, task: task} do
+      defmodule AmpersandsSkipErrorTest do
+        import Dx.Defd
+
+        defd run(list) do
+          list.hourly_points > 4.0 && list.unknown.code
+        end
+      end
+
+      assert load!(AmpersandsSkipErrorTest.run(list)) == false
+    end
+  end
+
+  describe "or/2" do
+    test "works", %{list: list, task: task} do
+      defmodule OrTest do
+        import Dx.Defd
+
+        defd run(list) do
+          list.hourly_points > 4.0 or list.created_by.role.name == "Assistant"
+        end
+      end
+
+      assert_queries(["FROM \"users\"", "FROM \"roles\""], fn ->
+        assert load!(OrTest.run(list)) == true
+      end)
+    end
+
+    test "skips erroneous code", %{list: list, task: task} do
+      defmodule OrSkipErrorTest do
+        import Dx.Defd
+
+        defd run(list) do
+          list.hourly_points > 1.0 or list.unknown.code
+        end
+      end
+
+      assert load!(OrSkipErrorTest.run(list)) == true
+    end
+  end
+
   describe "if/2" do
     test "works with boolean condition", %{list: list, user: user} do
       defmodule IfBoolTest do

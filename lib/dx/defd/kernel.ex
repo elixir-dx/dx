@@ -96,4 +96,8 @@ defmodule Dx.Defd.Kernel do
   def unquote(:==)(left, right) do
     left == right
   end
+
+  defscope unquote(:not)(term, _generate_fallback) do
+    {:not, term}
+  end
 end

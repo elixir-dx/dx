@@ -145,6 +145,28 @@ defmodule Dx.Ecto.Scope do
     {{:all_of, conditions}, ref, refs}
   end
 
+  defp resolve_condition({:error, fallback}, ref, refs) do
+    {{:error, fallback}, ref, refs}
+  end
+
+  defp resolve_condition({:not, condition}, ref, refs) do
+    {condition, _ref, refs} = resolve_condition(condition, ref, refs)
+    {{:not, condition}, ref, refs}
+  end
+
+  defp resolve_condition({:and, left, right, _fallback}, ref, refs) do
+    resolve_condition({:all_of, [left, right]}, ref, refs)
+  end
+
+  defp resolve_condition({:&&, condition, then, fallback}, ref, refs) do
+    resolve_condition({:and, condition, then, fallback}, ref, refs)
+  end
+
+  defp resolve_condition({:field_or_assoc, _base, _field} = field_or_assoc, ref, refs) do
+    {field_or_assoc, _ref, refs} = resolve(field_or_assoc, refs)
+    {{:not, {:eq, field_or_assoc, nil}}, ref, refs}
+  end
+
   defp resolve_condition({:eq, {:error, _fallback}, _right, fallback}, ref, refs) do
     {{:error, fallback}, ref, refs}
   end
@@ -181,6 +203,10 @@ defmodule Dx.Ecto.Scope do
 
   defp normalize_condition({:all_of, conditions}) do
     {:all_of, Enum.map(conditions, &normalize_condition/1)}
+  end
+
+  defp normalize_condition({:not, condition}) do
+    {:not, normalize_condition(condition)}
   end
 
   defp normalize_condition({:eq, nil, right}) do
@@ -309,6 +335,13 @@ defmodule Dx.Ecto.Scope do
     conditions = Enum.reduce(conditions, &dynamic(^&2 and ^&1))
 
     {conditions, state}
+  end
+
+  defp build_condition({:not, condition}, base, state) do
+    {condition, state} = build_condition(condition, base, state)
+
+    dynamic(not (^condition))
+    |> with_state(state)
   end
 
   defp build_condition({:eq, left, nil}, _base, state) do

@@ -34,6 +34,10 @@ defmodule Dx.Scope.Compiler do
     |> with_state(state)
   end
 
+  def normalize({:case, _meta, _args} = ast, state) do
+    Dx.Scope.Case.normalize(ast, state)
+  end
+
   # &local_fun/2
   def normalize({:&, meta, [{:/, [], [{fun_name, [], nil}, arity]}]} = ast, state) do
     if {fun_name, arity} in state.defds do
