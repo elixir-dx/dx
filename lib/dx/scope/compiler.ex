@@ -10,7 +10,8 @@ defmodule Dx.Scope.Compiler do
   @rewriters %{
     Enum => Dx.Enum,
     :erlang => Dx.Defd.Kernel,
-    Kernel => Dx.Defd.Kernel
+    Kernel => Dx.Defd.Kernel,
+    String.Chars => Dx.Defd.String.Chars
   }
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do

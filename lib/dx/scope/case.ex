@@ -17,7 +17,7 @@ defmodule Dx.Scope.Case do
          ]} = ast,
         state
       ) do
-    {condition, state} = condition |> Dx.Scope.Compiler.normalize(state) |> dbg()
+    {condition, state} = condition |> Dx.Scope.Compiler.normalize(state)
     {then_ast, state} = Dx.Scope.Compiler.normalize(then_ast, state)
 
     {fun, _state} =

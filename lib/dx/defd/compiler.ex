@@ -10,7 +10,8 @@ defmodule Dx.Defd.Compiler do
   @rewriters %{
     Enum => Dx.Enum,
     :erlang => Dx.Defd.Kernel,
-    Kernel => Dx.Defd.Kernel
+    Kernel => Dx.Defd.Kernel,
+    String.Chars => Dx.Defd.String.Chars
   }
 
   # @queryables Protocol.extract_impls(Ecto.Queryable)
@@ -303,42 +304,34 @@ defmodule Dx.Defd.Compiler do
 
   # {_, _}
   def normalize({elem_0, elem_1}, state) do
-    ast = [elem_0, elem_1]
-    {ast, state} = Enum.map_reduce(ast, state, &normalize/2)
+    {[elem_0, elem_1], state} = Enum.map_reduce([elem_0, elem_1], state, &normalize_load_unwrap/2)
 
-    case Dx.Defd.Result.collect_ok(ast) do
-      {:ok, [elem_0, elem_1]} ->
-        # unwrapped at compile-time
-        {:ok, {elem_0, elem_1}}
-
-      :error ->
-        # unwrap at runtime
-        quote do
-          Dx.Defd.Result.collect(unquote(ast))
-          |> Dx.Defd.Result.transform(fn [e0, e1] -> {e0, e1} end)
-        end
-    end
+    {:ok, {elem_0, elem_1}}
     |> with_state(state)
   end
 
   # {...}
   def normalize({:{}, meta, elems}, state) do
-    {ast, state} = Enum.map_reduce(elems, state, &normalize/2)
+    {elems, state} = Enum.map_reduce(elems, state, &normalize_load_unwrap/2)
 
-    case Dx.Defd.Result.collect_ok(ast) do
-      {:ok, list} ->
-        # unwrapped at compile-time
-        {:ok, {:{}, meta, list}}
+    {:ok, {:{}, meta, elems}}
+    |> with_state(state)
+  end
 
-      :error ->
-        # unwrap at runtime
-        line = meta[:line] || state.line
+  def normalize({:<<>>, meta, parts}, state) when is_list(parts) do
+    {parts, state} =
+      Enum.map_reduce(parts, state, fn
+        {:"::", meta, [ast, {:binary, binary_meta, context}]}, state ->
+          {ast, state} = normalize_load_unwrap(ast, state)
 
-        quote line: line do
-          Dx.Defd.Result.collect(unquote(ast))
-          |> Dx.Defd.Result.transform(&List.to_tuple/1)
-        end
-    end
+          {:"::", meta, [ast, {:binary, binary_meta, context}]}
+          |> with_state(state)
+
+        part, state ->
+          {part, state}
+      end)
+
+    {:ok, {:<<>>, meta, parts}}
     |> with_state(state)
   end
 
@@ -790,6 +783,17 @@ defmodule Dx.Defd.Compiler do
       Dx.Scope.maybe_lookup(unquote(ast), unquote(state.eval_var))
     end
     |> add_loader(state)
+  end
+
+  def normalize_load_unwrap(ast, state) do
+    case normalize(ast, state) do
+      {{:ok, ast}, state} ->
+        {ast, state}
+
+      {ast, state} ->
+        {{:ok, var}, state} = add_loader(ast, state)
+        {var, state}
+    end
   end
 
   def add_loader({loader, state}), do: add_loader(loader, state)

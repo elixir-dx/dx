@@ -528,6 +528,31 @@ defmodule Dx.DefdTest do
                {:ok, [user.email, user.email, 3, 4]}
     end
 
+    test "concats strings using <>", %{task: task, list: list, user: user} do
+      defmodule ConcatStringsTest do
+        import Dx.Defd
+
+        defd run(task, list) do
+          task.title <> task.created_by.email <> list.created_by.email
+        end
+      end
+
+      assert load!(ConcatStringsTest.run(task, list)) == task.title <> user.email <> user.email
+    end
+
+    test "interpolates string", %{task: task, list: list, user: user} do
+      defmodule InterpolatesStringsTest do
+        import Dx.Defd
+
+        defd run(task) do
+          task_count = Enum.count(Task)
+          "#{task.title} (#{task.created_by.email}, #{task_count}, #{Enum.count(List)})"
+        end
+      end
+
+      assert load!(InterpolatesStringsTest.run(task)) == "#{task.title} (#{user.email}, 1, 1)"
+    end
+
     test "KeyError on invalid key", %{
       list: list
     } do
