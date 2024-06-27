@@ -69,12 +69,11 @@ defmodule Dx.MixProject do
 
   def docs do
     [
-      extra_section: "Guides",
+      extra_section: "Guides (old)",
       extras: Path.wildcard("docs/**/*.md"),
       groups_for_extras: [
         Basics: Path.wildcard("docs/basics/*.md")
       ],
-      main: "Dx",
       source_url: @source_url,
       source_ref: "v#{version()}"
     ]

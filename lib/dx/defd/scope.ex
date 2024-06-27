@@ -1,66 +1,6 @@
 defmodule Dx.Scope do
   @moduledoc """
-  ## Components
-
-  ### Meta function
-
-  Each defd function also compiles to a meta function that's a middle ground between
-  an AST representation and running the actual code.
-
-  It's usually called at runtime.
-
-  It has the same arguments as the actual function, but what gets passed in is different:
-
-  - when the data it represents is already loaded (i.e. passed in from non-defd context,
-    incl. preloads), `type` is passed in
-  - otherwise, a scope is passed in, e.g. `%Dx.Scope{}`
-
-  #### Example
-
-  This simple function with a filter:
-
-  ```elixir
-  defd non_archived(lists) do
-    Enum.filter(lists, &is_nil(&1.archived_at))
-  end
-  ```
-
-  can either be called on already loaded (i.e. passed in) data, e.g.
-
-  ```elixir
-  lists = Repo.all(TodoList)
-  load!(non_archived(lists))
-  ```
-
-  then the meta function gets called with `{:array, TodoList}` and returns the same term.
-
-  Or it can be called on a scope, e.g.
-
-  ```elixir
-  defd all_non_archived_lists() do
-    TodoList
-    |> non_archived()
-  end
-  ```
-
-  then the meta function gets called with `%Dx.Scope{type: TodoList}` and returns
-  `%Dx.Scope{type: TodoList, query_conditions: [archived_at: nil]}`.
-
-  ### Partial scope coverage
-
-  Sometimes, a scope can cover only a subset of the not-loaded data.
-
-  A meta function can thus return either
-
-  - {:ok, scope} if it is fully scopable
-  - :error if not
-
-  ### later ...
-  - {:error, loader} if none of it is scopable
-  - {:partial, scope, loader} if a part of it is scopable
-
-  `loader` is a function that can be called just like a defd function,
-  i.e. it can return `{:ok, result}` or `{:not_loaded, data_reqs}`.
+  Used as intermediate data structure to translating defd code to SQL.
   """
 
   defstruct [
@@ -77,6 +17,9 @@ defmodule Dx.Scope do
 
   import Dx.Defd.Ast.Guards
 
+  @doc """
+  Explicitly create an unfiltered scope for a schema module.
+  """
   def all(module) do
     %__MODULE__{type: module, plan: {:queryable, module}}
   end
