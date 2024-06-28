@@ -169,7 +169,7 @@ defmodule Dx.Defd.Scopes.LogicalOperatorsTest do
         [["NOT ", "\"title\" IS NULL)", " AND ", "NOT ", "\"hourly_points\" IS NULL)"]],
         fn ->
           refute_stderr(fn ->
-            defmodule AmpersandsTest do
+            defmodule AmpersandsFilterTest do
               import Dx.Defd
 
               defd run() do
@@ -177,7 +177,7 @@ defmodule Dx.Defd.Scopes.LogicalOperatorsTest do
               end
             end
 
-            assert load!(AmpersandsTest.run()) == lists
+            assert load!(AmpersandsFilterTest.run()) == lists
           end)
         end
       )

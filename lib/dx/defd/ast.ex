@@ -116,6 +116,17 @@ defmodule Dx.Defd.Ast do
     other
   end
 
+  def to_defd_fun({:ok, ast}) do
+    quote do
+      Dx.Defd.Fn.to_defd_fun(unquote(ast))
+    end
+  end
+
+  # for undefined variables
+  def to_defd_fun(other) do
+    other
+  end
+
   def unwrap({:ok, ast}) do
     ast
   end

@@ -385,14 +385,14 @@ defmodule Dx.Defd.Compiler do
   end
 
   # fun.()
-  def normalize({{:., meta, [module]}, meta2, args}, state) do
-    {module, state} = normalize(module, state)
-    module = Ast.unwrap(module)
+  def normalize({{:., meta, [fun]}, meta2, args}, state) do
+    {fun, state} = normalize(fun, state)
+    fun = Ast.to_defd_fun(fun)
 
     normalize_call_args(args, state, fn args ->
-      {{:., meta, [module]}, meta2, args}
+      {{:., meta, [fun]}, meta2, args}
     end)
-    |> Ast.ok()
+    |> add_loader()
   end
 
   def normalize({:case, _meta, _args} = ast, state) do
@@ -922,13 +922,13 @@ defmodule Dx.Defd.Compiler do
           normalize(arg, state)
       end)
 
-    {args, new_state} = finalize_args(args, new_state)
+    {args, new_state} = args |> Enum.map(&Ast.unwrap/1) |> finalize_args(new_state)
 
     do_normalize_call_args(args, new_state, fun)
   end
 
   def finalize_args(args, state) do
-    Enum.map_reduce(args, state, fn {:ok, arg}, state ->
+    Enum.map_reduce(args, state, fn arg, state ->
       vars = Map.keys(Ast.collect_vars(arg, %{}))
 
       if Enum.all?(vars, &Map.has_key?(state.finalized_vars, &1)) do

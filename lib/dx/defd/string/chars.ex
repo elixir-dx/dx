@@ -39,7 +39,7 @@ defmodule Dx.Defd.String.Chars do
   def rewrite({{:., meta, [String.Chars, fun_name]}, meta2, orig_args} = orig, state) do
     arity = length(orig_args)
 
-    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+    {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize_load_unwrap/2)
     {args, state} = Compiler.finalize_args(args, state)
 
     ast =

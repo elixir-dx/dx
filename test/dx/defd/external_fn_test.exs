@@ -63,6 +63,89 @@ defmodule Dx.Defd.ExternalFnTest do
     ]
   end
 
+  test "loads associations referenced in external function",
+       %{list: list, user: %{email: email}} do
+    defmodule AnonFunAssoc do
+      import Dx.Defd
+
+      defd indirect_enum_map(list) do
+        non_dx(
+          defp_enum_map(list.tasks, fn _task ->
+            list.created_by.email
+          end)
+        )
+      end
+
+      defp defp_enum_map(enum, fun), do: Enum.map(enum, fun)
+    end
+
+    assert load!(AnonFunAssoc.indirect_enum_map(list)) == [email, email, email, email, email]
+  end
+
+  test "loads duplicate reference once",
+       %{list: list, user: user} do
+    defmodule DoubleRefTest do
+      import Dx.Defd
+
+      defd double_mail(list) do
+        non_dx(concat(list.created_by.email, list.created_by.email))
+      end
+
+      defp concat(a, b), do: a <> b
+    end
+
+    assert load(DoubleRefTest.double_mail(list)) == {:ok, user.email <> user.email}
+  end
+
+  test "loads duplicate defd reference once",
+       %{list: list, user: user} do
+    defmodule DoubleDefdRefTest do
+      import Dx.Defd
+
+      defd double_mail(list) do
+        concatd(list.created_by.email, list.created_by.email)
+      end
+
+      defd(concatd(a, b), do: non_dx(concat(a, b)))
+      defp concat(a, b), do: a <> b
+    end
+
+    assert load(DoubleDefdRefTest.double_mail(list)) == {:ok, user.email <> user.email}
+  end
+
+  test "loads deeply nested keys from external map" do
+    defmodule DeeplyNestedMapTest do
+      import Dx.Defd
+
+      defp data(), do: %{a: %{b: %{c: :d}}}
+
+      defd deeply_nested() do
+        non_dx(data()).a.b.c
+      end
+    end
+
+    assert load(DeeplyNestedMapTest.deeply_nested()) == {:ok, :d}
+  end
+
+  test "preserves anonymous function argument references",
+       %{list: list, user: user} do
+    defmodule AnonFunLocalTest do
+      import Dx.Defd
+
+      defd indirect_enum_map(list) do
+        non_dx(
+          defp_enum_map(list.tasks, fn task ->
+            task.created_by_id == list.created_by.id
+          end)
+        )
+      end
+
+      defp defp_enum_map(enum, fun), do: Enum.map(enum, fun)
+    end
+
+    assert load!(AnonFunLocalTest.indirect_enum_map(list)) == [true, false, true, false, false]
+  end
+
   test "Enum result as external function arg", %{list: list, preloaded_list: preloaded_list} do
     refute_stderr(fn ->
       defmodule NestedTest do
