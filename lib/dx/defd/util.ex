@@ -14,18 +14,19 @@ defmodule Dx.Defd.Util do
   end
 
   def is_defd?(module, fun_name, arity) do
+    Code.ensure_loaded(module)
+
     case get_defd_exports(module) do
       {:ok, exports} ->
         Map.has_key?(exports, {fun_name, arity})
 
       :error ->
-        Code.ensure_loaded(module)
         function_exported?(module, defd_name(fun_name), arity + 1)
     end
   end
 
   defp get_defd_exports(module) do
-    {:ok, Module.get_attribute(module, @defd_exports_key)}
+    {:ok, Module.get_attribute(module, @defd_exports_key, %{})}
   rescue
     e ->
       case e do
