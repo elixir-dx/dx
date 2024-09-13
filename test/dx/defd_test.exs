@@ -73,6 +73,21 @@ defmodule Dx.DefdTest do
 
       assert load(SimpleArgTest.simple_arg(1)) == {:ok, 1}
     end
+
+    test "allows piping into load function" do
+      defmodule PipeLoadTest do
+        import Dx.Defd
+
+        defd simple_arg(arg) do
+          arg
+        end
+      end
+
+      assert 1 |> PipeLoadTest.simple_arg() |> load() == {:ok, 1}
+      assert 1 |> PipeLoadTest.simple_arg() |> load!() == 1
+      assert 1 |> PipeLoadTest.simple_arg() |> get() == {:ok, 1}
+      assert 1 |> PipeLoadTest.simple_arg() |> get!() == 1
+    end
   end
 
   describe "calling other defd" do

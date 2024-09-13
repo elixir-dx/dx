@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dx.load`, `Dx.load!`, `Dx.get` and `Dx.get!` are now macros and
   must be required or imported when used.
 
+## [0.3.3] - Unreleased
+
+- Support piping into `Dx.Defd` functions `load!`, `load`, `get!` and `get`
+
 ## [0.3.2] - 2024-06-27
 
 - Introduce defd functions with automatic batched data loading (#22) - @arnodirlam

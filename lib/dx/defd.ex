@@ -5,7 +5,7 @@ defmodule Dx.Defd do
   @eval_var Macro.var(:eval, Dx.Defd.Compiler)
 
   defmacro load(call, opts \\ []) do
-    defd_call = call_to_defd(call)
+    defd_call = call_to_defd(call, __ENV__)
 
     quote do
       Eval.load_all_data_reqs(unquote(opts), fn unquote(@eval_var) ->
@@ -15,7 +15,7 @@ defmodule Dx.Defd do
   end
 
   defmacro load!(call, opts \\ []) do
-    defd_call = call_to_defd(call)
+    defd_call = call_to_defd(call, __ENV__)
 
     quote do
       Eval.load_all_data_reqs!(unquote(opts), fn unquote(@eval_var) ->
@@ -25,7 +25,7 @@ defmodule Dx.Defd do
   end
 
   defmacro get(call, opts \\ []) do
-    defd_call = call_to_defd(call)
+    defd_call = call_to_defd(call, __ENV__)
 
     quote do
       unquote(@eval_var) = Eval.from_options(unquote(opts))
@@ -41,14 +41,20 @@ defmodule Dx.Defd do
     end
   end
 
-  defp call_to_defd({{:., meta, [module, name]}, meta2, args}) do
+  defp call_to_defd({:|>, _meta, _pipeline} = ast, env) do
+    ast
+    |> Macro.expand_once(env)
+    |> call_to_defd(env)
+  end
+
+  defp call_to_defd({{:., meta, [module, name]}, meta2, args}, _env) do
     defd_name = Util.final_args_name(name)
     args = args ++ [@eval_var]
 
     {{:., meta, [module, defd_name]}, meta2, args}
   end
 
-  defp call_to_defd({name, meta, args}) do
+  defp call_to_defd({name, meta, args}, _env) do
     defd_name = Util.final_args_name(name)
     args = args ++ [@eval_var]
 
