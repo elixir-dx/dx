@@ -245,7 +245,7 @@ defmodule Dx.Enum do
       args_ok?(args, __fn_args(fun_name, arity)) ->
         maybe_warn_static(meta, fun_name, arity, args, state)
 
-        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
         args = Enum.map(args, &Ast.unwrap_final_args_inner/1)
 
         ast =
@@ -262,7 +262,7 @@ defmodule Dx.Enum do
 
         maybe_warn(meta, fun_name, arity, args, state)
 
-        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
         args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
 
@@ -275,7 +275,7 @@ defmodule Dx.Enum do
 
         maybe_warn(meta, fun_name, arity, args, state)
 
-        {args, state} = maybe_preload_scopes(args, __preload_scopes(fun_name, arity), state)
+        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
         args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
 
         ast = {:ok, {{:., meta, [Enum, fun_name]}, meta2, args}}
@@ -355,9 +355,9 @@ defmodule Dx.Enum do
   def __scopable?(:filter, 2), do: true
   def __scopable?(_fun_name, _arity), do: false
 
-  def __preload_scopes(:zip, 2), do: [0, 1]
-  def __preload_scopes(:zip_with, 3), do: [0, 1]
-  def __preload_scopes(_fun_name, _arity), do: [0]
+  def __scopable_args(:zip, 2), do: [0, 1]
+  def __scopable_args(:zip_with, 3), do: [0, 1]
+  def __scopable_args(_fun_name, _arity), do: [0]
 
   def __fn_args(:chunk_while, 4), do: [2, 3]
   def __fn_args(:count_until, 3), do: [1]

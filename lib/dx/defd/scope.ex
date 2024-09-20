@@ -24,6 +24,9 @@ defmodule Dx.Scope do
     %__MODULE__{type: module, plan: {:queryable, module}}
   end
 
+  def maybe_atom(atom) when is_atom(atom), do: all(atom)
+  def maybe_atom(other), do: other
+
   def maybe_lookup(%__MODULE__{} = scope, eval), do: lookup(scope, eval)
   def maybe_lookup(other, _eval), do: {:ok, other}
 

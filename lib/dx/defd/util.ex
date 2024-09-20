@@ -13,6 +13,16 @@ defmodule Dx.Defd.Util do
     function_exported?(module, :__scopable?, 2) and module.__scopable?(fun_name, arity)
   end
 
+  def scopable_args(module, fun_name, arity) do
+    Code.ensure_loaded(module)
+
+    if function_exported?(module, :__scopable_args, 2) do
+      module.__scopable_args(fun_name, arity)
+    else
+      []
+    end
+  end
+
   def is_defd?(module, fun_name, arity) do
     Code.ensure_loaded(module)
 

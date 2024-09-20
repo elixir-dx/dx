@@ -145,9 +145,17 @@ defmodule Dx.Scope.Compiler do
       rewriter = @rewriters[module] ->
         Code.ensure_loaded(rewriter)
 
+        scopable_args = Util.scopable_args(rewriter, fun_name, arity)
+
         cond do
           function_exported?(rewriter, Util.scope_name(fun_name), arity + 1) ->
             {args, state} = Enum.map_reduce(args, state, &normalize/2)
+
+            args =
+              Dx.Util.Enum.map_indexes(args, scopable_args, fn
+                atom when is_atom(atom) -> quote do: Dx.Scope.all(unquote(atom))
+                arg -> quote do: Dx.Scope.maybe_atom(unquote(arg))
+              end)
 
             generate_fallback = fn ->
               {fun, _state} =
