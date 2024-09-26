@@ -23,9 +23,11 @@ defmodule Dx.Ecto.Scope do
   }
 
   def to_query(_queryable, %{scope: scope}) do
+    state = %{@state | post_load: scope.post_load}
+
     %{queries: [query]} =
       state =
-      case build(scope.plan, @state) do
+      case build(scope.plan, state) do
         {_ref, state} -> state
         state -> state
       end
@@ -421,6 +423,17 @@ defmodule Dx.Ecto.Scope do
     results
     |> run_post_load(rest, eval)
     |> Dx.Defd.Result.then(&Dx.Defd.Result.filter(&1, fun, eval))
+  end
+
+  def run_post_load(results, {:filter, ext_ok_fun, rest}, eval) do
+    results
+    |> run_post_load(rest, eval)
+    |> Dx.Defd.Result.transform(fn results ->
+      Enum.filter(results, fn result ->
+        {:ok, result} = ext_ok_fun.(result)
+        result
+      end)
+    end)
   end
 
   def run_post_load(results, {:loaded}, _eval) do

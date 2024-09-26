@@ -483,6 +483,68 @@ defmodule Dx.Defd.ScopeTest do
     )
   end
 
+  test "filter using defd function reference", %{list: list} do
+    refute_stderr(fn ->
+      defmodule FilterScopeRefTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(List, &__MODULE__.has_all_tasks?/1)
+        end
+
+        defd run2() do
+          Enum.filter(List, &has_all_tasks?/1)
+        end
+
+        defd has_all_tasks?(list) do
+          Enum.count(list.tasks) == Enum.count(Task)
+        end
+      end
+
+      assert_queries(
+        [~r/\(SELECT count\(\*\) FROM "tasks" .*\(SELECT count\(\*\) FROM "tasks"/],
+        fn ->
+          assert [^list] = load!(FilterScopeRefTest.run())
+        end
+      )
+
+      assert_queries(
+        [~r/\(SELECT count\(\*\) FROM "tasks" .*\(SELECT count\(\*\) FROM "tasks"/],
+        fn ->
+          assert [^list] = load!(FilterScopeRefTest.run2())
+        end
+      )
+    end)
+  end
+
+  test "filter using non-defd function reference" do
+    refute_stderr(fn ->
+      defmodule FilterScopeExtRefTest do
+        import Dx.Defd
+
+        defd run() do
+          Enum.filter(List, non_dx(&has_all_tasks?/1))
+        end
+
+        defd run2() do
+          Enum.filter(List, non_dx(&__MODULE__.has_all_tasks?/1))
+        end
+
+        def has_all_tasks?(_list) do
+          false
+        end
+      end
+
+      assert_queries([~r/FROM "lists"/], fn ->
+        assert load!(FilterScopeExtRefTest.run()) == []
+      end)
+
+      assert_queries([~r/FROM "lists"/], fn ->
+        assert load!(FilterScopeExtRefTest.run2()) == []
+      end)
+    end)
+  end
+
   test "filter using filter+count in condition", %{list: list} do
     assert_queries([~r/FROM "lists" AS \w+ WHERE .*\(SELECT count\(\*\) FROM "tasks"/], fn ->
       refute_stderr(fn ->

@@ -16,7 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.3] - Unreleased
 
+### Features
+
 - Support piping into `Dx.Defd` functions `load!`, `load`, `get!` and `get`
+
+### Fixes
+
+- Fix passing function references to `Enum` supporting scopes (translation to SQL)
 
 ## [0.3.2] - 2024-06-27
 

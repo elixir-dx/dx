@@ -119,16 +119,20 @@ defmodule Dx.Scope do
   end
 
   def add_conditions(scope, %Dx.Defd.Fn{scope: fun}) do
-    add_conditions(scope, fun)
+    do_add_conditions(scope, fun)
+  end
+
+  def add_conditions(scope, ext_ok_fun) when is_function(ext_ok_fun) do
+    Map.update!(scope, :post_load, &{:filter, ext_ok_fun, &1})
   end
 
   def add_conditions(scope, new_conditions) when is_map(new_conditions) do
     Enum.reduce(new_conditions, scope, fn {field, value}, scope ->
-      add_conditions(scope, {:eq, {:field, :unknown, {:ref, :a0}, field}, value})
+      do_add_conditions(scope, {:eq, {:field, :unknown, {:ref, :a0}, field}, value})
     end)
   end
 
-  def add_conditions(scope, new_condition) do
+  defp do_add_conditions(scope, new_condition) do
     Map.update!(scope, :plan, fn
       {:filter, plan, {:all_of, conditions}} ->
         {:filter, plan, {:all_of, conditions ++ [new_condition]}}
