@@ -2,6 +2,7 @@ defmodule Dx.Scope.Case do
   @moduledoc false
 
   alias Dx.Defd.Ast
+  alias Dx.Scope.Compiler
 
   # and/2
   def normalize(
@@ -17,17 +18,12 @@ defmodule Dx.Scope.Case do
          ]} = ast,
         state
       ) do
-    {condition, state} = condition |> Dx.Scope.Compiler.normalize(state)
-    {then_ast, state} = Dx.Scope.Compiler.normalize(then_ast, state)
-
-    {fun, _state} =
-      Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
-        {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], ast]}]}
-        |> Dx.Defd.Compiler.normalize_fn(false, state)
-      end)
+    {condition, state} = Compiler.normalize(condition, state)
+    {then_ast, state} = Compiler.normalize(then_ast, state)
+    fallback = Compiler.generate_fallback(ast, meta, state)
 
     quote do
-      {:and, unquote(condition), unquote(then_ast), unquote(fun)}
+      {:and, unquote(condition), unquote(then_ast), unquote(fallback)}
     end
     |> with_state(state)
   end
@@ -60,31 +56,21 @@ defmodule Dx.Scope.Case do
          ]} = ast,
         state
       ) do
-    {condition, state} = Dx.Scope.Compiler.normalize(condition, state)
-    {then_ast, state} = Dx.Scope.Compiler.normalize(then_ast, state)
-
-    {fun, _state} =
-      Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
-        {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], ast]}]}
-        |> Dx.Defd.Compiler.normalize_fn(false, state)
-      end)
+    {condition, state} = Compiler.normalize(condition, state)
+    {then_ast, state} = Compiler.normalize(then_ast, state)
+    fallback = Compiler.generate_fallback(ast, meta, state)
 
     quote do
-      {:&&, unquote(condition), unquote(then_ast), unquote(fun)}
+      {:&&, unquote(condition), unquote(then_ast), unquote(fallback)}
     end
     |> with_state(state)
   end
 
   def normalize(other, state) do
     meta = Ast.closest_meta(other)
+    fallback = Compiler.generate_fallback(other, meta, state)
 
-    {fun, _state} =
-      Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
-        {:fn, meta, [{:->, meta, [state.scope_args ++ [state.eval_var], other]}]}
-        |> Dx.Defd.Compiler.normalize_fn(false, state)
-      end)
-
-    {:error, fun}
+    {:error, fallback}
     |> with_state(state)
   end
 

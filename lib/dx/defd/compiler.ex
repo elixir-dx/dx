@@ -381,7 +381,62 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state)
+    scope_args = Ast.mark_vars_as_generated(args)
+
+    {scope_body, _state} =
+      State.pass_in(state, [warn_non_dx?: false, scope_args: args], fn state ->
+        Ast.with_args_no_loaders!(args, state, fn state ->
+          Dx.Scope.Compiler.normalize(body, state)
+        end)
+      end)
+
+    {final_args_body, _state} =
+      State.pass_in(
+        state,
+        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
+        fn state ->
+          Ast.with_root_args(args, state, fn state ->
+            normalize(body, state)
+          end)
+        end
+      )
+
+    {final_args_ok?, final_args_ok_body} =
+      case final_args_body do
+        {:ok, final_args_ok_body} -> {true, final_args_ok_body}
+        _ -> {false, nil}
+      end
+
+    {defd_body, new_state} =
+      Ast.with_root_args(args, state, fn state ->
+        normalize(body, state)
+      end)
+
+    {ok?, ok_body} =
+      case defd_body do
+        {:ok, ok_body} -> {true, ok_body}
+        _ -> {false, nil}
+      end
+
+    line = meta[:line] || state.line
+
+    {:ok,
+     {:%, [line: line],
+      [
+        {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
+        {:%{}, [line: line],
+         [
+           ok?: ok?,
+           final_args_ok?: final_args_ok?,
+           fun: {:fn, meta, [{:->, meta2, [args, defd_body]}]},
+           ok_fun: if(ok?, do: {:fn, meta, [{:->, meta2, [args, ok_body]}]}),
+           final_args_fun: {:fn, meta, [{:->, meta2, [args, final_args_body]}]},
+           final_args_ok_fun:
+             if(final_args_ok?, do: {:fn, meta, [{:->, meta2, [args, final_args_ok_body]}]}),
+           scope: {:fn, meta, [{:->, meta2, [scope_args, scope_body]}]}
+         ]}
+      ]}}
+    |> with_state(new_state)
   end
 
   # fun.()
@@ -677,75 +732,6 @@ defmodule Dx.Defd.Compiler do
 
     #{Macro.to_string(ast)}
     """)
-  end
-
-  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, true, state) do
-    scope_args = Ast.mark_vars_as_generated(args)
-
-    {scope_body, _state} =
-      State.pass_in(state, [warn_non_dx?: false, scope_args: args], fn state ->
-        Ast.with_args_no_loaders!(args, state, fn state ->
-          Dx.Scope.Compiler.normalize(body, state)
-        end)
-      end)
-
-    {final_args_body, _state} =
-      State.pass_in(
-        state,
-        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
-        fn state ->
-          Ast.with_root_args(args, state, fn state ->
-            normalize(body, state)
-          end)
-        end
-      )
-
-    {final_args_ok?, final_args_ok_body} =
-      case final_args_body do
-        {:ok, final_args_ok_body} -> {true, final_args_ok_body}
-        _ -> {false, nil}
-      end
-
-    {defd_body, new_state} =
-      Ast.with_root_args(args, state, fn state ->
-        normalize(body, state)
-      end)
-
-    {ok?, ok_body} =
-      case defd_body do
-        {:ok, ok_body} -> {true, ok_body}
-        _ -> {false, nil}
-      end
-
-    line = meta[:line] || state.line
-
-    {:ok,
-     {:%, [line: line],
-      [
-        {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-        {:%{}, [line: line],
-         [
-           ok?: ok?,
-           final_args_ok?: final_args_ok?,
-           fun: {:fn, meta, [{:->, meta2, [args, defd_body]}]},
-           ok_fun: if(ok?, do: {:fn, meta, [{:->, meta2, [args, ok_body]}]}),
-           final_args_fun: {:fn, meta, [{:->, meta2, [args, final_args_body]}]},
-           final_args_ok_fun:
-             if(final_args_ok?, do: {:fn, meta, [{:->, meta2, [args, final_args_ok_body]}]}),
-           scope: {:fn, meta, [{:->, meta2, [scope_args, scope_body]}]}
-         ]}
-      ]}}
-    |> with_state(new_state)
-  end
-
-  def normalize_fn({:fn, meta, [{:->, meta2, [args, body]}]}, false, state) do
-    {body, new_state} =
-      Ast.with_root_args(args, state, fn state ->
-        normalize(body, state)
-      end)
-
-    {:fn, meta, [{:->, meta2, [args, body]}]}
-    |> with_state(new_state)
   end
 
   def maybe_load_scope({:ok, module}, state) when is_atom(module) do

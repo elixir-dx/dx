@@ -65,18 +65,7 @@ defmodule Dx.Defd.Kernel do
   import Kernel, except: [==: 2]
   import Dx.Defd.Ext
 
-  defscope unquote(:==)({:ok, left}, {:ok, right}, _generate_fallback) do
-    # {:ok, {:eq, %{}, [unquote(left), unquote(right)]}}
-    quote do
-      {:eq, unquote(left), unquote(right)}
-    end
-  end
-
   defscope unquote(:==)({:error, _left}, _right, generate_fallback) do
-    {:error, generate_fallback.()}
-  end
-
-  defscope unquote(:==)(:error, _right, generate_fallback) do
     {:error, generate_fallback.()}
   end
 
@@ -84,19 +73,10 @@ defmodule Dx.Defd.Kernel do
     {:error, generate_fallback.()}
   end
 
-  defscope unquote(:==)(_left, :error, generate_fallback) do
-    {:error, generate_fallback.()}
-  end
-
   defscope unquote(:==)(left, right, generate_fallback) do
-    # {:eq, %{fallback: unquote(generate_fallback.())}, [unquote(left), unquote(right)]}
     quote do
       {:eq, unquote(left), unquote(right), unquote(generate_fallback.())}
     end
-  end
-
-  def unquote(:==)(left, right) do
-    left == right
   end
 
   defscope unquote(:not)(term, _generate_fallback) do

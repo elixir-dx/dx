@@ -8,6 +8,11 @@ defmodule Dx.Defd.Util do
   def final_args_name(name), do: :"__final_args:#{name}__"
   def scope_name(name), do: :"__scope:#{name}__"
 
+  def scope_defined?(module, fun_name, arity) do
+    Code.ensure_loaded(module)
+    function_exported?(module, scope_name(fun_name), arity + 1)
+  end
+
   def is_scopable?(module, fun_name, arity) do
     Code.ensure_loaded(module)
     function_exported?(module, :__scopable?, 2) and module.__scopable?(fun_name, arity)
