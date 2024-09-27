@@ -99,4 +99,137 @@ defmodule Dx.Defd.ComplexTest do
       end
     end)
   end
+
+  describe "tasks active in time frame" do
+    setup %{user: assistant} do
+      admin = create(User, %{role: %{name: "Admin"}})
+
+      period_end = DateTime.utc_now()
+      period_start = DateTime.add(period_end, -30, :day)
+
+      logs = [
+        create(RoleAuditLog, %{
+          event: :role_added,
+          actor: admin,
+          role: admin.role,
+          assignee: assistant,
+          inserted_at: period_start
+        })
+      ]
+
+      [period_end: period_end, period_start: period_start, logs: logs]
+    end
+
+    test "tasks active in time frame", %{period_end: period_end, period_start: period_start} do
+      defmodule TasksActiveTest do
+        import Dx.Defd
+
+        defd roles_active_during(active_from, active_to) do
+          Enum.filter(RoleAuditLog, fn log ->
+            DateTime.compare(log.inserted_at, active_to) == :lt and
+              (DateTime.compare(log.inserted_at, active_from) == :gt or
+                 (log.event == :role_added and
+                    not removed_before_range_start?(log, active_from)))
+          end)
+        end
+
+        defd removed_before_range_start?(log, active_from) do
+          Enum.any?(RoleAuditLog, fn removal ->
+            removal.event == :role_removed and
+              removal.assignee_id == log.assignee_id and
+              removal.role_id == log.role_id and
+              DateTime.compare(removal.inserted_at, log.inserted_at) == :gt and
+              DateTime.compare(removal.inserted_at, active_from) == :lt
+          end)
+        end
+      end
+
+      assert_queries([~r/"inserted_at" < '.+"inserted_at" > '.+exists\(/], fn ->
+        assert [_] = TasksActiveTest.roles_active_during(period_start, period_end)
+      end)
+    end
+
+    test "tasks active in time frame partial", %{list: list} do
+      defmodule PartialTasksActiveTest do
+        import Dx.Defd
+
+        defd roles_active_during(active_from, active_to) do
+          Enum.filter(RoleAuditLog, fn log ->
+            DateTime.compare(log.inserted_at, active_to) == :lt and
+              (DateTime.compare(log.inserted_at, active_from) == :gt or
+                 (log.event == :role_added and
+                    not removed_before_range_start?(log, active_from)))
+          end)
+        end
+
+        defd removed_before_range_start?(log, active_from) do
+          Enum.any?(RoleAuditLog, fn removal ->
+            removal.event == :role_removed and
+              removal.assignee_id == log.assignee_id and
+              removal.role_id == log.role_id and
+              non_dx(kannsenedwisse(removal.inserted_at, log.inserted_at)) and
+              DateTime.compare(removal.inserted_at, active_from) == :lt
+          end)
+        end
+
+        def kannsenedwisse(left, right) do
+          DateTime.compare(left, right) == :gt
+        end
+      end
+
+      assert_queries(
+        [
+          ~r/"inserted_at" < '.+"inserted_at" > '.+"event" = 'role_added'/,
+          "FROM \"role_audit_logs\""
+        ],
+        fn ->
+          PartialTasksActiveTest.roles_active_during(
+            DateTime.add(DateTime.utc_now(), 30, :day),
+            DateTime.utc_now()
+          )
+        end
+      )
+    end
+
+    test "tasks active in time frame partial 2", %{list: list} do
+      defmodule PartialTasksActiveTest2 do
+        import Dx.Defd
+
+        defd roles_active_during(active_from, active_to) do
+          Enum.filter(RoleAuditLog, fn log ->
+            DateTime.compare(log.inserted_at, active_to) == :lt and
+              log.event == :role_added and
+              not removed_before_range_start?(log, active_from)
+          end)
+        end
+
+        defd removed_before_range_start?(log, active_from) do
+          Enum.any?(RoleAuditLog, fn removal ->
+            removal.event == :role_removed and
+              removal.assignee_id == log.assignee_id and
+              removal.role_id == log.role_id and
+              non_dx(kannsenedwisse(removal.inserted_at, log.inserted_at)) and
+              DateTime.compare(removal.inserted_at, active_from) == :lt
+          end)
+        end
+
+        def kannsenedwisse(left, right) do
+          DateTime.compare(left, right) == :gt
+        end
+      end
+
+      assert_queries(
+        [
+          ~r/FROM "role_audit_logs".+"inserted_at" < '.+"event" = ANY\('{"role_added"}'\)/,
+          "FROM \"role_audit_logs\""
+        ],
+        fn ->
+          PartialTasksActiveTest2.roles_active_during(
+            DateTime.add(DateTime.utc_now(), 30, :day),
+            DateTime.utc_now()
+          )
+        end
+      )
+    end
+  end
 end

@@ -2,8 +2,14 @@ defmodule Dx.Test.Repo.Migrations.CreateBaseSchema do
   use Ecto.Migration
 
   def change do
+    create table(:projects) do
+      add :name, :string, null: false
+    end
+
     create table(:roles) do
       add :name, :string, null: false
+
+      add :project_id, references(:projects)
     end
 
     create table(:users) do
@@ -12,6 +18,16 @@ defmodule Dx.Test.Repo.Migrations.CreateBaseSchema do
       add :first_name, :string
       add :last_name, :string
       add :role_id, references(:roles)
+    end
+
+    create table(:role_audit_logs) do
+      add :event, :text, null: false
+
+      add :role_id, references(:roles), null: false
+      add :assignee_id, references(:users), null: false
+      add :actor_id, references(:users), null: false
+
+      timestamps(type: :utc_datetime_usec, updated_at: false)
     end
 
     create table(:list_templates) do

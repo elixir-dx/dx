@@ -375,8 +375,16 @@ defmodule Dx.Enum do
   def __fn_args(_fun_name, 1), do: []
   def __fn_args(_fun_name, arity), do: [arity - 1]
 
+  defscope all?(enumerable, fun, _generate_fallback) do
+    quote do: {:not, {:any?, {:filter, unquote(enumerable), {:not, unquote(fun)}}}}
+  end
+
   def all?(enumerable, fun) do
     Result.all?(enumerable, fun)
+  end
+
+  defscope any?(enumerable, fun, generate_fallback) do
+    quote do: {:any?, {:filter, unquote(enumerable), unquote(fun)}, unquote(generate_fallback.())}
   end
 
   def any?(enumerable, fun) do

@@ -17,7 +17,14 @@ defmodule Dx.Test.DataCase do
   using do
     quote do
       alias Dx.Test.Repo
-      alias Dx.Test.Schema.{List, ListCalendarOverride, ListTemplate, Role, Task, User}
+
+      alias Dx.Test.Schema.List
+      alias Dx.Test.Schema.ListCalendarOverride
+      alias Dx.Test.Schema.ListTemplate
+      alias Dx.Test.Schema.Role
+      alias Dx.Test.Schema.RoleAuditLog
+      alias Dx.Test.Schema.Task
+      alias Dx.Test.Schema.User
 
       import Test.Support.Factories
       import Test.Support.DateTimeHelpers

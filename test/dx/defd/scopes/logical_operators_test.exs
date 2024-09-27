@@ -222,4 +222,43 @@ defmodule Dx.Defd.Scopes.LogicalOperatorsTest do
       end)
     end
   end
+
+  describe "or/2" do
+    test "filter twice", %{list: list} do
+      assert_queries([["\"title\" = 'Tasks'", " OR ", "\"hourly_points\" = 1.0"]], fn ->
+        refute_stderr(fn ->
+          defmodule OrTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, &(&1.title == "Tasks" or &1.hourly_points == 1.0))
+            end
+          end
+
+          assert [^list] = load!(OrTest.run())
+        end)
+      end)
+    end
+
+    @tag :skip
+    test "filter partial condition", %{list: list, list2: list2} do
+      assert_queries(["FROM \"lists\" AS l0"], fn ->
+        assert_stderr("not defined with defd", fn ->
+          defmodule OrNonDefdTest do
+            import Dx.Defd
+
+            defd run() do
+              Enum.filter(List, &(__MODULE__.title(&1) == "Tasks" or &1.hourly_points == 0.2))
+            end
+
+            def title(arg) do
+              arg.title
+            end
+          end
+
+          assert [^list, ^list2] = load!(OrNonDefdTest.run())
+        end)
+      end)
+    end
+  end
 end

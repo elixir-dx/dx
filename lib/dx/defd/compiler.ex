@@ -8,6 +8,7 @@ defmodule Dx.Defd.Compiler do
   import Ast.Guards
 
   @rewriters %{
+    DateTime => Dx.DateTime,
     Enum => Dx.Enum,
     :erlang => Dx.Defd.Kernel,
     Kernel => Dx.Defd.Kernel,
@@ -172,8 +173,16 @@ defmodule Dx.Defd.Compiler do
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
       [{meta, args, [], ast}] ->
-        scope_args = Ast.mark_vars_as_generated(args)
-        state = Map.put(state, :scope_args, scope_args)
+        external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
+        internal_scope_args = Ast.mark_vars_as_generated(args)
+        scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
+
+        scope_args =
+          Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
+            quote do: unquote(external_arg) = unquote(internal_arg)
+          end)
+
+        state = Map.put(state, :scope_args, scope_args_map)
 
         {scope_ast, _state} =
           State.pass_in(state, [warn_non_dx?: false], fn state ->
@@ -381,14 +390,25 @@ defmodule Dx.Defd.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    scope_args = Ast.mark_vars_as_generated(args)
+    external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
+    internal_scope_args = Ast.mark_vars_as_generated(args)
+    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
+
+    scope_args =
+      Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
+        quote do: unquote(external_arg) = unquote(internal_arg)
+      end)
 
     {scope_body, _state} =
-      State.pass_in(state, [warn_non_dx?: false, scope_args: args], fn state ->
-        Ast.with_args_no_loaders!(args, state, fn state ->
-          Dx.Scope.Compiler.normalize(body, state)
-        end)
-      end)
+      State.pass_in(
+        state,
+        [warn_non_dx?: false, scope_args: Enum.zip(external_scope_args, internal_scope_args)],
+        fn state ->
+          Ast.with_args_no_loaders!(args, state, fn state ->
+            Dx.Scope.Compiler.normalize(body, state)
+          end)
+        end
+      )
 
     {final_args_body, _state} =
       State.pass_in(

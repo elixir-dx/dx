@@ -162,6 +162,7 @@ defmodule Dx.Result do
     do: reraise(e, stacktrace)
 
   def unwrap!({:error, e}) when is_exception(e), do: raise(e)
+  def unwrap!({:error, {error, stacktrace}}), do: raise(ErlangError.normalize(error, stacktrace))
   def unwrap!({:error, e}), do: raise(Dx.Error.Generic, cause: e)
 
   @doc """

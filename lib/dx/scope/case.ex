@@ -28,6 +28,78 @@ defmodule Dx.Scope.Case do
     |> with_state(state)
   end
 
+  def normalize(
+        {:case, meta,
+         [
+           condition,
+           [
+             do: [
+               {:->, _, [[false], false]},
+               {:->, _, [[true], then_ast]},
+               {:->, _, [[{:other, _, Kernel}], _error_ast]}
+             ]
+           ]
+         ]} = ast,
+        state
+      ) do
+    {condition, state} = Compiler.normalize(condition, state)
+    {then_ast, state} = Compiler.normalize(then_ast, state)
+    fallback = Compiler.generate_fallback(ast, meta, state)
+
+    quote do
+      {:and, unquote(condition), unquote(then_ast), unquote(fallback)}
+    end
+    |> with_state(state)
+  end
+
+  # or/2
+  def normalize(
+        {:case, meta,
+         [
+           condition,
+           [
+             do: [
+               {:->, _, [[false], then_ast]},
+               {:->, _, [[true], true]}
+             ]
+           ]
+         ]} = ast,
+        state
+      ) do
+    {condition, state} = Compiler.normalize(condition, state)
+    {then_ast, state} = Compiler.normalize(then_ast, state)
+    fallback = Compiler.generate_fallback(ast, meta, state)
+
+    quote do
+      {:or, unquote(condition), unquote(then_ast), unquote(fallback)}
+    end
+    |> with_state(state)
+  end
+
+  def normalize(
+        {:case, meta,
+         [
+           condition,
+           [
+             do: [
+               {:->, _, [[false], then_ast]},
+               {:->, _, [[true], true]},
+               {:->, _, [[{:other, _, Kernel}], _error_ast]}
+             ]
+           ]
+         ]} = ast,
+        state
+      ) do
+    {condition, state} = Compiler.normalize(condition, state)
+    {then_ast, state} = Compiler.normalize(then_ast, state)
+    fallback = Compiler.generate_fallback(ast, meta, state)
+
+    quote do
+      {:or, unquote(condition), unquote(then_ast), unquote(fallback)}
+    end
+    |> with_state(state)
+  end
+
   # &&/2
   def normalize(
         {:case, meta,

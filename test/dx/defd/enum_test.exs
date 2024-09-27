@@ -394,6 +394,20 @@ defmodule Dx.Defd.EnumTest do
                  Count2MapTruthyTest.run(to_map(preloaded_tasks))
       end)
     end
+
+    test "works with scope and no filters", %{tasks: tasks} do
+      refute_stderr(fn ->
+        defmodule CountScopeTest do
+          import Dx.Defd
+
+          defd run() do
+            Enum.count(Task)
+          end
+        end
+
+        assert load(CountScopeTest.run()) == {:ok, length(tasks)}
+      end)
+    end
   end
 
   describe "count_until/3" do

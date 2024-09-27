@@ -203,7 +203,6 @@ you have to keep that in mind yourself.
 - `fn` without patterns in arguments or guards
 - `case` with patterns
 - `cond`
-- `==`
 
 ### Translatable to database queries
 
@@ -217,8 +216,11 @@ will be translated to database queries, if both
 - the first argument is either
   - a schema module, f.ex. `Enum.filter(Todo.Task, fn task -> task.priority == "high")`
   - the result of another function listed above
-- the second argument (if any) consists only of functions listed above or:
-  - `==`
+- the function passed as second argument (if any) consists only of functions listed above or:
+  - `==`, `<`, `>`
+  - `and`, `or`, `&&`
+  - `Enum.any?/2`, `Enum.all?/2`
+  - `DateTime.compare/2`
 
 ### Roadmap
 
@@ -241,7 +243,4 @@ If you're new to Dx, the best place to start are the [Guides](https://hexdocs.pm
 
 ## Special thanks
 
-This project is sponsored and kindly supported by [Team Engine](https://www.teamengine.co.uk/).
-
-If you'd like to join us working on [Dx](https://github.com/elixir-dx/dx) and Refactory
-as a contractor, please reach out to [@arnodirlam](https://github.com/arnodirlam).
+This project was initially sponsored and kindly supported by [Team Engine](https://www.teamengine.co.uk/).

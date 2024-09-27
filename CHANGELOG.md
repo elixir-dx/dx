@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 - Support piping into `Dx.Defd` functions `load!`, `load`, `get!` and `get`
+- Translate to SQL when used within `Enum.filter` function: `>`, `<`, `or`, `Enum.any?/2`, `Enum.all?`
 
 ### Fixes
 

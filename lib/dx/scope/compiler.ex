@@ -8,6 +8,7 @@ defmodule Dx.Scope.Compiler do
   import Ast.Guards
 
   @rewriters %{
+    DateTime => Dx.DateTime,
     Enum => Dx.Enum,
     :erlang => Dx.Defd.Kernel,
     Kernel => Dx.Defd.Kernel,
@@ -15,16 +16,32 @@ defmodule Dx.Scope.Compiler do
   }
 
   def generate_fallback(ast, meta, state) do
+    {_external_args, internal_args} = Enum.unzip(state.scope_args)
+
     {fun, _state} =
-      Ast.with_args_no_loaders!(state.scope_args, state, fn state ->
-        args = state.scope_args ++ [state.eval_var]
+      Ast.with_args_no_loaders!(internal_args, state, fn state ->
+        args = internal_args ++ [state.eval_var]
 
         {ast, new_state} =
           Ast.with_root_args(args, state, fn state ->
             Dx.Defd.Compiler.normalize(ast, state)
           end)
 
-        {:fn, meta, [{:->, meta, [args, ast]}]}
+        result_var = {:result, [], __MODULE__}
+
+        arg_assigns =
+          Enum.map(state.scope_args, fn {external_arg, internal_arg} ->
+            quote do
+              unquote(internal_arg) =
+                case unquote(external_arg) do
+                  {:ref, :a0} -> unquote(result_var)
+                  _else -> unquote(external_arg)
+                end
+            end
+          end)
+
+        {:fn, meta,
+         [{:->, meta, [[result_var, state.eval_var], {:__block__, [], arg_assigns ++ [ast]}]}]}
         |> with_state(new_state)
       end)
 
@@ -32,14 +49,21 @@ defmodule Dx.Scope.Compiler do
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
+    external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
+    internal_scope_args = Ast.mark_vars_as_generated(args)
+    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
+
+    args =
+      Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
+        quote do: unquote(external_arg) = unquote(internal_arg)
+      end)
+
     {body, state} =
-      State.pass_in(state, [scope_args: args], fn state ->
+      State.pass_in(state, [scope_args: scope_args_map], fn state ->
         Ast.with_args_no_loaders!(args, state, fn state ->
           normalize(body, state)
         end)
       end)
-
-    args = Ast.mark_vars_as_generated(args)
 
     {:fn, meta, [{:->, meta2, [args, body]}]}
     |> with_state(state)
