@@ -291,6 +291,26 @@ defmodule Dx.Ecto.Scope do
     |> normalize_condition()
   end
 
+  # Ecto.Enum in newer Ecto versions
+  defp normalize_condition(
+         {:eq, left,
+          {:field, {:parameterized, {Ecto.Enum, %{type: type, mappings: mappings}}}, base, field}}
+       ) do
+    {:eq, {:field, {:parameterized, Ecto.Enum, %{type: type, mappings: mappings}}, base, field},
+     left}
+    |> normalize_condition()
+  end
+
+  defp normalize_condition(
+         {:eq,
+          {:field, {:parameterized, {Ecto.Enum, %{type: type, mappings: mappings}}}, base, field},
+          right}
+       ) do
+    {:eq, {:field, {:parameterized, Ecto.Enum, %{type: type, mappings: mappings}}, base, field},
+     right}
+    |> normalize_condition()
+  end
+
   defp normalize_condition(
          {:eq,
           {:field, {:parameterized, Ecto.Enum, %{type: type, mappings: mappings}}, base, field},
