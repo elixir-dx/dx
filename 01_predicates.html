@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.32.2">
-    <meta name="project" content="dx v0.3.2">
+    <meta name="project" content="dx v0.3.3">
 
 
-    <title>Predicates — dx v0.3.2</title>
+    <title>Predicates — dx v0.3.3</title>
     <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
 
@@ -51,7 +51,7 @@
 dx
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.3.2
+          v0.3.3
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.2/docs/basics/01_predicates.md#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/v0.3.3/docs/basics/01_predicates.md#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -130,29 +130,29 @@ you define what the value should be, based on conditions.</p><h3 id="example-boo
   </a>
   <span class="text">Example: boolean predicate</span>
 </h3>
-<p>Say we have a ToDo list app with a <code class="inline">Todo.List</code> schema type.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="6479872761-1">do</span><span class="w">
+<p>Say we have a ToDo list app with a <code class="inline">Todo.List</code> schema type.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="7258286376-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="6479872761-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="7258286376-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
-  </span><span class="k" data-group-id="6479872761-2">end</span><span class="w">
+  </span><span class="k" data-group-id="7258286376-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6479872761-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6479872761-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7258286376-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="7258286376-3">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
-</span><span class="k" data-group-id="6479872761-1">end</span></code></pre><p>Here, we define a predicate <code class="inline">archived?</code> on our <code class="inline">Todo.List</code> schema.
+</span><span class="k" data-group-id="7258286376-1">end</span></code></pre><p>Here, we define a predicate <code class="inline">archived?</code> on our <code class="inline">Todo.List</code> schema.
 It has the value <code class="inline">false</code> when the field <code class="inline">archived_at</code> is <code class="inline">nil</code>.
 If this condition doesn't match, Dx will look at the next rule
 and assign the value <code class="inline">true</code>. Since there is no condition for this
 last rule, it will always match.</p><blockquote><p><em>Tip: It is a good practice to always have a last rule without
 condition to define a fallback value.</em></p></blockquote><h4>Usage</h4><p>This predicate can now be used like a field, as long as you use an <a href="Dx.html"><code class="inline">Dx</code></a>
 to to evaluate it, such as <a href="Dx.html#get!/2"><code class="inline">Dx.get!/2</code></a>:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># loading a predicate</span><span class="w">
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1377686573-1">%</span><span class="nc" data-group-id="1377686573-1">Todo.List</span><span class="p" data-group-id="1377686573-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="1377686573-1">}</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="1377686573-2">(</span><span class="ss">:archived?</span><span class="p" data-group-id="1377686573-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9696415444-1">%</span><span class="nc" data-group-id="9696415444-1">Todo.List</span><span class="p" data-group-id="9696415444-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="9696415444-1">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="9696415444-2">(</span><span class="ss">:archived?</span><span class="p" data-group-id="9696415444-2">)</span><span class="w">
 </span><span class="no">false</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1377686573-3">%</span><span class="nc" data-group-id="1377686573-3">Todo.List</span><span class="p" data-group-id="1377686573-3">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="1377686573-3">}</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="1377686573-4">(</span><span class="ss">:archived?</span><span class="p" data-group-id="1377686573-4">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9696415444-3">%</span><span class="nc" data-group-id="9696415444-3">Todo.List</span><span class="p" data-group-id="9696415444-3">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="9696415444-3">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="9696415444-4">(</span><span class="ss">:archived?</span><span class="p" data-group-id="9696415444-4">)</span><span class="w">
 </span><span class="no">true</span></code></pre><h3 id="example-multi-value-predicate" class="section-heading">
   <a href="#example-multi-value-predicate" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
@@ -161,25 +161,25 @@ to to evaluate it, such as <a href="Dx.html#get!/2"><code class="inline">Dx.get!
 </h3>
 <p>Instead of assigning <code class="inline">true</code> or <code class="inline">false</code>, we might define a predicate
 <code class="inline">state</code> that can be easily extended later on.
-We can even use the existing predicate and reference it in our new rule:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="5382899235-1">do</span><span class="w">
+We can even use the existing predicate and reference it in our new rule:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="1875040852-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="5382899235-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="1875040852-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
-  </span><span class="k" data-group-id="5382899235-2">end</span><span class="w">
+  </span><span class="k" data-group-id="1875040852-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5382899235-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="5382899235-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1875040852-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="1875040852-3">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5382899235-4">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="5382899235-4">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1875040852-4">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1875040852-4">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:active</span><span class="w">
-</span><span class="k" data-group-id="5382899235-1">end</span></code></pre><h4>Usage</h4><p>Just as with <code class="inline">archived?</code>, we can now use <code class="inline">state</code> as if it was a field when using <a href="Dx.html"><code class="inline">Dx</code></a>:</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="3251127729-1">%</span><span class="nc" data-group-id="3251127729-1">Todo.List</span><span class="p" data-group-id="3251127729-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="3251127729-1">}</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="3251127729-2">(</span><span class="ss">:state</span><span class="p" data-group-id="3251127729-2">)</span><span class="w">
+</span><span class="k" data-group-id="1875040852-1">end</span></code></pre><h4>Usage</h4><p>Just as with <code class="inline">archived?</code>, we can now use <code class="inline">state</code> as if it was a field when using <a href="Dx.html"><code class="inline">Dx</code></a>:</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="5878429158-1">%</span><span class="nc" data-group-id="5878429158-1">Todo.List</span><span class="p" data-group-id="5878429158-1">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="5878429158-1">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="5878429158-2">(</span><span class="ss">:state</span><span class="p" data-group-id="5878429158-2">)</span><span class="w">
 </span><span class="ss">:active</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="3251127729-3">%</span><span class="nc" data-group-id="3251127729-3">Todo.List</span><span class="p" data-group-id="3251127729-3">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="3251127729-3">}</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="3251127729-4">(</span><span class="ss">:state</span><span class="p" data-group-id="3251127729-4">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="5878429158-3">%</span><span class="nc" data-group-id="5878429158-3">Todo.List</span><span class="p" data-group-id="5878429158-3">{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~U[2022-02-02 22:22:22Z]</span><span class="p" data-group-id="5878429158-3">}</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">get!</span><span class="p" data-group-id="5878429158-4">(</span><span class="ss">:state</span><span class="p" data-group-id="5878429158-4">)</span><span class="w">
 </span><span class="ss">:archived</span></code></pre>
 </div>
 
@@ -213,11 +213,11 @@ Associations
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/dx/0.3.2" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/dx/0.3.3" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/dx/0.3.2">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/dx/0.3.3">Hex Preview</a>
 
-              (<a href="https://preview.hex.pm/preview/dx/0.3.2/show/docs/basics/01_predicates.md">current file</a>)
+              (<a href="https://preview.hex.pm/preview/dx/0.3.3/show/docs/basics/01_predicates.md">current file</a>)
 
           </span>
 
