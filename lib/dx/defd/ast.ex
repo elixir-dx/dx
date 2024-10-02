@@ -1,9 +1,10 @@
 defmodule Dx.Defd.Ast do
   @moduledoc false
 
+  alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Ast.State
 
-  import __MODULE__.Guards
+  import Dx.Defd.Ast.Guards
 
   def is_function(
         {:ok,
@@ -155,162 +156,11 @@ defmodule Dx.Defd.Ast do
     {var_name, Keyword.take(meta, [:version, :counter]), context}
   end
 
-  def cleanup({:__block__, meta, _lines} = block) do
-    case cleanup_line(block) do
-      [ast] -> ast
-      lines -> {:__block__, meta, unwrap_lines(lines)}
-    end
-  end
-
-  def cleanup(ast) do
-    ast
-  end
-
-  defp cleanup_line({:__block__, _meta, lines}) do
-    Enum.flat_map(lines, &cleanup_line/1)
-  end
-
-  defp cleanup_line(ast) do
-    [cleanup(ast)]
-  end
-
-  defp unwrap_lines([]), do: []
-  defp unwrap_lines([last_line]), do: [last_line]
-  defp unwrap_lines([{:ok, line} | rest]), do: [line | unwrap_lines(rest)]
-  defp unwrap_lines([line | rest]), do: [line | unwrap_lines(rest)]
-
-  defp ensure_loaded(ast, data_reqs) do
-    do_ensure_loaded(cleanup(ast), data_reqs)
-  end
-
-  defp do_ensure_loaded(ast, []) do
-    ast
-  end
-
-  defp do_ensure_loaded({:ok, var}, [{loader, var}]) do
-    loader
-  end
-
-  defp do_ensure_loaded(ast, [{{:ok, right}, pattern}]) do
-    quote do
-      {:ok, unquote(pattern) = unquote(right)}
-      unquote(ast)
-    end
-    |> cleanup()
-  end
-
-  defp do_ensure_loaded(ast, [{loader, var}]) do
-    quote do
-      case unquote(loader) do
-        {:ok, unquote(var)} -> unquote(ast)
-        other -> other
-      end
-    end
-  end
-
-  defp do_ensure_loaded(ast, data_reqs) do
-    {assigns, data_reqs} = Enum.split_with(data_reqs, &match?({{:ok, _}, _}, &1))
-
-    assigns_ast =
-      Enum.map(assigns, fn {{:ok, right}, pattern} ->
-        {:ok, {:=, [], [pattern, right]}}
-      end)
-
-    {loaders, vars} = Enum.unzip(data_reqs)
-
-    ast = cleanup({:__block__, [], assigns_ast ++ [ast]})
-
-    case loaders do
-      [] ->
-        ast
-
-      [loader] ->
-        quote do
-          case unquote(loader) do
-            {:ok, unquote(List.first(vars))} -> unquote(ast)
-            other -> other
-          end
-        end
-
-      loaders ->
-        quote do
-          case Dx.Defd.Result.collect_reverse(unquote(loaders), {:ok, []}) do
-            {:ok, unquote(Enum.reverse(vars))} -> unquote(ast)
-            other -> other
-          end
-        end
-    end
-  end
-
-  def ensure_vars_loaded(ast, filter_vars, state) do
-    data_vars = get_data_vars(state.data_reqs)
-
-    state.data_reqs
-    |> Enum.split_with(fn {loader_ast, _data_var} ->
-      loader_vars = collect_vars(loader_ast, %{})
-      # IO.inspect(loader_vars, label: :loader_vars)
-      # IO.inspect(data_var, label: :data_var)
-      # r1 = any_var_in?(loader_vars, filter_vars) |> IO.inspect(label: :in_filter_vars?)
-      # r2 = any_var_in?(loader_vars, data_vars) |> IO.inspect(label: :in_data_vars?)
-      # p(loader_ast, "(loader)")
-      # r1 and not r2
-      any_var_in?(loader_vars, filter_vars) and not any_var_in?(loader_vars, data_vars)
+  def strip_vars_meta(ast) do
+    Macro.prewalk(ast, fn
+      var when is_var(var) -> var_id(var)
+      other -> other
     end)
-    |> case do
-      {[], _data_reqs} ->
-        {ast, state}
-
-      {local_data_reqs, other_data_reqs} ->
-        next_filter_vars = get_data_vars(local_data_reqs)
-        state = %{state | data_reqs: Map.new(other_data_reqs)}
-        {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
-        # ast = ensure_loaded(ast, local_data_reqs, state)
-        ast = ensure_loaded(ast, local_data_reqs)
-        {ast, state}
-    end
-  end
-
-  def ensure_all_loaded(ast, state) do
-    data_vars = get_data_vars(state.data_reqs)
-
-    state.data_reqs
-    |> Enum.split_with(fn {loader_ast, _data_var} ->
-      loader_vars = collect_vars(loader_ast, %{})
-      not any_var_in?(loader_vars, data_vars)
-    end)
-    |> case do
-      {[], _data_reqs} ->
-        {ast, state}
-
-      {local_data_reqs, other_data_reqs} ->
-        next_filter_vars = get_data_vars(local_data_reqs)
-        state = %{state | data_reqs: Map.new(other_data_reqs)}
-        {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
-        # ast = ensure_loaded(ast, local_data_reqs, state)
-        ast = ensure_loaded(ast, local_data_reqs)
-        {ast, state}
-    end
-  end
-
-  def with_new_loaders_loaded(state, fun) do
-    case fun.(state) do
-      {ast, updated_state} ->
-        data_reqs =
-          Enum.reject(updated_state.data_reqs, fn {loader_ast, _data_var} ->
-            Map.has_key?(state.data_reqs, loader_ast)
-          end)
-          |> Map.new()
-
-        updated_state = %{updated_state | data_reqs: data_reqs}
-
-        {ast, updated_state} = ensure_all_loaded(ast, updated_state)
-
-        {ast, %{updated_state | data_reqs: state.data_reqs}}
-
-      other ->
-        IO.inspect(other)
-        raise CompileError
-    end
   end
 
   def with_root_args(args, state, fun) do
@@ -318,17 +168,13 @@ defmodule Dx.Defd.Ast do
 
     case fun.(temp_state) do
       {ast, updated_state} ->
-        data_reqs =
-          Enum.reject(updated_state.data_reqs, fn {loader_ast, _data_var} ->
-            Map.has_key?(state.data_reqs, loader_ast)
-          end)
-          |> Map.new()
+        loaders = Loader.subtract(updated_state.loaders, state.loaders)
 
-        updated_state = %{updated_state | data_reqs: data_reqs}
+        updated_state = %{updated_state | loaders: loaders}
 
-        {ast, updated_state} = ensure_all_loaded(ast, updated_state)
+        {ast, updated_state} = Loader.ensure_all_loaded(ast, updated_state)
 
-        {ast, %{updated_state | args: state.args, data_reqs: state.data_reqs}}
+        {ast, %{updated_state | args: state.args, loaders: state.loaders}}
 
       other ->
         IO.inspect(other)
@@ -337,10 +183,10 @@ defmodule Dx.Defd.Ast do
   end
 
   def with_args_no_loaders!(args, state, fun) do
-    State.pass_in(state, [args: &collect_vars(args, &1), data_reqs: %{}], fn temp_state ->
+    State.pass_in(state, [args: &collect_vars(args, &1), loaders: []], fn temp_state ->
       case fun.(temp_state) do
         {ast, updated_state} ->
-          if updated_state.data_reqs != %{} do
+          if updated_state.loaders != [] do
             raise CompileError,
               file: state.file,
               line: state.line,
@@ -351,7 +197,7 @@ defmodule Dx.Defd.Ast do
 
               Data reqs:
 
-              #{Enum.map_join(updated_state.data_reqs, "\n", fn {ast, var} -> "#{Macro.to_string(var)} -> #{Macro.to_string(ast)}" end)}
+              #{Enum.map_join(updated_state.loaders, "\n", &inspect(&1, pretty: true))}
               """
           end
 
@@ -360,19 +206,12 @@ defmodule Dx.Defd.Ast do
     end)
   end
 
-  defp get_data_vars(data_reqs) do
-    Map.new(data_reqs, fn {_loader_ast, data_var} -> {data_var, true} end)
-  end
-
-  defp any_var_in?(ast_vars, vars) do
-    ast_vars
-    |> Enum.any?(fn {var, _} -> Map.has_key?(vars, var) end)
-  end
+  def collect_vars(ast, acc \\ MapSet.new())
 
   def collect_vars(ast, acc) do
     Macro.prewalk(ast, acc, fn
       {varname, _meta, mod} = var, acc when is_atom(varname) and is_atom(mod) ->
-        {var, Map.put(acc, var_id(var), true)}
+        {var, MapSet.put(acc, var_id(var))}
 
       other, acc ->
         {other, acc}
@@ -433,6 +272,13 @@ defmodule Dx.Defd.Ast do
   def closest_meta({elem, _elem}), do: closest_meta(elem)
   def closest_meta(_other), do: []
 
+  def to_s(ast) do
+    ast
+    |> Code.quoted_to_algebra(syntax_colors: Application.fetch_env!(:elixir, :ansi_syntax_colors))
+    |> Inspect.Algebra.format(98)
+    |> IO.iodata_to_binary()
+  end
+
   def pp({ast, state}, label \\ nil) do
     p(ast, label)
     {ast, state}
@@ -441,12 +287,12 @@ defmodule Dx.Defd.Ast do
   def p(ast, label \\ nil)
 
   def p(ast, nil) do
-    IO.puts("\n\n" <> Macro.to_string(ast) <> "\n\n")
+    IO.puts("\n\n" <> to_s(ast) <> "\n\n")
     ast
   end
 
   def p(ast, label) do
-    IO.puts("\n\n#{label}:\n" <> Macro.to_string(ast) <> "\n\n")
+    IO.puts("\n\n#{label}:\n" <> to_s(ast) <> "\n\n")
     ast
   end
 end

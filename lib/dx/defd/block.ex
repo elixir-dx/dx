@@ -2,8 +2,8 @@ defmodule Dx.Defd.Block do
   @moduledoc false
 
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Compiler
-  alias Dx.Util
 
   def normalize({:__block__, meta, lines}, state) do
     case normalize_block_body(lines, state) do
@@ -21,7 +21,7 @@ defmodule Dx.Defd.Block do
 
     if data_req == %{} do
       var = Ast.var_id(pattern)
-      state = put_in(state.data_reqs[{:ok, right}], var)
+      state = Loader.add_assign(state, var, right)
       ast = {:__block__, [], []}
 
       {ast, state}
@@ -34,7 +34,7 @@ defmodule Dx.Defd.Block do
             unquote(state.eval_var)
           )
         end
-        |> Compiler.add_loader(state)
+        |> Loader.add(state)
 
       ast = {:ok, {:=, meta, [pattern, var]}}
 
@@ -62,7 +62,7 @@ defmodule Dx.Defd.Block do
     # remove {:ok, ...} for every line that's not the last in the block
     ast = maybe_unwrap(ast)
 
-    new_vars = Util.Map.subtract(new_state.args, state.args)
+    new_vars = MapSet.difference(new_state.args, state.args)
 
     {rest, state} =
       if new_vars == %{} do
@@ -70,14 +70,14 @@ defmodule Dx.Defd.Block do
       else
         case normalize_block_body(rest, new_state) do
           {[ast], state} ->
-            case Ast.ensure_vars_loaded(ast, new_vars, state) do
+            case Loader.ensure_vars_loaded(ast, new_vars, state) do
               {ast, state} -> {[ast], state}
             end
 
           {lines, state} ->
             ast = to_block(lines, state)
 
-            case Ast.ensure_vars_loaded(ast, new_vars, state) do
+            case Loader.ensure_vars_loaded(ast, new_vars, state) do
               {{:__block__, _meta, lines}, state} -> {lines, state}
               {ast, state} -> {[ast], state}
             end

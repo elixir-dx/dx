@@ -54,28 +54,6 @@ defmodule Dx.Util.Map do
   end
 
   @doc """
-  Removes all keys from map1 that also exist in map2.
-
-  ## Examples
-
-      iex> Dx.Util.Map.subtract(%{a: 1, b: 2, c: 3}, %{a: 0, d: 4})
-      %{b: 2, c: 3}
-
-      iex> Dx.Util.Map.subtract(%{a: 1, b: 2}, %{a: 1, b: 2})
-      %{}
-
-      iex> Dx.Util.Map.subtract(%{a: 1, b: 2}, %{a: 1, b: 2, d: 4})
-      %{}
-  """
-  def subtract(map, map) do
-    %{}
-  end
-
-  def subtract(map1, map2) do
-    Map.reject(map1, fn {k, _v} -> Map.has_key?(map2, k) end)
-  end
-
-  @doc """
   When given two maps, merges the second map into the first.
   When the first argument is `nil`, returns the second argument.
   """

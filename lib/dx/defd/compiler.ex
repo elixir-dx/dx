@@ -2,6 +2,7 @@ defmodule Dx.Defd.Compiler do
   @moduledoc false
 
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Ast.State
   alias Dx.Defd.Util
 
@@ -27,14 +28,14 @@ defmodule Dx.Defd.Compiler do
       line: line,
       function: nil,
       defds: defds,
-      args: %{},
+      args: MapSet.new(),
       var_index: 1,
       scope_args: [],
       eval_var: eval_var,
       warn_non_dx?: true,
       called_non_dx?: false,
-      data_reqs: %{},
-      finalized_vars: %{},
+      loaders: [],
+      finalized_vars: MapSet.new(),
       rewrite_underscore?: false
     }
 
@@ -467,7 +468,7 @@ defmodule Dx.Defd.Compiler do
     normalize_call_args(args, state, fn args ->
       {{:., meta, [fun]}, meta2, args}
     end)
-    |> add_loader()
+    |> Loader.add()
   end
 
   def normalize({:case, _meta, _args} = ast, state) do
@@ -501,7 +502,7 @@ defmodule Dx.Defd.Compiler do
             unquote(state.eval_var)
           )
         end
-        |> add_loader(state)
+        |> Loader.add(state)
 
       {:ok, {:=, meta, [pattern, var]}}
       |> with_state(state)
@@ -634,7 +635,7 @@ defmodule Dx.Defd.Compiler do
         normalize_call_args(args, state, fn args ->
           {defd_name, meta, args ++ [state.eval_var]}
         end)
-        |> add_loader()
+        |> Loader.add()
 
       Util.has_function?(state.module, fun_name, arity) ->
         if state.warn_non_dx? do
@@ -669,7 +670,7 @@ defmodule Dx.Defd.Compiler do
       meta2[:no_parens] ->
         case maybe_capture_loader(fun, state) do
           {:ok, loader_ast, state} ->
-            add_loader(loader_ast, state)
+            Loader.add(loader_ast, state)
 
           :error ->
             {module, state} = normalize(module, state)
@@ -700,7 +701,7 @@ defmodule Dx.Defd.Compiler do
         normalize_call_args(args, state, fn args ->
           {{:., meta, [module, defd_name]}, meta2, args ++ [state.eval_var]}
         end)
-        |> add_loader()
+        |> Loader.add()
 
       # avoid non_dx warning for `Dx.Scope.all/1`
       {module, fun_name, arity} == {Dx.Scope, :all, 1} ->
@@ -759,21 +760,21 @@ defmodule Dx.Defd.Compiler do
     quote do
       Dx.Scope.lookup(Dx.Scope.all(unquote(module)), unquote(state.eval_var))
     end
-    |> add_loader(state)
+    |> Loader.add(state)
   end
 
   def maybe_load_scope({:ok, var}, state) when is_var(var) do
     quote do
       Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
     end
-    |> add_loader(state)
+    |> Loader.add(state)
   end
 
   def maybe_load_scope({:ok, {:%{}, _meta, [{:__struct__, Dx.Scope} | _]} = ast}, state) do
     quote do
       Dx.Scope.lookup(unquote(ast), unquote(state.eval_var))
     end
-    |> add_loader(state)
+    |> Loader.add(state)
   end
 
   def maybe_load_scope({:ok, ast}, state) do
@@ -789,7 +790,7 @@ defmodule Dx.Defd.Compiler do
     quote do
       Dx.Scope.maybe_lookup(unquote(ast), unquote(state.eval_var))
     end
-    |> add_loader(state)
+    |> Loader.add(state)
   end
 
   def normalize_load_unwrap(ast, state) do
@@ -798,23 +799,9 @@ defmodule Dx.Defd.Compiler do
         {ast, state}
 
       {ast, state} ->
-        {{:ok, var}, state} = add_loader(ast, state)
+        {{:ok, var}, state} = Loader.add(ast, state)
+
         {var, state}
-    end
-  end
-
-  def add_loader({loader, state}), do: add_loader(loader, state)
-
-  def add_loader(loader, state) do
-    if var = Map.get(state.data_reqs, loader) do
-      {:ok, var}
-      |> with_state(state)
-    else
-      var = Macro.var(:"dx#{state.var_index}", __MODULE__)
-      data_reqs = Map.put(state.data_reqs, loader, var)
-
-      {:ok, var}
-      |> with_state(%{state | data_reqs: data_reqs, var_index: state.var_index + 1})
     end
   end
 
@@ -837,7 +824,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   def maybe_capture_loader(var, state) when is_var(var) do
-    if Map.has_key?(state.args, Ast.var_id(var)) do
+    if Ast.var_id(var) in state.args do
       {:ok, {:ok, var}, state}
     else
       :error
@@ -868,7 +855,7 @@ defmodule Dx.Defd.Compiler do
                     unquote(state.eval_var)
                   )
                 end
-                |> add_loader(state)
+                |> Loader.add(state)
 
               replace_root_var(fun, var)
               |> with_state(state)
@@ -937,16 +924,16 @@ defmodule Dx.Defd.Compiler do
 
   def finalize_args(args, state) do
     Enum.map_reduce(args, state, fn arg, state ->
-      vars = Map.keys(Ast.collect_vars(arg, %{}))
+      vars = Ast.collect_vars(arg)
 
-      if Enum.all?(vars, &Map.has_key?(state.finalized_vars, &1)) do
+      if MapSet.subset?(vars, state.finalized_vars) do
         {:ok, arg}
         |> with_state(state)
       else
         quote do
           Dx.Defd.Runtime.finalize(unquote(arg), unquote(state.eval_var))
         end
-        |> add_loader(state)
+        |> Loader.add(state)
       end
     end)
   end

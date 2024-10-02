@@ -2,6 +2,7 @@ defmodule Dx.Enum do
   @moduledoc false
 
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Compiler
   alias Dx.Defd.Result
 
@@ -240,10 +241,9 @@ defmodule Dx.Enum do
         maybe_warn(meta, fun_name, arity, args, state)
 
         args = Enum.map(args, &Ast.unwrap/1)
-        ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
-        {ast, state} = Compiler.add_loader(ast, state)
 
-        {ast, state}
+        {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+        |> Loader.add(state)
 
       args_ok?(args, __fn_args(fun_name, arity)) ->
         maybe_warn_static(meta, fun_name, arity, args, state)
@@ -269,7 +269,7 @@ defmodule Dx.Enum do
         args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
         ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
 
-        Compiler.add_loader(ast, state)
+        Loader.add(ast, state)
 
       true ->
         maybe_warn_static(meta, fun_name, arity, args, state)

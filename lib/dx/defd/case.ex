@@ -2,6 +2,7 @@ defmodule Dx.Defd.Case do
   @moduledoc false
 
   alias Dx.Defd.Ast
+  alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Compiler
 
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
@@ -14,10 +15,10 @@ defmodule Dx.Defd.Case do
         {:ok, subject} ->
           {subject, state}
 
-        loader ->
-          reqs = Map.put_new(state.data_reqs, loader, Macro.unique_var(:data, __MODULE__))
-          var = reqs[loader]
-          {var, %{state | data_reqs: reqs}}
+        loader_ast ->
+          {{:ok, var}, state} = Loader.add(loader_ast, state)
+
+          {var, state}
       end
 
     {clauses, state} = normalize_clauses(clauses, state)
