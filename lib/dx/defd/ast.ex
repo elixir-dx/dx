@@ -26,11 +26,14 @@ defmodule Dx.Defd.Ast do
     length(args) == arity
   end
 
-  def is_function({:&, _meta, [{:/, [], [{_fun_name, [], nil}, arity]}]}, arity) do
+  def is_function({:&, _meta, [{:/, [], [{_fun_name, _meta2, nil}, arity]}]}, arity) do
     true
   end
 
-  def is_function({:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, [], []}, arity]}]}, arity) do
+  def is_function(
+        {:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, _meta2, []}, arity]}]},
+        arity
+      ) do
     true
   end
 

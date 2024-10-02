@@ -196,7 +196,10 @@ defmodule Dx.Enum do
   }
 
   # &Enum.fun/3
-  def rewrite({:&, meta, [{:/, [], [{{:., [], [Enum, fun_name]}, [], []}, arity]}]}, state) do
+  def rewrite(
+        {:&, meta, [{:/, [], [{{:., _meta2, [Enum, fun_name]}, _meta3, []}, arity]}]},
+        state
+      ) do
     ast =
       cond do
         function_exported?(__MODULE__, fun_name, arity) ->

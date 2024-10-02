@@ -52,7 +52,7 @@ defmodule Dx.Defd.ComplexTest do
         end
       end
 
-      assert {:ok, [%{list_template: %ListTemplate{}, score: 0.0}]} =
+      assert {:ok, [%{list_template: %ListTemplate{}, score: +0.0}]} =
                load(ComplexTest1.run([list_template]))
     end)
   end
@@ -145,7 +145,7 @@ defmodule Dx.Defd.ComplexTest do
       end
 
       assert_queries([~r/"inserted_at" < '.+"inserted_at" > '.+exists\(/], fn ->
-        assert [_] = TasksActiveTest.roles_active_during(period_start, period_end)
+        assert [_] = load!(TasksActiveTest.roles_active_during(period_start, period_end))
       end)
     end
 
@@ -187,6 +187,7 @@ defmodule Dx.Defd.ComplexTest do
             DateTime.add(DateTime.utc_now(), 30, :day),
             DateTime.utc_now()
           )
+          |> load!()
         end
       )
     end
@@ -228,6 +229,7 @@ defmodule Dx.Defd.ComplexTest do
             DateTime.add(DateTime.utc_now(), 30, :day),
             DateTime.utc_now()
           )
+          |> load!()
         end
       )
     end

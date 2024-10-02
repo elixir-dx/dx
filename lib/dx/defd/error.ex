@@ -10,32 +10,32 @@ defmodule Dx.Defd.Error do
 
      iex> rewrite_stacktrace([
      ...>   {Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-__defd:run__/2-fun-0-", 1,
-     ...>   [file: 'test/dx/defd/enum_test.exs', line: 163]}
+     ...>   [file: ~c'test/dx/defd/enum_test.exs', line: 163]}
      ...> ])
-     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: 'test/dx/defd/enum_test.exs', line: 163]}]
+     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: ~c'test/dx/defd/enum_test.exs', line: 163]}]
 
      iex> rewrite_stacktrace([
      ...>   {Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-__final_args:run__/2-fun-0-", 1,
-     ...>   [file: 'test/dx/defd/enum_test.exs', line: 163]}
+     ...>   [file: ~c'test/dx/defd/enum_test.exs', line: 163]}
      ...> ])
-     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: 'test/dx/defd/enum_test.exs', line: 163]}]
+     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"-run/1-fun-0-", 1, [file: ~c'test/dx/defd/enum_test.exs', line: 163]}]
 
      iex> rewrite_stacktrace([
-     ...>   {Enum, :"-map/2-lists^map/1-0-", 2, [file: 'lib/enum.ex', line: 1658]}
+     ...>   {Enum, :"-map/2-lists^map/1-0-", 2, [file: ~c'lib/enum.ex', line: 1658]}
      ...> ])
-     [{Enum, :"-map/2-lists^map/1-0-", 2, [file: 'lib/enum.ex', line: 1658]}]
+     [{Enum, :"-map/2-lists^map/1-0-", 2, [file: ~c'lib/enum.ex', line: 1658]}]
 
      iex> rewrite_stacktrace([
      ...>   {Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :"__defd:run__", 2,
-     ...>   [file: 'test/dx/defd/enum_test.exs', line: 162]}
+     ...>   [file: ~c'test/dx/defd/enum_test.exs', line: 162]}
      ...> ])
-     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :run, 1, [file: 'test/dx/defd/enum_test.exs', line: 162]}]
+     [{Dx.Defd.EnumTest.InvalidFieldInExtFnTest, :run, 1, [file: ~c'test/dx/defd/enum_test.exs', line: 162]}]
 
      iex> rewrite_stacktrace([
      ...>   {Dx.Defd.EnumTest, :"-test nested Invalid field in external fn body/1-fun-2-", 1,
-     ...>   [file: 'test/dx/defd/enum_test.exs', line: 191]}
+     ...>   [file: ~c'test/dx/defd/enum_test.exs', line: 191]}
      ...> ])
-     [{Dx.Defd.EnumTest, :"-test nested Invalid field in external fn body/1-fun-2-", 1, [file: 'test/dx/defd/enum_test.exs', line: 191]}]
+     [{Dx.Defd.EnumTest, :"-test nested Invalid field in external fn body/1-fun-2-", 1, [file: ~c'test/dx/defd/enum_test.exs', line: 191]}]
   """
   def rewrite_stacktrace(stacktrace) do
     stacktrace

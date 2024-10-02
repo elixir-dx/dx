@@ -202,18 +202,16 @@ defmodule Dx.DefdTest do
     end
 
     test "undefined local function" do
-      refute_stderr(fn ->
-        assert_raise CompileError,
-                     ~r"#{location(+6)}: undefined function do_add/2",
-                     fn ->
-                       defmodule Sample2 do
-                         import Dx.Defd
+      assert_stderr("undefined function do_add\/2", fn ->
+        assert_raise CompileError, ~r/cannot compile module Dx.DefdTest.Sample2/, fn ->
+          defmodule Sample2 do
+            import Dx.Defd
 
-                         defd add(a, b) do
-                           do_add(a, b)
-                         end
-                       end
-                     end
+            defd add(a, b) do
+              do_add(a, b)
+            end
+          end
+        end
       end)
     end
 
@@ -511,12 +509,12 @@ defmodule Dx.DefdTest do
 
         @dx def: :original
         defd invalid_arg(list) do
-          non_dx(String.to_integer(list))
+          non_dx(String.trim(list))
         end
       end
 
       assert_same_error(
-        ArgumentError,
+        FunctionClauseError,
         location(-6),
         fn -> InvalidCallTest.invalid_arg(list) end,
         fn -> Dx.Defd.load(InvalidCallTest.invalid_arg(list)) end

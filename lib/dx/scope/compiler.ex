@@ -83,12 +83,12 @@ defmodule Dx.Scope.Compiler do
   end
 
   # &local_fun/2
-  def normalize({:&, meta, [{:/, [], [{fun_name, [], nil}, arity]}]} = ast, state) do
+  def normalize({:&, meta, [{:/, [], [{fun_name, meta2, nil}, arity]}]} = ast, state) do
     if {fun_name, arity} in state.defds do
       scope_name = Util.scope_name(fun_name)
       args = Macro.generate_arguments(arity, __MODULE__)
 
-      {:fn, meta, [{:->, meta, [args, {scope_name, meta, args}]}]}
+      {:fn, meta, [{:->, meta, [args, {scope_name, meta2, args}]}]}
     else
       fallback = generate_fallback(ast, meta, state)
 
@@ -99,7 +99,7 @@ defmodule Dx.Scope.Compiler do
 
   # &Mod.fun/3
   def normalize(
-        {:&, meta, [{:/, [], [{{:., [], [module, fun_name]}, [], []}, arity]}]} = ast,
+        {:&, meta, [{:/, [], [{{:., meta2, [module, fun_name]}, meta3, []}, arity]}]} = ast,
         state
       ) do
     cond do
@@ -110,7 +110,7 @@ defmodule Dx.Scope.Compiler do
         scope_name = Util.scope_name(fun_name)
         args = Macro.generate_arguments(arity, __MODULE__)
 
-        {:fn, meta, [{:->, meta, [args, {{:., meta, [module, scope_name]}, meta, args}]}]}
+        {:fn, meta, [{:->, meta, [args, {{:., meta2, [module, scope_name]}, meta3, args}]}]}
         |> with_state(state)
 
       true ->

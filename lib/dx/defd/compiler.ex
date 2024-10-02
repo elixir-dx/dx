@@ -67,7 +67,7 @@ defmodule Dx.Defd.Compiler do
       case scope_ast do
         {:error, _} ->
           {:error,
-           {:&, meta, [{:/, [], [{{:., [], [state.module, defd_name]}, [], []}, arity + 1]}]}}
+           {:&, meta, [{:/, [], [{{:., meta, [state.module, defd_name]}, meta, []}, arity + 1]}]}}
 
         other ->
           other
@@ -509,7 +509,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   # &local_fun/2
-  def normalize({:&, meta, [{:/, [], [{fun_name, [], nil}, arity]}]}, state) do
+  def normalize({:&, meta, [{:/, [], [{fun_name, meta2, nil}, arity]}]}, state) do
     args = Macro.generate_arguments(arity, __MODULE__)
     line = meta[:line] || state.line
 
@@ -530,7 +530,7 @@ defmodule Dx.Defd.Compiler do
              final_args_fun:
                {:fn, meta,
                 [{:->, meta, [args, {final_args_name, meta, args ++ [state.eval_var]}]}]},
-             scope: {:&, meta, [{:/, [], [{scope_name, [], nil}, arity]}]}
+             scope: {:&, meta, [{:/, [], [{scope_name, meta2, nil}, arity]}]}
            ]}
         ]}}
       |> with_state(state)
@@ -557,7 +557,7 @@ defmodule Dx.Defd.Compiler do
 
   # &Mod.fun/3
   def normalize(
-        {:&, meta, [{:/, [], [{{:., [], [module, fun_name]}, [], []}, arity]}]} = fun,
+        {:&, meta, [{:/, [], [{{:., meta2, [module, fun_name]}, meta3, []}, arity]}]} = fun,
         state
       ) do
     args = Macro.generate_arguments(arity, __MODULE__)
@@ -595,7 +595,8 @@ defmodule Dx.Defd.Compiler do
                        {{:., meta, [module, final_args_name]}, meta, args ++ [state.eval_var]}
                      ]}
                   ]},
-               scope: {:&, meta, [{:/, [], [{{:., [], [module, scope_name]}, [], []}, arity]}]}
+               scope:
+                 {:&, meta, [{:/, [], [{{:., meta2, [module, scope_name]}, meta3, []}, arity]}]}
              ]}
           ]}}
         |> with_state(state)
@@ -918,10 +919,11 @@ defmodule Dx.Defd.Compiler do
           {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
           |> with_state(new_state)
 
-        {:&, _meta, [{:/, [], [{{:., [], [_mod, _fun_name]}, [], []}, _arity]}]} = fun, state ->
+        {:&, _meta, [{:/, [], [{{:., _meta2, [_mod, _fun_name]}, _meta3, []}, _arity]}]} = fun,
+        state ->
           {{:ok, fun}, state}
 
-        {:&, _meta, [{:/, [], [{_fun_name, [], nil}, _arity]}]} = fun, state ->
+        {:&, _meta, [{:/, [], [{_fun_name, _meta2, nil}, _arity]}]} = fun, state ->
           {{:ok, fun}, state}
 
         arg, state ->

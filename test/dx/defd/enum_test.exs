@@ -2131,8 +2131,8 @@ defmodule Dx.Defd.EnumTest do
     end
 
     test "raises correct error" do
-      assert_stderr("variable \"tasks\" does not exist", fn ->
-        assert_raise CompileError, ~r/undefined function tasks\/0/, fn ->
+      assert_stderr("undefined variable \"tasks\"", fn ->
+        assert_raise CompileError, ~r/cannot compile module Dx.Defd.EnumTest.Min1ErrorTest/, fn ->
           defmodule Min1ErrorTest do
             import Dx.Defd
 

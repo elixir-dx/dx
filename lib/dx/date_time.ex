@@ -4,7 +4,10 @@ defmodule Dx.DateTime do
   alias Dx.Defd.Ast
   alias Dx.Defd.Compiler
 
-  def rewrite({:&, meta, [{:/, [], [{{:., [], [DateTime, fun_name]}, [], []}, arity]}]}, state) do
+  def rewrite(
+        {:&, meta, [{:/, [], [{{:., _meta2, [DateTime, fun_name]}, _meta3, []}, arity]}]},
+        state
+      ) do
     ast =
       cond do
         function_exported?(__MODULE__, fun_name, arity) ->

@@ -5,10 +5,11 @@ defmodule Dx.MapTest do
     use Dx.Rules, for: Task
 
     infer prev_dates:
-            {&Date.range/2,
+            {&Date.range/3,
              [
                {&Date.add/2, [{:ref, :due_on}, -1]},
-               {&Date.add/2, [{:ref, :due_on}, -7]}
+               {&Date.add/2, [{:ref, :due_on}, -7]},
+               -1
              ]}
 
     infer prev_tasks_1:
@@ -29,7 +30,7 @@ defmodule Dx.MapTest do
     list = create(List, %{created_by_id: user.id})
 
     tasks =
-      for date <- Date.range(today(), today(-6)) do
+      for date <- Date.range(today(), today(-6), -1) do
         create(Task, %{due_on: date, list_id: list.id, created_by_id: user.id})
       end
 

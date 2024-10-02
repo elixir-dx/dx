@@ -58,7 +58,7 @@ defmodule Dx.Defd.KernelTest do
 
   describe "&&/2" do
     test "works with booleans", %{list: list, task: task} do
-      defmodule AmpersandsTest do
+      defmodule AmpersandsBoolTest do
         import Dx.Defd
 
         defd run(list) do
@@ -66,7 +66,7 @@ defmodule Dx.Defd.KernelTest do
         end
       end
 
-      assert load!(AmpersandsTest.run(list)) == true
+      assert load!(AmpersandsBoolTest.run(list)) == true
     end
 
     test "works with truthy", %{list: list, task: task} do
@@ -195,13 +195,13 @@ defmodule Dx.Defd.KernelTest do
         end
 
         defd run2(list) do
-          if creator = user = list.created_by do
+          if creator = _user = list.created_by do
             creator.role.name
           end
         end
 
         defd run3(list) do
-          if creator = user = list.created_by do
+          if _creator = user = list.created_by do
             user.role.name
           end
         end

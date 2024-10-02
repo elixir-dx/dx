@@ -60,7 +60,7 @@ defmodule Dx.MixProject do
       {:postgrex, "~> 0.14", only: :test, runtime: false},
       {:timex, "~> 3.6", only: :test, runtime: false},
       {:refactory, "~> 0.1.0", only: :test},
-      {:stream_data, "~> 0.6", only: [:dev, :test]},
+      {:stream_data, "~> 1.0", only: [:dev, :test]},
       {:pretty_print_formatter, github: "san650/pretty_print_formatter", only: [:dev, :test]},
       # {:pretty_print_formatter, "~> 0.1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}

@@ -82,10 +82,10 @@ defmodule Dx.Defd.KernelSpecialFormsTest do
             points = list.hourly_points ->
               points
 
-            creator = user = list.created_by ->
+            creator = _user = list.created_by ->
               creator.role.name
 
-            creator = user = list.created_by ->
+            _creator = user = list.created_by ->
               user.role.name
 
             true ->

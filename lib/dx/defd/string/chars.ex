@@ -5,7 +5,7 @@ defmodule Dx.Defd.String.Chars do
   alias Dx.Defd.Compiler
 
   def rewrite(
-        {:&, meta, [{:/, [], [{{:., [], [String.Chars, fun_name]}, [], []}, arity]}]},
+        {:&, meta, [{:/, [], [{{:., _meta2, [String.Chars, fun_name]}, _meta3, []}, arity]}]},
         state
       ) do
     ast =

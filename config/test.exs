@@ -11,5 +11,5 @@ config :dx, Dx.Test.Repo,
 config :dx, ecto_repos: [Dx.Test.Repo],
   repo: Dx.Test.Repo
 
-config :logger, level: :warn
+config :logger, level: :warning
 # config :logger, :console, format: {PrettyPrintFormatter, :write}
