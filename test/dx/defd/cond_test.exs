@@ -1,22 +1,22 @@
-defmodule Dx.Defd.KernelSpecialFormsTest do
+defmodule Dx.Defd.CondTest do
   use Dx.Test.DefdCase, async: false
 
-  setup do
-    user = create(User, %{role: %{name: "Assistant"}})
-    list = create(List, %{created_by: user, hourly_points: 3.5})
-    task = create(Task, %{list: list, created_by: user})
+  describe "with data" do
+    setup do
+      user = create(User, %{role: %{name: "Assistant"}})
+      list = create(List, %{created_by: user, hourly_points: 3.5})
+      task = create(Task, %{list: list, created_by: user})
 
-    [
-      user: unload(user),
-      preloaded_user: user,
-      preloaded_list: %{list | tasks: [task]},
-      list: unload(list),
-      preloaded_task: task,
-      task: unload(task)
-    ]
-  end
+      [
+        user: unload(user),
+        preloaded_user: user,
+        preloaded_list: %{list | tasks: [task]},
+        list: unload(list),
+        preloaded_task: task,
+        task: unload(task)
+      ]
+    end
 
-  describe "cond" do
     test "works with boolean condition", %{list: list, user: user} do
       defmodule CondBoolTest do
         import Dx.Defd
@@ -170,5 +170,104 @@ defmodule Dx.Defd.KernelSpecialFormsTest do
         fn -> CondRaiseTest.run(list) end
       )
     end
+  end
+
+  test "works with complex conditions" do
+    defmodule CondTest do
+      import Dx.Defd
+
+      defd run(list, author, acc) do
+        cond do
+          list.title == "Main list" and list.published? == false ->
+            non_dx(Map.replace!(acc, :counter, 0))
+
+          list.published? == false ->
+            inc_counter(acc, list)
+
+          is_nil(author) ->
+            inc_counter(acc, list)
+
+          not admin?(author) ->
+            inc_counter(acc, list)
+
+          admin?(author) and is_nil(author.verified_at) ->
+            non_dx(Map.replace!(acc, :counter, 0))
+
+          admin?(author) ->
+            acc
+        end
+      end
+
+      defd admin?(nil) do
+        false
+      end
+
+      defd admin?(user) do
+        user.role.name == "Admin"
+      end
+
+      defd inc_counter(acc, list) do
+        non_dx(Map.update(acc, list.title, 1, &(&1 + 1)))
+      end
+    end
+
+    admin = create(User, %{role: %{name: "Admin"}, verified_at: nil})
+
+    verified_admin =
+      create(User, %{
+        role: %{name: "Admin"},
+        verified_at: DateTime.truncate(DateTime.utc_now(), :second)
+      })
+
+    assistant = create(User, %{role: %{name: "Assistant"}})
+
+    assert create(List, %{
+             title: "Main list",
+             published?: false,
+             created_by: assistant
+           })
+           |> CondTest.run(nil, %{counter: 1, foo: :bar})
+           |> load!() == %{counter: 0, foo: :bar}
+
+    assert create(List, %{
+             title: "Drafts",
+             published?: false,
+             created_by: assistant
+           })
+           |> CondTest.run(nil, %{counter: 1, foo: :bar})
+           |> load!() ==
+             %{:counter => 1, :foo => :bar, "Drafts" => 1}
+
+    assert create(List, %{
+             title: "Main list",
+             published?: true,
+             created_by: assistant
+           })
+           |> CondTest.run(nil, %{counter: 1, foo: :bar})
+           |> load!() == %{:counter => 1, :foo => :bar, "Main list" => 1}
+
+    assert create(List, %{
+             title: "Main list",
+             published?: true,
+             created_by: assistant
+           })
+           |> CondTest.run(assistant, %{counter: 1, foo: :bar})
+           |> load!() == %{:counter => 1, :foo => :bar, "Main list" => 1}
+
+    assert create(List, %{
+             title: "Main list",
+             published?: true,
+             created_by: assistant
+           })
+           |> CondTest.run(admin, %{counter: 1, foo: :bar})
+           |> load!() == %{:counter => 0, :foo => :bar}
+
+    assert create(List, %{
+             title: "Main list",
+             published?: true,
+             created_by: assistant
+           })
+           |> CondTest.run(verified_admin, %{counter: 1, foo: :bar})
+           |> load!() == %{:counter => 1, :foo => :bar}
   end
 end

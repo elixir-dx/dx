@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dx.load`, `Dx.load!`, `Dx.get` and `Dx.get!` are now macros and
   must be required or imported when used.
 
+## [0.3.4] - Unreleased
+
+### Fixes
+
+- Fix passing function refs in Elixir 1.15+
+- Fix cond compilation with complex conditions
+
 ## [0.3.3] - 2024-09-30
 
 ### Features
