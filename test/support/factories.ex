@@ -11,7 +11,8 @@ defmodule Test.Support.Factories do
 
   def trait(Dx.Test.Schema.List, :default) do
     %{
-      title: "My List"
+      title: "My List",
+      published?: false
     }
   end
 

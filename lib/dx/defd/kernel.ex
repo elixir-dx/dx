@@ -85,4 +85,16 @@ defmodule Dx.Defd.Kernel do
   defscope unquote(:not)(term, _generate_fallback) do
     {:not, term}
   end
+
+  def is_function(%Dx.Defd.Fn{}) do
+    true
+  end
+
+  def is_function(term) do
+    :erlang.is_function(term)
+  end
+
+  def is_function(term, arity) do
+    :erlang.is_function(term, arity)
+  end
 end

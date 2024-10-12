@@ -78,7 +78,6 @@ defmodule Dx.Defd do
   end
 
   defp define_defd(kind, call, env) do
-    assert_no_guards!(kind, call, env)
     # Note name here is not necessarily an atom due to unquote(name) support
     {name, args} = decompose_call!(kind, call, env)
     arity = length(args)
@@ -100,7 +99,6 @@ defmodule Dx.Defd do
   end
 
   defp define_defd(kind, call, block, env) do
-    assert_no_guards!(kind, call, env)
     # Note name here is not necessarily an atom due to unquote(name) support
     {name, args} = decompose_call!(kind, call, env)
     arity = length(args)
@@ -148,12 +146,6 @@ defmodule Dx.Defd do
         )
     end
   end
-
-  defp assert_no_guards!(kind, {:when, _, _}, env) do
-    compile_error!(env, "guards are not supported by #{kind}d")
-  end
-
-  defp assert_no_guards!(_kind, _call, _env), do: :ok
 
   # Internal attributes
   @defd_exports_key :__defd_exports__

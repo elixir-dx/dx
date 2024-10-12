@@ -913,6 +913,39 @@ defmodule Dx.Defd.EnumTest do
                  unload(Find2MapLoadTest.run(to_map(preloaded_tasks)))
       end)
     end
+
+    test "works as scope", %{task: task} do
+      refute_stderr(fn ->
+        defmodule Find2ScopeTest do
+          import Dx.Defd
+
+          defd run(task_id) do
+            Enum.find(Task, &(&1.id == task_id))
+          end
+        end
+
+        assert load!(Find2ScopeTest.run(task.id)) == task
+        assert load!(Find2ScopeTest.run(nil)) == nil
+      end)
+    end
+
+    test "works as scope with multiple results", %{tasks: tasks} do
+      refute_stderr(fn ->
+        defmodule Find2ScopeMultiTest do
+          import Dx.Defd
+
+          defd run(task_ids) do
+            Enum.map(task_ids, fn task_id ->
+              Enum.find(Task, &(&1.id == task_id))
+            end)
+          end
+        end
+
+        task_ids = Enum.map(tasks, & &1.id)
+        assert load!(Find2ScopeMultiTest.run(task_ids)) == tasks
+        assert load!(Find2ScopeMultiTest.run([nil | task_ids])) == [nil | tasks]
+      end)
+    end
   end
 
   describe "find/3" do
@@ -2884,6 +2917,26 @@ defmodule Dx.Defd.EnumTest do
 
         assert load!(ReduceWhile3LoadTest.halt(tasks)) ==
                  unload(ReduceWhile3LoadTest.halt(preloaded_tasks))
+      end)
+    end
+
+    test "works without loading data",
+         %{tasks: tasks, task2: task2, preloaded_tasks: preloaded_tasks, user: user} do
+      refute_stderr(fn ->
+        defmodule ReduceWhile3Test do
+          import Dx.Defd
+
+          defd run(tasks) do
+            loaded = Enum.map(tasks, &{&1.id, &1.created_by.email, &1.inserted_at})
+
+            Enum.reduce_while(loaded, [], fn {id, email, _inserted_at}, acc ->
+              cond do
+                is_nil(email) -> {:halt, acc}
+                true -> {:cont, acc ++ [id]}
+              end
+            end)
+          end
+        end
       end)
     end
 

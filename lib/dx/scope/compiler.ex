@@ -16,36 +16,60 @@ defmodule Dx.Scope.Compiler do
   }
 
   def generate_fallback(ast, meta, state) do
+    state = %{state | warn_non_dx?: false}
     {_external_args, internal_args} = Enum.unzip(state.scope_args)
 
-    {fun, _state} =
-      Ast.with_args_no_loaders!(internal_args, state, fn state ->
-        args = internal_args ++ [state.eval_var]
+    Ast.with_args_no_loaders!(internal_args, state, fn state ->
+      args = internal_args ++ [state.eval_var]
 
-        {ast, new_state} =
-          Ast.with_root_args(args, state, fn state ->
-            Dx.Defd.Compiler.normalize(ast, state)
-          end)
+      {ast, new_state} =
+        Ast.with_root_args(args, state, fn state ->
+          Dx.Defd.Compiler.normalize(ast, state)
+        end)
 
-        result_var = {:result, [], __MODULE__}
+      result_var = {:result, [], __MODULE__}
 
-        arg_assigns =
-          Enum.map(state.scope_args, fn {external_arg, internal_arg} ->
-            quote do
-              unquote(internal_arg) =
-                case unquote(external_arg) do
-                  {:ref, :a0} -> unquote(result_var)
-                  _else -> unquote(external_arg)
-                end
-            end
-          end)
+      arg_assigns =
+        Enum.map(state.scope_args, fn {external_arg, internal_arg} ->
+          quote do
+            unquote(internal_arg) =
+              case unquote(external_arg) do
+                {:ref, :a0} -> unquote(result_var)
+                _else -> unquote(external_arg)
+              end
+          end
+        end)
 
-        {:fn, meta,
-         [{:->, meta, [[result_var, state.eval_var], {:__block__, [], arg_assigns ++ [ast]}]}]}
-        |> with_state(new_state)
+      {:fn, meta,
+       [{:->, meta, [[result_var, state.eval_var], {:__block__, [], arg_assigns ++ [ast]}]}]}
+      |> with_state(new_state)
+    end)
+  end
+
+  def normalize_function({:v1, _kind, _meta, [{_clause_meta, args, [], ast}]}, state) do
+    external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
+    internal_scope_args = Ast.mark_vars_as_generated(args)
+    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
+
+    scope_args =
+      Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
+        quote do: unquote(external_arg) = unquote(internal_arg)
       end)
 
-    fun
+    state = Map.put(state, :scope_args, scope_args_map)
+
+    {scope_ast, _state} =
+      State.pass_in(state, [warn_non_dx?: false], fn state ->
+        Ast.with_args_no_loaders!(args, state, fn state ->
+          normalize(ast, state)
+        end)
+      end)
+
+    {{scope_args, scope_ast}, state}
+  end
+
+  def normalize_function({:v1, _kind, _meta, _clauses}, state) do
+    {{state.all_args, {:error, nil}}, state}
   end
 
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
@@ -89,12 +113,13 @@ defmodule Dx.Scope.Compiler do
       args = Macro.generate_arguments(arity, __MODULE__)
 
       {:fn, meta, [{:->, meta, [args, {scope_name, meta2, args}]}]}
+      |> with_state(state)
     else
-      fallback = generate_fallback(ast, meta, state)
+      {fallback, state} = generate_fallback(ast, meta, state)
 
       {:error, fallback}
+      |> with_state(state)
     end
-    |> with_state(state)
   end
 
   # &Mod.fun/3
@@ -103,9 +128,6 @@ defmodule Dx.Scope.Compiler do
         state
       ) do
     cond do
-      rewriter = @rewriters[module] ->
-        rewriter.rewrite_scope(ast, state)
-
       Util.is_defd?(module, fun_name, arity) ->
         scope_name = Util.scope_name(fun_name)
         args = Macro.generate_arguments(arity, __MODULE__)
@@ -147,7 +169,7 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        fallback = generate_fallback(call, meta, state)
+        {fallback, state} = generate_fallback(call, meta, state)
 
         {:error, fallback}
         |> with_state(state)
@@ -179,7 +201,7 @@ defmodule Dx.Scope.Compiler do
 
       # function call on dynamically computed module
       not is_atom(module) ->
-        fallback = generate_fallback(fun, meta, state)
+        {fallback, state} = generate_fallback(fun, meta, state)
 
         {:error, fallback}
         |> with_state(state)
@@ -199,7 +221,8 @@ defmodule Dx.Scope.Compiler do
                 arg -> quote do: Dx.Scope.maybe_atom(unquote(arg))
               end)
 
-            generate_fallback = fn -> generate_fallback(fun, meta, state) end
+            {fallback, state} = generate_fallback(fun, meta, state)
+            generate_fallback = fn -> fallback end
 
             apply(rewriter, Util.scope_name(fun_name), args ++ [generate_fallback])
             |> with_state(state)
@@ -211,7 +234,7 @@ defmodule Dx.Scope.Compiler do
             |> with_state(state)
 
           true ->
-            fallback = generate_fallback(fun, meta, state)
+            {fallback, state} = generate_fallback(fun, meta, state)
 
             {:error, fallback}
             |> with_state(state)
@@ -224,7 +247,7 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       true ->
-        fallback = generate_fallback(fun, meta, state)
+        {fallback, state} = generate_fallback(fun, meta, state)
 
         {:error, fallback}
         |> with_state(state)
@@ -233,7 +256,7 @@ defmodule Dx.Scope.Compiler do
 
   def normalize(other, state) do
     meta = Ast.closest_meta(other)
-    fallback = generate_fallback(other, meta, state)
+    {fallback, state} = generate_fallback(other, meta, state)
 
     {:error, fallback}
     |> with_state(state)

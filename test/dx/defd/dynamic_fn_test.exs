@@ -30,6 +30,29 @@ defmodule Dx.Defd.DynamicFnTest do
     assert load!(DynFunTest.run(task)) == "Created by: #{user.first_name} (1 total)"
   end
 
+  test "calls multi-clause dynamic function in variable", %{task: task, list: list} do
+    defmodule DynMultiClauseFunTest do
+      import Dx.Defd
+
+      defd run(tasks) do
+        if_empty_then = fn
+          [], next_filter -> Enum.filter(tasks, next_filter)
+          result, _ -> result
+        end
+
+        []
+        |> if_empty_then.(&(&1.created_by.first_name == "Joey"))
+        |> if_empty_then.(&(&1.created_by.role && &1.created_by.role.name == "Admin"))
+        |> if_empty_then.(fn _ -> true end)
+      end
+    end
+
+    assert load!(DynMultiClauseFunTest.run([task])) == [task]
+
+    joeys_task = create(Task, %{created_by: %{first_name: "Joey"}, list: list})
+    assert load!(DynMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
+  end
+
   test "calls dynamic function in passed in variable" do
     defmodule PassedInDynFunTest do
       import Dx.Defd

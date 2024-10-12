@@ -13,15 +13,23 @@ defmodule Dx.Defd.Block do
   end
 
   def normalize({:=, meta, [pattern, right]}, state) do
-    {right, state} = Compiler.normalize(right, state)
-    right = Ast.unwrap(right)
+    {right, state} =
+      case Compiler.normalize(right, state) do
+        {{:ok, ast}, state} ->
+          {ast, state}
+
+        {ast, state} ->
+          {{:ok, ast}, state} = Loader.add(ast, state)
+
+          {ast, state}
+      end
 
     state = Map.update!(state, :args, &Ast.collect_vars(pattern, &1))
     data_req = Dx.Defd.Case.quoted_data_req(pattern)
 
     if data_req == %{} do
-      var = Ast.var_id(pattern)
-      state = Loader.add_assign(state, var, right)
+      pattern = Ast.strip_vars_meta(pattern)
+      state = Loader.add_assign(state, pattern, right)
       ast = {:__block__, [], []}
 
       {ast, state}

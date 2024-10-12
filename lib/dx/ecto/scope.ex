@@ -10,6 +10,7 @@ defmodule Dx.Ecto.Scope do
       :query,
       :ref,
       cardinality: :many,
+      aggregate?: false,
       aggregate_default: nil
     ]
   end
@@ -17,6 +18,7 @@ defmodule Dx.Ecto.Scope do
   @state %{
     queries: [],
     cardinality: :many,
+    aggregate?: false,
     aggregate_default: nil,
     alias_types: Map.new(),
     post_load: {:loaded}
@@ -37,6 +39,7 @@ defmodule Dx.Ecto.Scope do
     scope = %{
       scope
       | cardinality: query.cardinality,
+        aggregate?: query.aggregate?,
         aggregate_default: query.aggregate_default,
         post_load: state.post_load
     }
@@ -123,6 +126,11 @@ defmodule Dx.Ecto.Scope do
   defp resolve({:count, base}, refs) do
     {base, _ref, refs} = resolve(base, refs)
     {{:count, base}, nil, refs}
+  end
+
+  defp resolve({:first, base}, refs) do
+    {base, _ref, refs} = resolve(base, refs)
+    {{:first, base}, nil, refs}
   end
 
   defp resolve({:any?, base, fallback}, refs) do
@@ -266,6 +274,10 @@ defmodule Dx.Ecto.Scope do
 
   defp normalize_condition({:any_of, conditions, fallback}) do
     {:any_of, flatten_condition(:any_of, conditions), fallback}
+  end
+
+  defp normalize_condition({unary, base}) when unary in [:count, :first] do
+    {unary, normalize(base)}
   end
 
   defp normalize_condition({:any?, base, fallback}) do
@@ -467,7 +479,17 @@ defmodule Dx.Ecto.Scope do
   defp build({:count, base}, state) do
     {_ref, state} = build(base, state)
 
-    map_query(state, &select(&1, %{result: count()}), cardinality: :one, aggregate_default: 0)
+    map_query(state, &select(&1, %{result: count()}),
+      cardinality: :one,
+      aggregate?: true,
+      aggregate_default: 0
+    )
+  end
+
+  defp build({:first, base}, state) do
+    {_ref, state} = build(base, state)
+
+    map_query(state, &limit(&1, 1), cardinality: :one)
   end
 
   defp build({:filter, base, condition}, state) do

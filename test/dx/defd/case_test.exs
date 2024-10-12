@@ -77,6 +77,88 @@ defmodule Dx.Defd.CaseTest do
       assert {:ok, %{id: ^user_id}} = load(FullAssocTest.created_by(list))
     end
 
+    test "matches variable with list of records", %{list: list, user: %{id: user_id}} do
+      defmodule AssignedListCaseTest do
+        import Dx.Defd
+
+        defd created_by(list) do
+          lists = [list]
+
+          case lists do
+            [%{created_by: user}] -> user
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(AssignedListCaseTest.created_by(list))
+    end
+
+    test "matches direct list of records", %{list: list, user: %{id: user_id}} do
+      defmodule DirectListCaseTest do
+        import Dx.Defd
+
+        defd created_by(list) do
+          case [list] do
+            [%{created_by: user}] -> user
+            other -> other
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(DirectListCaseTest.created_by(list))
+    end
+
+    test "matches variable with scope", %{user: %{id: user_id}} do
+      defmodule AssignedScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by() do
+          lists = Dx.Scope.all(List)
+
+          case lists do
+            [%{created_by: user}] -> user
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(AssignedScopeCaseTest.created_by())
+    end
+
+    # @tag :skip
+    test "matches deeply nested variable with scope", %{user: %{id: user_id}} do
+      defmodule NestedAssignedScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by() do
+          lists = Dx.Scope.all(List)
+
+          case [%{lists: {:ok, lists}}] do
+            [%{lists: {:ok, [%{created_by: user}]}}] -> user
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(NestedAssignedScopeCaseTest.created_by())
+    end
+
+    test "matches scope directly", %{user: %{id: user_id}} do
+      defmodule DirectScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by() do
+          case Dx.Scope.all(List) do
+            [%{created_by: user}] -> user
+            _other -> nil
+          end
+        end
+      end
+
+      assert {:ok, %{id: ^user_id}} = load(DirectScopeCaseTest.created_by())
+    end
+
     test "supports anonymous functions", %{
       list: list,
       preloaded_user: %{role: %{name: role_name}}

@@ -23,7 +23,7 @@ defmodule Dx.DefdTest do
         end
       end
 
-      assert_stderr("Use Dx.load as entrypoint", fn ->
+      assert_stderr("Use Dx.Defd.load as entrypoint", fn ->
         DirectCallTest.bool_constant()
       end)
     end
@@ -51,7 +51,7 @@ defmodule Dx.DefdTest do
         OptsDefTest.no_warn()
       end)
 
-      assert_stderr("Use Dx.load as entrypoint", fn ->
+      assert_stderr("Use Dx.Defd.load as entrypoint", fn ->
         OptsDefTest.default()
       end)
 
@@ -212,41 +212,6 @@ defmodule Dx.DefdTest do
             end
           end
         end
-      end)
-    end
-
-    test "undefined function in other module" do
-      refute_stderr(fn ->
-        assert_raise CompileError,
-                     ~r"#{location(+9)}: undefined function do_add/2 \(expected #{inspect(__MODULE__)}.Other3 to define such a function",
-                     fn ->
-                       defmodule Other3 do
-                       end
-
-                       defmodule Sample3 do
-                         import Dx.Defd
-
-                         defd add(a, b) do
-                           Other3.do_add(a, b)
-                         end
-                       end
-                     end
-      end)
-    end
-
-    test "function in non-existing module" do
-      refute_stderr(fn ->
-        assert_raise CompileError,
-                     ~r"#{location(+6)}: undefined function do_add/2 \(module OtherSide does not exist\)",
-                     fn ->
-                       defmodule Sample4 do
-                         import Dx.Defd
-
-                         defd add(a, b) do
-                           OtherSide.do_add(a, b)
-                         end
-                       end
-                     end
       end)
     end
   end

@@ -127,7 +127,7 @@ defmodule Dx.Defd.CondTest do
       end)
     end
 
-    test "loads data before if", %{list: list, user: user} do
+    test "loads data before cond", %{list: list, user: user} do
       defmodule CondLoadBeforeTest do
         import Dx.Defd
 
@@ -147,6 +147,29 @@ defmodule Dx.Defd.CondTest do
 
       assert_queries(["FROM \"users\""], fn ->
         assert load!(CondLoadBeforeTest.run(list)) == "#{user.first_name} #{user.last_name}"
+      end)
+    end
+
+    test "loads data assigned before cond", %{list: list, user: user} do
+      defmodule CondLoadAssignedBeforeTest do
+        import Dx.Defd
+
+        defd run(list) do
+          _created_by = list.created_by
+          l = Enum.find(List, &(&1.id == list.id))
+
+          cond do
+            l.hourly_points >= 2.0 ->
+              l.hourly_points
+
+            true ->
+              nil
+          end
+        end
+      end
+
+      assert_queries(["FROM \"users\"", "FROM \"lists\""], fn ->
+        assert load!(CondLoadAssignedBeforeTest.run(list)) == list.hourly_points
       end)
     end
 

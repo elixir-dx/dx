@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.4] - Unreleased
 
+### Features
+
+- Translate `Enum.find/2` to SQL
+
 ### Fixes
 
 - Fix passing function refs in Elixir 1.15+

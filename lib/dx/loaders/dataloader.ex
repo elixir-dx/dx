@@ -15,29 +15,6 @@ defmodule Dx.Loaders.Dataloader do
 
   def lookup(cache, data_req, third_elem \\ true)
 
-  def lookup(cache, {:subset, %type{} = subject, subset}, third_elem) do
-    assocs = type.__schema__(:associations)
-
-    # for all key-value pairs in current map ...
-    Enum.reduce_while(subset, {:ok, subject}, fn {field, subset}, acc ->
-      if field in assocs do
-        result =
-          with {:ok, nested_value} <- fetch(cache, subject, field, third_elem),
-               {:ok, loaded_value} <- lookup(cache, {:subset, nested_value, subset}, third_elem) do
-            {:ok, Map.put(subject, field, loaded_value)}
-          end
-
-        Dx.Defd.Result.merge(acc, result)
-      else
-        {:cont, acc}
-      end
-    end)
-  end
-
-  def lookup(_cache, {:subset, subject, _subset}, third_elem) do
-    if third_elem, do: Result.ok(subject), else: Dx.Defd.Result.ok(subject)
-  end
-
   def lookup({cache, meta}, %Dx.Scope{} = scope, third_elem) do
     {candidates, temp_scope} = Dx.Scope.extract_main_condition_candidates(scope)
 
@@ -94,16 +71,6 @@ defmodule Dx.Loaders.Dataloader do
     end
   end
 
-  defp fetch(cache, subject, key, third_elem) do
-    case Map.fetch!(subject, key) do
-      %Ecto.Association.NotLoaded{} ->
-        lookup(cache, {:assoc, subject, key}, third_elem)
-
-      result ->
-        if third_elem, do: Result.ok(result), else: Dx.Defd.Result.ok(result)
-    end
-  end
-
   defp args_for({:assoc, subject, key}) do
     [:assoc, key, subject]
   end
@@ -122,26 +89,6 @@ defmodule Dx.Loaders.Dataloader do
     opts = opts |> where(other_conditions)
     [:assoc, {:many, type, opts}, [main_condition]]
   end
-
-  # defp args_for(%Dx.Scope{
-  #        cardinality: :all,
-  #        type: type,
-  #        query_conditions: [],
-  #        opts: opts
-  #      }) do
-  #   [:assoc, {:many, type, opts}, []]
-  # end
-
-  # defp args_for(%Dx.Scope{
-  #        cardinality: :all,
-  #        type: type,
-  #        query_conditions: conditions,
-  #        opts: opts
-  #      }) do
-  #   [main_condition | other_conditions] = Dx.Scope.resolve_conditions(conditions)
-  #   opts = opts |> where(other_conditions)
-  #   [:assoc, {:many, type, opts}, [main_condition]]
-  # end
 
   defp args_for(%Dx.Scope{} = scope, combination, nil) do
     scope = Dx.Scope.add_conditions(scope, combination)
@@ -242,14 +189,16 @@ defmodule Dx.Loaders.Dataloader do
 
   # no main condition
   def run_batch(repo, _queryable, {query, scope}, nil, [nil], repo_opts) do
-    case {scope.cardinality, repo.all(query, repo_opts)} do
-      {:one, [result]} -> [{result.result, scope}]
-      {_, results} -> [{results, scope}]
+    case {scope.aggregate?, scope.cardinality, repo.all(query, repo_opts)} do
+      {true, :one, [result]} -> [{result.result, scope}]
+      {_, :one, []} -> [{nil, scope}]
+      {_, :one, [result]} -> [{result, scope}]
+      {_, :many, results} -> [{results, scope}]
     end
   end
 
   # aggregate
-  def run_batch(repo, _queryable, {query, %{cardinality: :one} = scope}, col, inputs, repo_opts) do
+  def run_batch(repo, _queryable, {query, %{aggregate?: true} = scope}, col, inputs, repo_opts) do
     import Ecto.Query
 
     expr = dynamic([x], field(x, ^col))

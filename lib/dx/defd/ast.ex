@@ -229,16 +229,22 @@ defmodule Dx.Defd.Ast do
     end)
   end
 
-  def fetch({:ok, ast}, key, eval, line) when is_var(ast) do
+  def mark_var_as_finalized({{:ok, var}, state}) do
+    state = %{state | finalized_vars: MapSet.put(state.finalized_vars, var_id(var))}
+    {{:ok, var}, state}
+  end
+
+  def fetch({:ok, ast}, key, line, state) when is_var(ast) do
     asty = {{:., [line: line], [ast, key]}, [no_parens: true, line: line], []}
 
     quote line: line do
-      Dx.Defd.Runtime.fetch(unquote(ast), unquote(asty), unquote(key), unquote(eval))
+      Dx.Defd.Runtime.fetch(unquote(ast), unquote(asty), unquote(key), unquote(state.eval_var))
     end
+    |> with_state(state)
   end
 
-  def fetch({:ok, ast}, key, eval, line) do
-    var = Macro.unique_var(:map, __MODULE__)
+  def fetch({:ok, ast}, key, line, state) do
+    var = Macro.var(:map, __MODULE__)
     asty = {{:., [line: line], [var, key]}, [no_parens: true, line: line], []}
 
     {:__block__, [],
@@ -246,26 +252,143 @@ defmodule Dx.Defd.Ast do
        {:=, [], [var, ast]},
        {{:., [line: line],
          [{:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Runtime]}, :fetch]},
-        [line: line], [var, asty, key, eval]}
+        [line: line], [var, asty, key, state.eval_var]}
      ]}
+    |> with_state(state)
   end
 
-  def fetch(ast, key, eval, line) do
-    var = Macro.unique_var(:map, __MODULE__)
+  def fetch(ast, key, line, state) do
+    var = Macro.var(:map, __MODULE__)
     asty = {{:., [line: line], [var, key]}, [no_parens: true, line: line], []}
 
     quote line: line do
       case unquote(ast) do
         {:ok, unquote(var)} ->
-          Dx.Defd.Runtime.fetch(unquote(var), unquote(asty), unquote(key), unquote(eval))
+          Dx.Defd.Runtime.fetch(
+            unquote(var),
+            unquote(asty),
+            unquote(key),
+            unquote(state.eval_var)
+          )
 
         other ->
           other
       end
     end
+    |> with_state(state)
+  end
+
+  def finalize({ast, state}), do: finalize(ast, state)
+
+  def finalize(ast, state) do
+    prewalk(ast, state, fn
+      var, state when is_var(var) ->
+        if var in state.finalized_vars do
+          {var, state}
+        else
+          {{:ok, var}, state} =
+            quote do
+              Dx.Defd.Runtime.finalize(unquote(var), unquote(state.eval_var))
+            end
+            |> Loader.add(state)
+
+          {var, state}
+        end
+
+      ast, state ->
+        {ast, state}
+    end)
+  end
+
+  def load_scopes({ast, state}), do: load_scopes(ast, state)
+
+  def load_scopes(ast, state) do
+    prewalk(ast, state, fn
+      var, state when is_var(var) ->
+        if var in state.finalized_vars do
+          {var, state}
+        else
+          {{:ok, var}, state} =
+            quote do
+              Dx.Defd.Runtime.load_scopes(unquote(var), unquote(state.eval_var))
+            end
+            |> Loader.add(state)
+
+          {var, state}
+        end
+
+      ast, state ->
+        {ast, state}
+    end)
+  end
+
+  defp prewalk(ast, acc, fun) do
+    traverse(ast, acc, fun, fn x, a -> {x, a} end)
+  end
+
+  defp traverse(ast, acc, pre, post) do
+    {ast, acc} = pre.(ast, acc)
+    do_traverse(ast, acc, pre, post)
+  end
+
+  @ignored [:fn]
+  defp do_traverse({ignore, _, _} = ast, acc, _pre, _post) when ignore in @ignored do
+    {ast, acc}
+  end
+
+  defp do_traverse({:=, meta, [left, right]}, acc, pre, post) do
+    {[right], acc} = do_traverse_args([right], acc, pre, post)
+    post.({:=, meta, [left, right]}, acc)
+  end
+
+  defp do_traverse({form, meta, args}, acc, pre, post) when is_atom(form) do
+    {args, acc} = do_traverse_args(args, acc, pre, post)
+    post.({form, meta, args}, acc)
+  end
+
+  defp do_traverse({form, meta, args}, acc, pre, post) do
+    {form, acc} = pre.(form, acc)
+    {form, acc} = do_traverse(form, acc, pre, post)
+    {args, acc} = do_traverse_args(args, acc, pre, post)
+    post.({form, meta, args}, acc)
+  end
+
+  defp do_traverse({left, right}, acc, pre, post) do
+    {left, acc} = pre.(left, acc)
+    {left, acc} = do_traverse(left, acc, pre, post)
+    {right, acc} = pre.(right, acc)
+    {right, acc} = do_traverse(right, acc, pre, post)
+    post.({left, right}, acc)
+  end
+
+  defp do_traverse(list, acc, pre, post) when is_list(list) do
+    {list, acc} = do_traverse_args(list, acc, pre, post)
+    post.(list, acc)
+  end
+
+  defp do_traverse(x, acc, _pre, post) do
+    post.(x, acc)
+  end
+
+  defp do_traverse_args(args, acc, _pre, _post) when is_atom(args) do
+    {args, acc}
+  end
+
+  defp do_traverse_args(args, acc, pre, post) when is_list(args) do
+    :lists.mapfoldl(
+      fn x, acc ->
+        {x, acc} = pre.(x, acc)
+        do_traverse(x, acc, pre, post)
+      end,
+      acc,
+      args
+    )
   end
 
   # Helpers
+
+  @compile {:inline, with_state: 2}
+  defp with_state(ast, state), do: {ast, state}
 
   def closest_meta({_, meta, _}), do: meta
   def closest_meta([elem | _rest]), do: closest_meta(elem)

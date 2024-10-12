@@ -7,7 +7,8 @@ defmodule Dx.Defd.Ast.Loader do
     :ast,
     :clean_ast,
     :vars,
-    :data_var
+    :data_var,
+    :data_vars
   ]
 
   def add({ast, state}), do: add(ast, state)
@@ -25,7 +26,8 @@ defmodule Dx.Defd.Ast.Loader do
         ast: ast,
         clean_ast: clean_ast,
         vars: Ast.collect_vars(ast),
-        data_var: var
+        data_var: var,
+        data_vars: MapSet.new([var])
       }
 
       {:ok, var}
@@ -40,7 +42,8 @@ defmodule Dx.Defd.Ast.Loader do
       ast: {:ok, right},
       clean_ast: {:ok, clean_right},
       vars: Ast.collect_vars(right),
-      data_var: var
+      data_var: var,
+      data_vars: Ast.collect_vars(var)
     }
 
     %{state | loaders: [loader | state.loaders]}
@@ -52,8 +55,12 @@ defmodule Dx.Defd.Ast.Loader do
     end)
   end
 
+  defp data_vars(loaders, acc \\ MapSet.new())
+  defp data_vars([], acc), do: acc
+  defp data_vars([loader | rest], acc), do: data_vars(rest, MapSet.union(acc, loader.data_vars))
+
   def ensure_vars_loaded(ast, filter_vars, state) do
-    data_vars = MapSet.new(state.loaders, & &1.data_var)
+    data_vars = data_vars(state.loaders)
 
     state.loaders
     |> Enum.split_with(fn loader ->
@@ -64,7 +71,7 @@ defmodule Dx.Defd.Ast.Loader do
         {ast, state}
 
       {local_loaders, other_loaders} ->
-        next_filter_vars = MapSet.new(local_loaders, & &1.data_var)
+        next_filter_vars = data_vars(local_loaders)
         state = %{state | loaders: other_loaders}
         {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
         ast = ensure_loaded(ast, local_loaders)
@@ -73,7 +80,7 @@ defmodule Dx.Defd.Ast.Loader do
   end
 
   def ensure_all_loaded(ast, state) do
-    data_vars = MapSet.new(state.loaders, & &1.data_var)
+    data_vars = data_vars(state.loaders)
 
     state.loaders
     |> Enum.split_with(fn loader ->
@@ -84,9 +91,8 @@ defmodule Dx.Defd.Ast.Loader do
         {ast, state}
 
       {local_loaders, other_loaders} ->
-        next_filter_vars = MapSet.new(local_loaders, & &1.data_var)
         state = %{state | loaders: other_loaders}
-        {ast, state} = ensure_vars_loaded(ast, next_filter_vars, state)
+        {ast, state} = ensure_all_loaded(ast, state)
         ast = ensure_loaded(ast, local_loaders)
         {ast, state}
     end

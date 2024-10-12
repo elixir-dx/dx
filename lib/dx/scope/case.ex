@@ -20,7 +20,7 @@ defmodule Dx.Scope.Case do
       ) do
     {condition, state} = Compiler.normalize(condition, state)
     {then_ast, state} = Compiler.normalize(then_ast, state)
-    fallback = Compiler.generate_fallback(ast, meta, state)
+    {fallback, state} = Compiler.generate_fallback(ast, meta, state)
 
     quote do
       {:and, unquote(condition), unquote(then_ast), unquote(fallback)}
@@ -44,7 +44,7 @@ defmodule Dx.Scope.Case do
       ) do
     {condition, state} = Compiler.normalize(condition, state)
     {then_ast, state} = Compiler.normalize(then_ast, state)
-    fallback = Compiler.generate_fallback(ast, meta, state)
+    {fallback, state} = Compiler.generate_fallback(ast, meta, state)
 
     quote do
       {:and, unquote(condition), unquote(then_ast), unquote(fallback)}
@@ -68,7 +68,7 @@ defmodule Dx.Scope.Case do
       ) do
     {condition, state} = Compiler.normalize(condition, state)
     {then_ast, state} = Compiler.normalize(then_ast, state)
-    fallback = Compiler.generate_fallback(ast, meta, state)
+    {fallback, state} = Compiler.generate_fallback(ast, meta, state)
 
     quote do
       {:or, unquote(condition), unquote(then_ast), unquote(fallback)}
@@ -92,7 +92,7 @@ defmodule Dx.Scope.Case do
       ) do
     {condition, state} = Compiler.normalize(condition, state)
     {then_ast, state} = Compiler.normalize(then_ast, state)
-    fallback = Compiler.generate_fallback(ast, meta, state)
+    {fallback, state} = Compiler.generate_fallback(ast, meta, state)
 
     quote do
       {:or, unquote(condition), unquote(then_ast), unquote(fallback)}
@@ -130,7 +130,7 @@ defmodule Dx.Scope.Case do
       ) do
     {condition, state} = Compiler.normalize(condition, state)
     {then_ast, state} = Compiler.normalize(then_ast, state)
-    fallback = Compiler.generate_fallback(ast, meta, state)
+    {fallback, state} = Compiler.generate_fallback(ast, meta, state)
 
     quote do
       {:&&, unquote(condition), unquote(then_ast), unquote(fallback)}
@@ -140,7 +140,7 @@ defmodule Dx.Scope.Case do
 
   def normalize(other, state) do
     meta = Ast.closest_meta(other)
-    fallback = Compiler.generate_fallback(other, meta, state)
+    {fallback, state} = Compiler.generate_fallback(other, meta, state)
 
     {:error, fallback}
     |> with_state(state)

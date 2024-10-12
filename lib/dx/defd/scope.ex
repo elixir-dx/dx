@@ -7,6 +7,7 @@ defmodule Dx.Scope do
     :plan,
     :type,
     cardinality: :many,
+    aggregate?: false,
     aggregate_default: nil,
     ref: :root,
     query_conditions: true,
@@ -116,6 +117,10 @@ defmodule Dx.Scope do
 
   defp to_main_condition_candidates(other) do
     {%{}, other}
+  end
+
+  def map_plan(scope, fun) do
+    Map.update!(scope, :plan, fun)
   end
 
   def add_conditions(scope, %Dx.Defd.Fn{scope: fun}) do

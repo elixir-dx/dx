@@ -3,6 +3,39 @@ defmodule Dx.Util.Map do
 
   @moduledoc false
 
+  @doc """
+  Puts a given value into the given map at the given path,
+  creating intermediate maps as needed
+
+  ## Examples
+
+      iex> %{a: 1, b: %{c: %{}}}
+      ...> |> Dx.Util.Map.put_in_create([:b, :c, :d, :e], 7)
+      %{a: 1, b: %{c: %{d: %{e: 7}}}}
+
+      iex> %{}
+      ...> |> Dx.Util.Map.put_in_create([:b, :c, :d], %{})
+      %{b: %{c: %{d: %{}}}}
+
+      iex> %{b: %{c: %{}}}
+      ...> |> Dx.Util.Map.put_in_create([:b], %{})
+      %{b: %{}}
+
+      iex> %{a: 1, b: %{c: %{}}}
+      ...> |> Dx.Util.Map.put_in_create([], 7)
+      %{a: 1, b: %{c: %{}}}
+  """
+  def put_in_create(map, path, value \\ %{})
+
+  def put_in_create(map, [], _value), do: map
+
+  def put_in_create(map, [key], value), do: Map.put(map, key, value)
+
+  def put_in_create(map, [key | path], value) do
+    submap = map |> Map.get(key, %{}) |> put_in_create(path, value)
+    Map.put(map, key, submap)
+  end
+
   def do_get_in(term, []), do: term
 
   def do_get_in(map, [h | t]) when is_map(map) do

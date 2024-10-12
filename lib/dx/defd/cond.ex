@@ -5,7 +5,19 @@ defmodule Dx.Defd.Cond do
   alias Dx.Defd.Compiler
 
   def normalize({:cond, _meta, [[do: clauses]]}, state) do
-    normalize_clauses(clauses, state)
+    {{:cond, meta, [[do: clauses]]}, new_state} = orig_result = normalize_clauses(clauses, state)
+
+    Enum.reduce_while(clauses, [], fn
+      {:->, meta, [[condition], {:ok, clause_ast}]}, acc ->
+        {:cont, [{:->, meta, [[condition], clause_ast]} | acc]}
+
+      _else, _acc ->
+        {:halt, :error}
+    end)
+    |> case do
+      :error -> orig_result
+      ok_clauses -> {{:ok, {:cond, meta, [[do: ok_clauses]]}}, new_state}
+    end
   end
 
   def normalize({:cond, meta, _args}, state) do

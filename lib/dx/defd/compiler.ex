@@ -57,7 +57,7 @@ defmodule Dx.Defd.Compiler do
     all_args = Macro.generate_arguments(arity, __MODULE__)
     state = Map.put(state, :all_args, all_args)
 
-    {{kind, meta, args, ast}, {scope_args, scope_ast}, final_args_ast, state} =
+    {{kind, meta, args, ast}, {scope_args, scope_ast}, {final_args_args, final_args_ast}, state} =
       get_and_normalize_defd_and_scope(def, state)
 
     defd_name = Util.defd_name(name)
@@ -90,7 +90,8 @@ defmodule Dx.Defd.Compiler do
         end
       end)
 
-    defd_args = defd_args ++ [state.eval_var]
+    defd_args = append_arg(defd_args, state.eval_var)
+    final_args_args = append_arg(final_args_args, state.eval_var)
 
     entrypoints =
       case Keyword.get(opts, :def, :warn) do
@@ -100,7 +101,7 @@ defmodule Dx.Defd.Compiler do
           quote line: state.line do
             Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
               IO.warn("""
-              Use Dx.load as entrypoint.
+              Use Dx.Defd.load as entrypoint.
               """)
 
               Dx.Defd.load!(unquote(name)(unquote_splicing(all_args)))
@@ -131,19 +132,14 @@ defmodule Dx.Defd.Compiler do
           compile_error!(meta, state, "Invalid option @dx def: #{inspect(invalid)}")
       end
 
-    defd =
-      quote line: state.line do
-        unquote(kind)(unquote(defd_name)(unquote_splicing(defd_args))) do
-          unquote(ast)
-        end
-      end
+    defd = define_function(kind, defd_name, state.line, defd_args, ast)
+
+    if :compiled in List.wrap(opts[:debug]), do: Ast.p(defd)
 
     final_args =
-      quote line: state.line do
-        unquote(kind)(unquote(final_args_name)(unquote_splicing(defd_args))) do
-          unquote(final_args_ast)
-        end
-      end
+      define_function(kind, final_args_name, state.line, final_args_args, final_args_ast)
+
+    if :compiled_final_args in List.wrap(opts[:debug]), do: Ast.p(final_args)
 
     scope =
       quote line: state.line do
@@ -152,7 +148,33 @@ defmodule Dx.Defd.Compiler do
         end
       end
 
+    if :compiled_scope in List.wrap(opts[:debug]), do: Ast.p(scope)
+
     entrypoints ++ [defd, final_args, scope]
+  end
+
+  defp append_arg({:when, meta, [args | guards]}, arg),
+    do: {:when, meta, [args ++ [arg] | guards]}
+
+  defp append_arg(args, arg), do: args ++ [arg]
+
+  defp define_function(kind, name, line, {:when, _, [args | guards]}, ast) do
+    quote line: line do
+      unquote(kind)(
+        unquote(name)(unquote_splicing(args))
+        when unquote_splicing(guards)
+      ) do
+        unquote(ast)
+      end
+    end
+  end
+
+  defp define_function(kind, name, line, args, ast) do
+    quote line: line do
+      unquote(kind)(unquote(name)(unquote_splicing(args))) do
+        unquote(ast)
+      end
+    end
   end
 
   # If the definition has a context, we don't warn when it goes unused,
@@ -169,62 +191,28 @@ defmodule Dx.Defd.Compiler do
 
     type_str = if kind == :def, do: "defd", else: "defdp"
 
+    {{scope_args, scope_ast}, scope_state} =
+      Dx.Scope.Compiler.normalize_function({:v1, kind, meta, clauses}, state)
+
     case clauses do
       [] ->
         compile_error!(meta, state, "cannot have #{type_str} #{name}/#{arity} without clauses")
 
-      [{meta, args, [], ast}] ->
-        external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
-        internal_scope_args = Ast.mark_vars_as_generated(args)
-        scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
-
-        scope_args =
-          Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
-            quote do: unquote(external_arg) = unquote(internal_arg)
-          end)
-
-        state = Map.put(state, :scope_args, scope_args_map)
-
-        {scope_ast, _state} =
-          State.pass_in(state, [warn_non_dx?: false], fn state ->
-            Ast.with_args_no_loaders!(args, state, fn state ->
-              Dx.Scope.Compiler.normalize(ast, state)
-            end)
-          end)
-
-        {final_args_ast, _state} =
-          State.pass_in(
-            state,
-            [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
-            fn state ->
-              Ast.with_root_args(args, state, fn state ->
-                normalize(ast, state)
-              end)
-            end
-          )
-
-        {ast, state} =
-          Ast.with_root_args(args, state, fn state ->
-            normalize(ast, state)
-          end)
-
-        {{kind, meta, args, ast}, {scope_args, scope_ast}, final_args_ast, state}
-
       [{meta, _args, _, _} | _] = clauses ->
         case_clauses =
-          Enum.map(clauses, fn {meta, args, [], ast} ->
-            {:->, meta, [[Ast.wrap_args(args)], ast]}
+          Enum.map(clauses, fn
+            {meta, args, [], ast} ->
+              {:->, meta, [[Ast.wrap_args(args)], ast]}
+
+            {meta, args, guards, ast} ->
+              {:->, meta, [[{:when, [], [Ast.wrap_args(args) | guards]}], ast]}
           end)
 
         line = meta[:line] || state.line
-        case_ast = {:case, [line: line], [Ast.wrap_args(state.all_args), [do: case_clauses]]}
+        case_subject = Ast.wrap_args(state.all_args)
+        case_ast = {:case, [line: line], [case_subject, [do: case_clauses]]}
 
-        {scope_ast, _state} =
-          State.pass_in(state, [warn_non_dx?: false], fn state ->
-            Dx.Scope.Compiler.normalize(case_ast, state)
-          end)
-
-        {final_args_ast, _state} =
+        {final_args_ast, final_args_state} =
           State.pass_in(
             state,
             [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(state.all_args, &1)],
@@ -235,13 +223,40 @@ defmodule Dx.Defd.Compiler do
             end
           )
 
+        {{final_args_args, final_args_ast}, final_args_state} =
+          maybe_unwrap_case(final_args_ast, final_args_state)
+
         {ast, state} =
           Ast.with_root_args(state.all_args, state, fn state ->
             Dx.Defd.Case.normalize(case_ast, state)
           end)
 
-        {{kind, meta, state.all_args, ast}, {state.all_args, scope_ast}, final_args_ast, state}
+        {{args, ast}, state} = maybe_unwrap_case(ast, state)
+
+        var_index = Enum.max([scope_state.var_index, final_args_state.var_index, state.var_index])
+        new_state = %{state | var_index: var_index}
+
+        {{kind, meta, args, ast}, {scope_args, scope_ast}, {final_args_args, final_args_ast},
+         new_state}
     end
+  end
+
+  defp maybe_unwrap_case(
+         {:case, _meta,
+          [_case_subject, [do: [{:->, _clause_meta, [[clause_args], clause_ast]}]]]},
+         state
+       ) do
+    case state.all_args do
+      [_] ->
+        {{[clause_args], clause_ast}, state}
+
+      _else ->
+        {{clause_args, clause_ast}, state}
+    end
+  end
+
+  defp maybe_unwrap_case(ast, state) do
+    {{state.all_args, ast}, state}
   end
 
   def normalize(ast, state) when is_simple(ast) do
@@ -390,74 +405,8 @@ defmodule Dx.Defd.Compiler do
     end)
   end
 
-  def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
-    external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
-    internal_scope_args = Ast.mark_vars_as_generated(args)
-    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
-
-    scope_args =
-      Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
-        quote do: unquote(external_arg) = unquote(internal_arg)
-      end)
-
-    {scope_body, _state} =
-      State.pass_in(
-        state,
-        [warn_non_dx?: false, scope_args: Enum.zip(external_scope_args, internal_scope_args)],
-        fn state ->
-          Ast.with_args_no_loaders!(args, state, fn state ->
-            Dx.Scope.Compiler.normalize(body, state)
-          end)
-        end
-      )
-
-    {final_args_body, _state} =
-      State.pass_in(
-        state,
-        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
-        fn state ->
-          Ast.with_root_args(args, state, fn state ->
-            normalize(body, state)
-          end)
-        end
-      )
-
-    {final_args_ok?, final_args_ok_body} =
-      case final_args_body do
-        {:ok, final_args_ok_body} -> {true, final_args_ok_body}
-        _ -> {false, nil}
-      end
-
-    {defd_body, new_state} =
-      Ast.with_root_args(args, state, fn state ->
-        normalize(body, state)
-      end)
-
-    {ok?, ok_body} =
-      case defd_body do
-        {:ok, ok_body} -> {true, ok_body}
-        _ -> {false, nil}
-      end
-
-    line = meta[:line] || state.line
-
-    {:ok,
-     {:%, [line: line],
-      [
-        {:__aliases__, [line: line, alias: false], [:Dx, :Defd, :Fn]},
-        {:%{}, [line: line],
-         [
-           ok?: ok?,
-           final_args_ok?: final_args_ok?,
-           fun: {:fn, meta, [{:->, meta2, [args, defd_body]}]},
-           ok_fun: if(ok?, do: {:fn, meta, [{:->, meta2, [args, ok_body]}]}),
-           final_args_fun: {:fn, meta, [{:->, meta2, [args, final_args_body]}]},
-           final_args_ok_fun:
-             if(final_args_ok?, do: {:fn, meta, [{:->, meta2, [args, final_args_ok_body]}]}),
-           scope: {:fn, meta, [{:->, meta2, [scope_args, scope_body]}]}
-         ]}
-      ]}}
-    |> with_state(new_state)
+  def normalize({:fn, _meta, clauses} = fun, state) when is_list(clauses) do
+    Dx.Defd.Fn.normalize(fun, state)
   end
 
   # fun.()
@@ -656,7 +605,7 @@ defmodule Dx.Defd.Compiler do
         {{:ok, ast}, %{state | called_non_dx?: true}}
 
       true ->
-        {fun, state}
+        {{:ok, fun}, state}
     end
   end
 
@@ -671,12 +620,12 @@ defmodule Dx.Defd.Compiler do
         case maybe_capture_loader(fun, state) do
           {:ok, loader_ast, state} ->
             Loader.add(loader_ast, state)
+            |> Ast.mark_var_as_finalized()
 
           :error ->
             {module, state} = normalize(module, state)
 
-            Ast.fetch(module, fun_name, state.eval_var, meta[:line] || state.line)
-            |> with_state(state)
+            Ast.fetch(module, fun_name, meta[:line] || state.line, state)
         end
 
       # function call on dynamically computed module
@@ -728,23 +677,13 @@ defmodule Dx.Defd.Compiler do
 
         {{:ok, ast}, %{state | called_non_dx?: true}}
 
-      Code.ensure_loaded?(module) ->
-        compile_error!(
-          meta,
-          state,
-          "undefined function #{fun_name}/#{arity} (expected #{inspect(module)} to define such a function, but none are available)"
-        )
-
-        {fun, state}
-
       true ->
-        compile_error!(
-          meta,
-          state,
-          "undefined function #{fun_name}/#{arity} (module #{inspect(module)} does not exist)"
-        )
+        {ast, state} =
+          normalize_external_call_args(args, state, fn args ->
+            {{:., meta, [module, fun_name]}, meta2, args}
+          end)
 
-        {fun, state}
+        {{:ok, ast}, state}
     end
   end
 
@@ -811,7 +750,7 @@ defmodule Dx.Defd.Compiler do
     if meta2[:no_parens] do
       case maybe_capture_loader(ast, state) do
         {:ok, ast, state} ->
-          fun = Ast.fetch(ast, fun_name, state.eval_var, meta[:line] || state.line)
+          {fun, state} = Ast.fetch(ast, fun_name, meta[:line] || state.line, state)
 
           {:ok, fun, state}
 
@@ -825,6 +764,8 @@ defmodule Dx.Defd.Compiler do
 
   def maybe_capture_loader(var, state) when is_var(var) do
     if Ast.var_id(var) in state.args do
+      {var, state} = Ast.finalize(Ast.var_id(var), state)
+
       {:ok, {:ok, var}, state}
     else
       :error

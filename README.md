@@ -197,11 +197,11 @@ you have to keep that in mind yourself.
 - Defining functions using `defd`
   - with multiple clauses
   - with patterns in arguments
-  - without guards
+  - with guards
 - Calling all `Enum` functions
 - Calling all `Kernel` functions without a function argument
-- `fn` without patterns in arguments or guards
-- `case` with patterns
+- `fn` with patterns in arguments and guards
+- `case` with patterns and guards
 - `cond`
 
 ### Translatable to database queries
@@ -210,6 +210,7 @@ you have to keep that in mind yourself.
 
 - `Enum.count/1`
 - `Enum.filter/2`
+- `Enum.find/2`
 
 will be translated to database queries, if both
 

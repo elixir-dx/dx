@@ -355,6 +355,7 @@ defmodule Dx.Enum do
   end
 
   def __scopable?(:count, 1), do: true
+  def __scopable?(:find, 2), do: true
   def __scopable?(:filter, 2), do: true
   def __scopable?(_fun_name, _arity), do: false
 
@@ -531,7 +532,21 @@ defmodule Dx.Enum do
     |> Result.then(&map(&1, mapper))
   end
 
-  def find(enumerable, default \\ nil, fun) do
+  def find(module, conditions) when is_atom(module) do
+    Dx.Scope.all(module)
+    |> find(conditions)
+  end
+
+  def find(%Dx.Scope{} = scope, conditions) do
+    scope =
+      scope
+      |> Dx.Scope.add_conditions(conditions)
+      |> Dx.Scope.map_plan(&{:first, &1})
+
+    {:ok, scope}
+  end
+
+  def find(enumerable, default \\ nil, %Dx.Defd.Fn{final_args_fun: fun}) do
     Result.find(enumerable, fun, &Result.ok/1, Result.ok(default))
   end
 
