@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dx.load`, `Dx.load!`, `Dx.get` and `Dx.get!` are now macros and
   must be required or imported when used.
 
-## [0.3.4] - Unreleased
+## [0.3.4] - 2024-10-12
 
 ### Features
 
