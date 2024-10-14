@@ -43,7 +43,7 @@ defmodule Todo.Task do
 
   infer completed_later?: false, when: %{completed?: false}
   infer completed_later?: false, when: %{list: %{archived?: false}}
-  infer completed_later?: true, when: %{archived_at: {:gt, {:ref, [:list, :archived_at]}}}
+  infer completed_later?: true, when: %{completed_at: {:gt, {:ref, [:list, :archived_at]}}}
   infer completed_later?: false
 end
 ```
