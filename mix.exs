@@ -67,8 +67,9 @@ defmodule Dx.MixProject do
     ]
   end
 
-  def docs do
+  defp docs do
     [
+      main: "Dx",
       extra_section: "Guides (old)",
       extras: Path.wildcard("docs/**/*.md"),
       groups_for_extras: [

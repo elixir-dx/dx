@@ -39,8 +39,24 @@ jobs:
         key: ${{ runner.os }}-build-dev-${{inputs.elixir_version}}-${{inputs.otp_version}}-${{ hashFiles('mix.lock') }}
 
     # Run
+    - name: Override version
+      run: echo '0.0.0' > VERSION
+
     - name: Generate docs
       run: mix docs
+
+    - name: Replace source links
+      run: find "./doc" -type f -name "*.html" -exec sed -i 's/\/blob\/v0.0.0\//\/blob\/${{ github.sha }}\//g' {} +
+
+    - name: Replace package version
+      run: find "./doc" -type f -name "*.html" -exec sed -i 's/v0.0.0/main/g' {} +
+
+    - name: Add version list
+      run: |
+        curl -sS https://hex.pm/api/packages/dx \
+        | jq -rc '[.releases | .[] | select(.has_docs) | {"latest": false, "version": ("v" + .version), "url": ("https://hexdocs.pm/dx/" + .version)}]' \
+        | (echo -n 'var versionNodes = [{"latest":false,"version":"main",url:"https://elixir-dx.github.io/dx"},{"latest":true' && (cat | cut -c17-)) \
+        | tee $GITHUB_WORKSPACE/doc/docs_config.js
 
     - name: Push docs
       uses: JamesIves/github-pages-deploy-action@v4

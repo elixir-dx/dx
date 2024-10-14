@@ -1,12 +1,12 @@
 # Dx
 
 [![Hex.pm](https://img.shields.io/hexpm/v/dx)](https://hex.pm/packages/dx)
-[![Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/dx/Dx.html)
+[![Docs](https://img.shields.io/badge/hex-docs-x.svg?color=%239370db)](https://hexdocs.pm/dx/Dx.html)
 [![License](https://img.shields.io/github/license/elixir-dx/dx.svg)](https://github.com/elixir-dx/dx/blob/main/LICENSE)
 [![Last Updated](https://img.shields.io/github/last-commit/elixir-dx/dx/main)](https://github.com/elixir-dx/dx/tree/main)
 ![CI](https://github.com/elixir-dx/dx/actions/workflows/ci.yml/badge.svg)
 
-Dx enabled you to write Elixir codes as if all your Ecto data is already (pre)loaded.
+Dx enables you to write Elixir code as if all your Ecto data is already (pre)loaded.
 
 Under the hood, Dx translates your code (defined using `defd`) to a version that loads
 data automatically, when needed, and even translates parts of your code to database queries,
