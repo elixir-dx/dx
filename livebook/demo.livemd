@@ -5,9 +5,8 @@
 ```elixir
 Mix.install(
   [
-    {:dx, github: "dx-beam/dx"},
+    {:dx, "~> 0.3.0"},
     {:kino, "~> 0.11"},
-    {:kino_db, ">= 0.0.0"},
     {:ecto_dbg, "~> 0.4"},
     {:ecto_erd, "~> 0.5"},
     {:ecto_sqlite3, "~> 0.13"}
@@ -140,11 +139,11 @@ Kino.Markdown.new("""
 #{diagram}
 ```
 """)
-
-# %KinoEcto.EntityRelationship{schema: Schema.List}
 ````
 
 ## Dx basics
+
+Within defd functions, you can write Elixir code as if all associations are already (pre)loaded:
 
 ```elixir
 defmodule Core.Users do
@@ -157,9 +156,11 @@ end
 
 require Dx.Defd
 
-tasks = Schema.Task |> Repo.all()
+tasks = Repo.all(Schema.Task)
 Dx.Defd.load!(Core.Users.get_author_names(tasks))
 ```
+
+defd functions can call other defd functions, so you can structure your code into functions and modules as usual:
 
 ```elixir
 defmodule Core.Users2 do
@@ -179,17 +180,17 @@ Core.Users2.get_author_names(tasks)
 
 ## Use case: Authorization
 
+You can also pass schema modules to Enum functions to query additional data, which is not in associations.
+
+Data is only queried when needed, for example when an if matches.
+
 ```elixir
 defmodule Core.Authorization do
   import Dx.Defd
 
-  defd visible_lists(users) when is_list(users) do
-    Enum.map(users, &{&1, visible_lists(&1)})
-  end
-
   defd visible_lists(user) do
     if admin?(user) do
-      Dx.Scope.all(Schema.List)
+      Enum.filter(Schema.List, &(&1.title == "Main list"))
     else
       user.lists
     end
@@ -203,17 +204,26 @@ defmodule Core.Authorization do
     Enum.find(Schema.User, &admin?/1)
   end
 
-  defd get_an_non_admin() do
-    Enum.find(Schema.User, &(not admin?(&1)))
+  defd get_users_visible_lists(users) do
+    Enum.map(users, &{&1.id, visible_lists(&1)})
   end
 end
 
-user = Dx.Defd.load!(Core.Authorization.get_an_non_admin())
-users = Schema.User |> Repo.all()
-Dx.Defd.load!(Core.Authorization.visible_lists(users))
+admin = Dx.Defd.load!(Core.Authorization.get_an_admin())
+Dx.Defd.load!(Core.Authorization.visible_lists(admin))
+```
+
+This can just as well be run for multiple users. Queries are batched automatically, so it's efficient.
+
+```elixir
+Repo.all(Schema.User)
+|> Core.Authorization.get_users_visible_lists()
+|> Dx.Defd.load!()
 ```
 
 ## Use case: Detect dormant users
+
+This logic is entirely translated to SQL:
 
 ```elixir
 defmodule Core.User.Filters do
@@ -234,6 +244,10 @@ Dx.Defd.load!(Core.User.Filters.dormant_users(90))
 ```
 
 ## Use case: Commands
+
+Since defd functions can be run more often than if it was non-defd, it's a good practice to separate data reading/querying from data manipulation/updating.
+
+This example thus returns atoms to determine what should happen next, instead of directly performing the actions. This makes it a pure function and easier to reason about and to test.
 
 ```elixir
 defmodule Core.Workflow do

@@ -8,22 +8,22 @@
 
 Dx enables you to write Elixir code as if all your Ecto data is already (pre)loaded.
 
-Under the hood, Dx translates your code (defined using `defd`) to a version that loads
-data automatically, when needed, and even translates parts of your code to database queries,
-which is even more efficient, without you having to implement the data loading at all.
-
 ### Example
 
 ```elixir
-defmodule MyApp.DataLogic do
+defmodule MyApp.Core.Authorization do
   import Dx.Defd
 
-  defd published_lists_with_no_tasks(user) do
-    Enum.filter(MyApp.Schema.List, fn list ->
-      list.published? and
-        Enum.count(list.tasks) == 0 and
-        list.created_by_id == user.id
-    end)
+  defd visible_lists(user) do
+    if admin?(user) do
+      Enum.filter(Schema.List, &(&1.title == "Main list"))
+    else
+      user.lists
+    end
+  end
+
+  defd admin?(user) do
+    user.role.name == "Admin"
   end
 end
 ```
@@ -31,17 +31,16 @@ end
 This can be called using
 
 ```elixir
-Dx.Defd.load!(MyApp.DataLogic.published_lists_with_no_tasks(user))
+Dx.Defd.load!(MyApp.Core.Authorization.visible_lists(user))
 ```
 
-and will be fully translated to a database call.
+All data needed is loaded automatically: The association `role`, and either all `Schema.List` matching the filter (translated to a single SQL query) or the user's associated lists, depending on whether it's an admin.
 
-It still works the same when you call other `defd` functions,
-so you can organize your code cleanly.
+These function can just as well be called for many users, and Dx will load data efficiently (with batching and concurrently).
 
 ## Demo
 
-[![Run in Livebook](https://livebook.dev/badge/v1/pink.svg)](https://livebook.dev/run?url=https%3A%2F%2Fraw.githubusercontent.com%2Felixir-dx%2Fdx%2Fdocs%2Flivebook%2Flivebook%2Fdemo.livemd)
+[![Run in Livebook](https://livebook.dev/badge/v1/pink.svg)](https://livebook.dev/run?url=https%3A%2F%2Fraw.githubusercontent.com%2Felixir-dx%2Fdx%2Fmain%2Flivebook%2Fdemo.livemd)
 
 ## Installation
 
