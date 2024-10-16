@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.32.2">
-    <meta name="project" content="dx v0.3.4">
+    <meta name="project" content="dx main">
 
 
-    <title>Conditions — dx v0.3.4</title>
+    <title>Conditions — dx main</title>
     <link rel="stylesheet" href="dist/html-elixir-CDEHVNM4.css" />
 
 
@@ -51,7 +51,7 @@
 dx
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.3.4
+          main
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/v0.3.4/docs/basics/03_conditions.md#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/{{ github.sha }}/docs/basics/03_conditions.md#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -132,27 +132,27 @@ Guides (old)
 about how to define a condition, use a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a>.</p><p>When using a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a> with multiple elements in a condition, all of its
 elements must match for the whole condition to match. This is
 similar to pattern-matching in Elixir code.</p><p>Say we want a <code class="inline">Todo.List</code> to only be <code class="inline">archivable?</code> if it's not
-archived yet <strong>and</strong> all of its tasks are completed.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="6598885902-1">do</span><span class="w">
+archived yet <strong>and</strong> all of its tasks are completed.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="8270233093-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="6598885902-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="8270233093-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="6598885902-2">end</span><span class="w">
+  </span><span class="k" data-group-id="8270233093-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6598885902-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6598885902-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8270233093-3">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="8270233093-3">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">
 
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-        </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6598885902-4">%{</span><span class="w">
+        </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8270233093-4">%{</span><span class="w">
           </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
-          </span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6598885902-5">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="6598885902-6">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6598885902-6">}</span><span class="p" data-group-id="6598885902-5">}</span><span class="w">
-        </span><span class="p" data-group-id="6598885902-4">}</span><span class="w">
+          </span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8270233093-5">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8270233093-6">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8270233093-6">}</span><span class="p" data-group-id="8270233093-5">}</span><span class="w">
+        </span><span class="p" data-group-id="8270233093-4">}</span><span class="w">
 
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
-</span><span class="k" data-group-id="6598885902-1">end</span></code></pre><h3 id="or" class="section-heading">
+</span><span class="k" data-group-id="8270233093-1">end</span></code></pre><h3 id="or" class="section-heading">
   <a href="#or" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -162,18 +162,18 @@ archived yet <strong>and</strong> all of its tasks are completed.</p><pre><code 
 major difference to pattern-matching. It might not feel intuitive
 at first, but gets familiar fast and becomes very useful once you
 got used to it.</p><p>Say we want a <code class="inline">Todo.List</code> to be <code class="inline">archivable?</code> if its <code class="inline">:state</code> we
-defined in the previous chapter is either <code class="inline">:completed</code> or <code class="inline">:ready</code>.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="4705039474-1">do</span><span class="w">
+defined in the previous chapter is either <code class="inline">:completed</code> or <code class="inline">:ready</code>.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="7013706179-1">do</span><span class="w">
   </span><span class="c1"># ...</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-2">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4705039474-2">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-3">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-4">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4705039474-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4705039474-5">}</span><span class="p" data-group-id="4705039474-4">}</span><span class="p" data-group-id="4705039474-3">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:in_progress</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-6">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-7">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4705039474-7">}</span><span class="p" data-group-id="4705039474-6">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:ready</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-8">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-9">%{</span><span class="p" data-group-id="4705039474-9">}</span><span class="p" data-group-id="4705039474-8">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:archived</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-2">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7013706179-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-3">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-4">{</span><span class="ss">:all?</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7013706179-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7013706179-5">}</span><span class="p" data-group-id="7013706179-4">}</span><span class="p" data-group-id="7013706179-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:in_progress</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-6">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-7">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7013706179-7">}</span><span class="p" data-group-id="7013706179-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:ready</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-8">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-9">%{</span><span class="p" data-group-id="7013706179-9">}</span><span class="p" data-group-id="7013706179-8">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="ss">:empty</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-10">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4705039474-11">[</span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">:ready</span><span class="p" data-group-id="4705039474-11">]</span><span class="p" data-group-id="4705039474-10">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-10">%{</span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7013706179-11">[</span><span class="ss">:completed</span><span class="p">,</span><span class="w"> </span><span class="ss">:ready</span><span class="p" data-group-id="7013706179-11">]</span><span class="p" data-group-id="7013706179-10">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
-</span><span class="k" data-group-id="4705039474-1">end</span></code></pre><p>This is also a good example for defining predicates based on other
+</span><span class="k" data-group-id="7013706179-1">end</span></code></pre><p>This is also a good example for defining predicates based on other
 predicates if they reflect how you actually think about them.
 Dx will find an efficient way to evaluate them.</p><h3 id="not" class="section-heading">
   <a href="#not" class="hover-link">
@@ -182,16 +182,16 @@ Dx will find an efficient way to evaluate them.</p><h3 id="not" class="section-h
   <span class="text">Not</span>
 </h3>
 <p>Negations can be expressed by wrapping a condition in a <code class="inline">:not</code> tuple.</p><p>Another way of expressing the <code class="inline">archived?</code> predicate from the first
-guide would thus be:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="0681929442-1">do</span><span class="w">
+guide would thus be:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="2266627504-1">do</span><span class="w">
   </span><span class="c1"># ...</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0681929442-2">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0681929442-3">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="0681929442-3">}</span><span class="p" data-group-id="0681929442-2">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2266627504-2">%{</span><span class="ss">archived_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2266627504-3">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="2266627504-3">}</span><span class="p" data-group-id="2266627504-2">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
 
   </span><span class="c1"># previously:</span><span class="w">
   </span><span class="c1"># infer archived?: false, when: %{archived_at: nil}</span><span class="w">
   </span><span class="c1"># infer archived?: true</span><span class="w">
-</span><span class="k" data-group-id="0681929442-1">end</span></code></pre>
+</span><span class="k" data-group-id="2266627504-1">end</span></code></pre>
 </div>
 
 <div class="bottom-actions" id="bottom-actions">
@@ -224,11 +224,11 @@ References
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/dx/0.3.4" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/dx/0.0.0" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/dx/0.3.4">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/dx/0.0.0">Hex Preview</a>
 
-              (<a href="https://preview.hex.pm/preview/dx/0.3.4/show/docs/basics/03_conditions.md">current file</a>)
+              (<a href="https://preview.hex.pm/preview/dx/0.0.0/show/docs/basics/03_conditions.md">current file</a>)
 
           </span>
 
