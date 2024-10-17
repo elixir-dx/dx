@@ -3,6 +3,7 @@ defmodule Dx.Defd.Case do
 
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
+  alias Dx.Defd.Ast.Pattern
   alias Dx.Defd.Compiler
 
   import Dx.Defd.Ast.Guards
@@ -22,18 +23,26 @@ defmodule Dx.Defd.Case do
 
           {var, state}
       end
-      |> Ast.load_scopes()
+      |> Pattern.load_required_scopes(data_req)
 
-    {clauses, state} = normalize_clauses(clauses, state)
+    {clauses, state} = normalize_clauses(clauses, data_req, subject, state)
 
     ast =
       if data_req == %{} do
         # nothing to load in any pattern
-        {:case, meta, [subject, [do: clauses]]}
+        case to_ok_clauses(clauses) do
+          {:ok, clauses} -> {:ok, {:case, meta, [subject, [do: clauses]]}}
+          :error -> {:case, meta, [subject, [do: clauses]]}
+        end
       else
         # ensure data requirements are preloaded
         subject_var = Macro.unique_var(:subject, __MODULE__)
-        case_ast = {:case, meta, [subject_var, [do: clauses]]}
+
+        case_ast =
+          case to_ok_clauses(clauses) do
+            {:ok, clauses} -> {:ok, {:case, meta, [subject_var, [do: clauses]]}}
+            :error -> {:case, meta, [subject_var, [do: clauses]]}
+          end
 
         quote do
           case Dx.Defd.Runtime.fetch(
@@ -61,11 +70,21 @@ defmodule Dx.Defd.Case do
     """)
   end
 
-  def normalize_clauses(clauses, state) do
-    Enum.map_reduce(clauses, state, &normalize_clause/2)
+  def normalize_clauses(clauses, data_reqs, subject, state) do
+    Enum.map_reduce(clauses, state, &normalize_clause(&1, data_reqs, subject, &2))
   end
 
-  def normalize_clause({:->, meta, [[{:when, meta2, [pattern | guards]}], ast]}, state) do
+  def normalize_clause(
+        {:->, meta, [[{:when, meta2, [pattern | guards]}], ast]},
+        data_reqs,
+        subject,
+        state
+      ) do
+    {pattern, state} =
+      pattern
+      |> Pattern.mark_finalized_vars(data_reqs, state)
+      |> Pattern.mark_finalized_input_vars(subject)
+
     guards = guards |> normalize_guards()
 
     {ast, state} =
@@ -78,7 +97,12 @@ defmodule Dx.Defd.Case do
     {ast, state}
   end
 
-  def normalize_clause({:->, meta, [[pattern], ast]}, state) do
+  def normalize_clause({:->, meta, [[pattern], ast]}, data_reqs, subject, state) do
+    {pattern, state} =
+      pattern
+      |> Pattern.mark_finalized_vars(data_reqs, state)
+      |> Pattern.mark_finalized_input_vars(subject)
+
     {ast, state} =
       Ast.with_root_args(pattern, state, fn state ->
         Compiler.normalize(ast, state)
@@ -87,6 +111,20 @@ defmodule Dx.Defd.Case do
     ast = {:->, meta, [[pattern], ast]}
 
     {ast, state}
+  end
+
+  defp to_ok_clauses(clauses, result \\ {:ok, []})
+
+  defp to_ok_clauses([], {:ok, result}) do
+    {:ok, :lists.reverse(result)}
+  end
+
+  defp to_ok_clauses([{:->, meta, [[pattern], {:ok, ast}]} | rest], {:ok, result}) do
+    to_ok_clauses(rest, {:ok, [{:->, meta, [[pattern], ast]} | result]})
+  end
+
+  defp to_ok_clauses(_, _) do
+    :error
   end
 
   defp normalize_guards(guards) do

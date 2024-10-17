@@ -53,6 +53,7 @@ defmodule Dx.Defd.Compiler do
 
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
     %{defaults: defaults, opts: opts} = def_meta
+    debug_flags = List.wrap(opts[:debug])
 
     all_args = Macro.generate_arguments(arity, __MODULE__)
     state = Map.put(state, :all_args, all_args)
@@ -134,12 +135,12 @@ defmodule Dx.Defd.Compiler do
 
     defd = define_function(kind, defd_name, state.line, defd_args, ast)
 
-    if :compiled in List.wrap(opts[:debug]), do: Ast.p(defd)
+    if Dx.Util.List.intersect?(debug_flags, [:compiled, :all]), do: Ast.p(defd)
 
     final_args =
       define_function(kind, final_args_name, state.line, final_args_args, final_args_ast)
 
-    if :compiled_final_args in List.wrap(opts[:debug]), do: Ast.p(final_args)
+    if Dx.Util.List.intersect?(debug_flags, [:compiled_final_args, :all]), do: Ast.p(final_args)
 
     scope =
       quote line: state.line do
@@ -148,7 +149,7 @@ defmodule Dx.Defd.Compiler do
         end
       end
 
-    if :compiled_scope in List.wrap(opts[:debug]), do: Ast.p(scope)
+    if Dx.Util.List.intersect?(debug_flags, [:compiled_scope, :all]), do: Ast.p(scope)
 
     entrypoints ++ [defd, final_args, scope]
   end

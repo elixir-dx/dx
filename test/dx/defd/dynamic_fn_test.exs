@@ -53,6 +53,26 @@ defmodule Dx.Defd.DynamicFnTest do
     assert load!(DynMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
   end
 
+  test "scope fallback for multi-clause dynamic function in variable", %{task: task, list: list} do
+    defmodule ScopeMultiClauseFunTest do
+      import Dx.Defd
+
+      defd run(tasks) do
+        joeys_fun = fn
+          %{created_by: %{first_name: "Joey"}} -> true
+          _other -> false
+        end
+
+        Enum.filter(tasks, joeys_fun)
+      end
+    end
+
+    assert load!(ScopeMultiClauseFunTest.run([task])) == []
+
+    joeys_task = create(Task, %{created_by: %{first_name: "Joey"}, list: list})
+    assert load!(ScopeMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
+  end
+
   test "calls dynamic function in passed in variable" do
     defmodule PassedInDynFunTest do
       import Dx.Defd

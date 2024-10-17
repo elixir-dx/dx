@@ -203,7 +203,10 @@ you have to keep that in mind yourself.
   - with guards
 - Calling all `Enum` functions
 - Calling all `Kernel` functions without a function argument
-- `fn` with patterns in arguments and guards
+- `fn`
+  - with multiple clauses
+  - with patterns in arguments
+  - with guards
 - `case` with patterns and guards
 - `cond`
 
