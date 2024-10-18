@@ -248,6 +248,170 @@ defmodule Dx.Defd.CaseTest do
       end)
     end
 
+    test "caret", %{list: list} do
+      defmodule CaretCaseTest do
+        import Dx.Defd
+
+        defd created_by(status, expected) do
+          count = Enum.count(List)
+
+          case [%{status: status, list: {:ok, expected}}] do
+            [%{status: :ok, list: {:ok, ^count}}] -> :ok
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(CaretCaseTest.created_by(:ok, 1)) == :ok
+      end)
+
+      assert_queries([""], fn ->
+        assert load!(CaretCaseTest.created_by(:ok, 0)) == nil
+      end)
+    end
+
+    test "caret 2", %{list: list} do
+      defmodule CaretCaseTest2 do
+        import Dx.Defd
+
+        defd created_by(status, expected) do
+          count = Enum.count(List)
+
+          case [%{status: status, list: {:ok, count}}] do
+            [%{status: :ok, list: {:ok, ^expected}}] -> :ok
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(CaretCaseTest2.created_by(:ok, 1)) == :ok
+      end)
+
+      assert_queries([""], fn ->
+        assert load!(CaretCaseTest2.created_by(:ok, 0)) == nil
+      end)
+    end
+
+    test "nested caret", %{user: %{id: user_id}} do
+      defmodule NestedCaretCaseTest do
+        import Dx.Defd
+
+        defd created_by(status, expected) do
+          list = Enum.find(List, fn _ -> true end)
+
+          case [%{status: status, list: {:ok, list}}] do
+            [%{status: :ok, list: {:ok, %{created_by: %{id: ^expected}}}}] -> :ok
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
+        assert load!(NestedCaretCaseTest.created_by(:ok, user_id)) == :ok
+      end)
+
+      assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
+        assert load!(NestedCaretCaseTest.created_by(:ok, 0)) == nil
+      end)
+    end
+
+    test "assign", %{user: user = %{id: user_id}} do
+      defmodule AssignCaseTest do
+        import Dx.Defd
+
+        defd created_by(status, expected) do
+          list = Enum.find(List, fn _ -> true end)
+
+          case [%{status: status, list: {:ok, list}}] do
+            [%{status: :ok, list: {:ok, %{created_by: user = %{id: ^expected}}}}] -> user
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
+        assert load!(AssignCaseTest.created_by(:ok, user_id)) == user
+      end)
+
+      assert_queries(["FROM \"lists\"", "FROM \"users\""], fn ->
+        assert load!(AssignCaseTest.created_by(:ok, 0)) == nil
+      end)
+    end
+
+    test "loads scope in map key", %{list: list} do
+      defmodule MapKeyScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by(status) do
+          count = Enum.count(List)
+
+          case [%{:status => status, 1 => :ok}] do
+            [%{:status => :ok, ^count => :ok}] -> :ok
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries(["SELECT count"], fn ->
+        assert load!(MapKeyScopeCaseTest.created_by(:ok)) == :ok
+      end)
+
+      assert_queries(["SELECT count"], fn ->
+        assert load!(MapKeyScopeCaseTest.created_by(:error)) == nil
+      end)
+    end
+
+    test "loads data in scope in map key", %{list: list} do
+      defmodule LoadMapKeyScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by(status) do
+          template = Enum.find(ListTemplate, fn _ -> true end)
+
+          case [%{:status => status, template => :ok}] do
+            [
+              %{
+                :status => :ok,
+                %ListTemplate{
+                  id: 1,
+                  title: "Default",
+                  hourly_points: 0.2,
+                  lists: [],
+                  __meta__: %Ecto.Schema.Metadata{
+                    state: :loaded,
+                    context: nil,
+                    prefix: nil,
+                    source: "list_templates",
+                    schema: ListTemplate
+                  }
+                } => :ok
+              }
+            ] ->
+              :ok
+
+            other ->
+              {:error, other}
+          end
+        end
+      end
+
+      assert_queries(["FROM \"list_templates\""], fn ->
+        assert {:error, _} = load!(LoadMapKeyScopeCaseTest.created_by(:ok))
+      end)
+
+      create(ListTemplate, %{title: "Default", hourly_points: 0.2, id: 1})
+
+      assert_queries(["FROM \"list_templates\"", "FROM \"lists\""], fn ->
+        assert load!(LoadMapKeyScopeCaseTest.created_by(:ok)) == :ok
+      end)
+
+      assert_queries(["FROM \"list_templates\"", "FROM \"lists\""], fn ->
+        assert {:error, _} = load!(LoadMapKeyScopeCaseTest.created_by(:error))
+      end)
+    end
+
     test "matches scope directly", %{user: %{id: user_id}} do
       defmodule DirectScopeCaseTest do
         import Dx.Defd

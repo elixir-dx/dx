@@ -300,6 +300,28 @@ defmodule Dx.Defd.Ast do
     end)
   end
 
+  def load_scopes({ast, state}), do: load_scopes(ast, state)
+
+  def load_scopes(ast, state) do
+    prewalk(ast, state, fn
+      var, state when is_var(var) ->
+        if var_id(var) in state.finalized_vars do
+          {var, state}
+        else
+          {{:ok, var}, state} =
+            quote do
+              Dx.Defd.Runtime.load_scopes(unquote(var), unquote(state.eval_var))
+            end
+            |> Loader.add(state)
+
+          {var, state}
+        end
+
+      ast, state ->
+        {ast, state}
+    end)
+  end
+
   defp prewalk(ast, acc, fun) do
     traverse(ast, acc, fun, fn x, a -> {x, a} end)
   end

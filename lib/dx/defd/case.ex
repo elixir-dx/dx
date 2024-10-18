@@ -83,7 +83,8 @@ defmodule Dx.Defd.Case do
       ) do
     {pattern, state} =
       pattern
-      |> Pattern.mark_finalized_vars(data_reqs, state)
+      |> ensure_carets_loaded(state)
+      |> Pattern.mark_finalized_vars(data_reqs)
       |> Pattern.mark_finalized_input_vars(subject)
 
     guards = guards |> normalize_guards()
@@ -101,7 +102,8 @@ defmodule Dx.Defd.Case do
   def normalize_clause({:->, meta, [[pattern], ast]}, data_reqs, subject, state) do
     {pattern, state} =
       pattern
-      |> Pattern.mark_finalized_vars(data_reqs, state)
+      |> ensure_carets_loaded(state)
+      |> Pattern.mark_finalized_vars(data_reqs)
       |> Pattern.mark_finalized_input_vars(subject)
 
     {ast, state} =
@@ -126,6 +128,18 @@ defmodule Dx.Defd.Case do
 
   defp to_ok_clauses(_, _) do
     :error
+  end
+
+  defp ensure_carets_loaded(pattern, state) do
+    Macro.prewalk(pattern, state, fn
+      {:^, meta, args}, state ->
+        {args, state} = Ast.load_scopes(args, state)
+
+        {{:^, meta, args}, state}
+
+      other, state ->
+        {other, state}
+    end)
   end
 
   defp normalize_guards(guards) do
@@ -237,9 +251,16 @@ defmodule Dx.Defd.Case do
   end
 
   def quoted_data_req({:%{}, _meta, pairs}, vars) do
-    Map.new(pairs, fn
-      {k, v} when is_atom(k) -> {k, quoted_data_req(v, vars)}
-      {k, v} -> {quoted_data_req(k, vars), quoted_data_req(v, vars)}
+    Enum.reduce(pairs, %{}, fn
+      {k, v}, acc when is_atom(k) ->
+        Map.put(acc, k, quoted_data_req(v, vars))
+
+      {k, v}, acc ->
+        key_req = quoted_data_req(k, vars)
+
+        acc
+        |> Map.update(:__keys__, key_req, &Dx.Util.deep_merge(&1, key_req))
+        |> Map.put(key_req, quoted_data_req(v, vars))
     end)
   end
 

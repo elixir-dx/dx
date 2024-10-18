@@ -58,6 +58,10 @@ defmodule Dx.Defd.Ast.Pattern do
     Map.get(vars, Ast.var_id(var), %{})
   end
 
+  def quoted_data_req({:^, _meta, _}, _vars) do
+    %{__load__: %{}}
+  end
+
   def quoted_data_req(_other, _vars) do
     %{}
   end
@@ -152,6 +156,10 @@ defmodule Dx.Defd.Ast.Pattern do
       data_reqs = Map.get(data_reqs_by_index, index, %{})
       load_required_scopes(elem, data_reqs, state)
     end)
+  end
+
+  def mark_finalized_vars({pattern, state}, data_reqs) do
+    mark_finalized_vars(pattern, data_reqs, state)
   end
 
   def mark_finalized_vars(pattern, data_reqs, state) when data_reqs == %{} do
