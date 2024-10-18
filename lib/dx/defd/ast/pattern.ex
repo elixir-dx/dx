@@ -4,11 +4,84 @@ defmodule Dx.Defd.Ast.Pattern do
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Ast.State
+  alias Dx.Defd.Case
 
   import Dx.Defd.Ast.Guards
 
+  def data_req_from_clauses([], acc) do
+    acc
+  end
+
+  def data_req_from_clauses(
+        [{:->, _meta, [[{:when, _meta2, [pattern | guards]}], _result]} | tail],
+        acc
+      ) do
+    vars = Case.quoted_guard_data_reqs(guards, %{})
+    data_req = quoted_data_req(pattern, vars)
+    acc = Dx.Util.deep_merge(acc, data_req)
+    data_req_from_clauses(tail, acc)
+  end
+
+  def data_req_from_clauses([{:->, _meta, [[pattern], _result]} | tail], acc) do
+    data_req = quoted_data_req(pattern, %{})
+    acc = Dx.Util.deep_merge(acc, data_req)
+    data_req_from_clauses(tail, acc)
+  end
+
+  def quoted_data_req(ast, vars \\ %{})
+
+  def quoted_data_req({elem_0, elem_1}, vars) do
+    add_elems({:__tuple__, 2}, [elem_0, elem_1], vars)
+  end
+
+  def quoted_data_req({:{}, _meta, tuple_elems}, vars) do
+    add_elems({:__tuple__, length(tuple_elems)}, tuple_elems, vars)
+  end
+
+  def quoted_data_req(list, vars) when is_list(list) do
+    add_elems(:__list__, list, vars)
+  end
+
+  # struct
+  def quoted_data_req({:%, _meta, [_type, map]}, vars) do
+    quoted_data_req(map, vars)
+  end
+
+  def quoted_data_req({:%{}, _meta, pairs}, vars) do
+    Map.new(pairs, fn
+      {k, v} when is_atom(k) -> {k, quoted_data_req(v, vars)}
+      {k, v} -> {quoted_data_req(k, vars), quoted_data_req(v, vars)}
+    end)
+  end
+
+  def quoted_data_req(var, vars) when is_var(var) do
+    Map.get(vars, Ast.var_id(var), %{})
+  end
+
+  def quoted_data_req(_other, _vars) do
+    %{}
+  end
+
+  defp add_elems(key, elems, vars) do
+    add_nested(%{}, key, add_elems(elems, vars))
+  end
+
+  defp add_elems(list, vars) do
+    list
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {elem, index}, acc ->
+      add_nested(acc, index, quoted_data_req(elem, vars))
+    end)
+  end
+
+  defp add_nested(map, key, val), do: Map.put(map, key, val)
+
   def load_required_scopes({input_ast, state}, data_reqs) do
     load_required_scopes(input_ast, data_reqs, state)
+  end
+
+  def load_required_scopes(ast, data_reqs, state) when data_reqs == %{} do
+    {ast, state}
   end
 
   def load_required_scopes(list, data_reqs, state) when is_list(list) do
@@ -39,13 +112,32 @@ defmodule Dx.Defd.Ast.Pattern do
     end
   end
 
-  def load_required_scopes(input_ast, _data_reqs, state) do
+  def load_required_scopes({:%{}, meta, pairs} = ast, data_reqs, state) do
+    if is_map(data_reqs) do
+      {pairs, state} =
+        Enum.map_reduce(pairs, state, fn {key_ast, val_ast}, state ->
+          val_reqs = Map.get(data_reqs, key_ast, %{})
+          {val_ast, state} = load_required_scopes(val_ast, val_reqs, state)
+          {{key_ast, val_ast}, state}
+        end)
+
+      {{:%{}, meta, pairs}, state}
+    else
+      {ast, state}
+    end
+  end
+
+  def load_required_scopes(input_ast, remaining_data_reqs, state) do
     if is_var(input_ast) and Ast.var_id(input_ast) in state.finalized_vars do
       {input_ast, state}
     else
       {{:ok, var}, state} =
         quote do
-          Dx.Defd.Runtime.load_scopes(unquote(input_ast), unquote(state.eval_var))
+          Dx.Defd.Runtime.fetch(
+            unquote(input_ast),
+            unquote(Macro.escape(remaining_data_reqs)),
+            unquote(state.eval_var)
+          )
         end
         |> Loader.add(state)
 

@@ -133,44 +133,6 @@ defmodule Dx.Defd.Runtime do
     end
   end
 
-  @doc "Recursively loads `Dx.Scope`s at runtime"
-  def load_scopes(%Dx.Scope{} = scope, eval) do
-    Dx.Scope.lookup(scope, eval)
-  end
-
-  def load_scopes(%type{} = struct, eval) do
-    struct
-    |> Map.from_struct()
-    |> load_scopes(eval)
-    |> Result.transform(&struct(type, &1))
-  end
-
-  def load_scopes(map, eval) when is_map(map) do
-    Result.map(map, fn {key, val} ->
-      load_scopes(key, eval)
-      |> Result.then(fn key ->
-        load_scopes(val, eval)
-        |> Result.then(fn val ->
-          {:ok, {key, val}}
-        end)
-      end)
-    end)
-    |> Result.transform(&Map.new/1)
-  end
-
-  def load_scopes(list, eval) when is_list(list) do
-    Result.map(list, &load_scopes(&1, eval))
-  end
-
-  def load_scopes(tuple, eval) when is_tuple(tuple) do
-    tuple
-    |> Tuple.to_list()
-    |> load_scopes(eval)
-    |> Result.transform(&List.to_tuple/1)
-  end
-
-  def load_scopes(other, _eval), do: Result.ok(other)
-
   @doc "Recursively loads `Dx.Scope`s and unwraps `Dx.Fn`s at runtime"
   def finalize(%Dx.Scope{} = scope, eval) do
     Dx.Scope.lookup(scope, eval)

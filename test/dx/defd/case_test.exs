@@ -126,7 +126,6 @@ defmodule Dx.Defd.CaseTest do
       assert {:ok, %{id: ^user_id}} = load(AssignedScopeCaseTest.created_by())
     end
 
-    # @tag :skip
     test "matches deeply nested variable with scope", %{user: %{id: user_id}} do
       defmodule NestedAssignedScopeCaseTest do
         import Dx.Defd
@@ -142,6 +141,111 @@ defmodule Dx.Defd.CaseTest do
       end
 
       assert {:ok, %{id: ^user_id}} = load(NestedAssignedScopeCaseTest.created_by())
+    end
+
+    test "loads nested scope lazily", %{list: list} do
+      defmodule NestedLazyScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by(status) do
+          arg = Dx.Scope.all(List)
+
+          case {status, lists: {:ok, arg}} do
+            {:ok, lists: {:ok, scope}} -> scope
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(NestedLazyScopeCaseTest.created_by(:ok)) == [list]
+      end)
+
+      assert_queries([], fn ->
+        assert load!(NestedLazyScopeCaseTest.created_by(:error)) == nil
+      end)
+    end
+
+    test "loads nested scope in variable lazily", %{list: list} do
+      defmodule NestedLazyVarScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by(status) do
+          arg = {status, lists: {:ok, Dx.Scope.all(List)}}
+
+          case arg do
+            {:ok, lists: {:ok, scope}} -> scope
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(NestedLazyVarScopeCaseTest.created_by(:ok)) == [list]
+      end)
+
+      assert_queries([], fn ->
+        assert load!(NestedLazyVarScopeCaseTest.created_by(:error)) == nil
+      end)
+    end
+
+    test "loads scope in tuple lazily", %{list: list} do
+      defmodule TupleLazyScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by() do
+          arg = Dx.Scope.all(List)
+
+          case {:ok, arg} do
+            {:ok, [list]} -> list
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(TupleLazyScopeCaseTest.created_by()) == list
+      end)
+    end
+
+    test "loads scope in list lazily", %{list: list} do
+      defmodule ListLazyScopeCaseTest do
+        import Dx.Defd
+
+        defd created_by() do
+          arg = Dx.Scope.all(List)
+
+          case [:ok, arg] do
+            [:ok, [list]] -> list
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(ListLazyScopeCaseTest.created_by()) == list
+      end)
+    end
+
+    test "loads deeply nested scope lazily", %{list: list} do
+      defmodule NestedLazyScopeCaseTest2 do
+        import Dx.Defd
+
+        defd created_by(status) do
+          arg = Dx.Scope.all(List)
+
+          case [%{status: status, lists: {:ok, arg}}] do
+            [%{status: :ok, lists: {:ok, lists}}] -> lists
+            _other -> nil
+          end
+        end
+      end
+
+      assert_queries([""], fn ->
+        assert load!(NestedLazyScopeCaseTest2.created_by(:ok)) == [list]
+      end)
+
+      assert_queries([], fn ->
+        assert load!(NestedLazyScopeCaseTest2.created_by(:error)) == nil
+      end)
     end
 
     test "matches scope directly", %{user: %{id: user_id}} do

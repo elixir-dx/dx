@@ -10,6 +10,7 @@ defmodule Dx.Defd.Case do
 
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
     data_req = data_req_from_clauses(clauses, %{})
+    scope_data_req = Pattern.data_req_from_clauses(clauses, %{})
 
     {subject, state} = Compiler.normalize(subject, state)
 
@@ -23,7 +24,7 @@ defmodule Dx.Defd.Case do
 
           {var, state}
       end
-      |> Pattern.load_required_scopes(data_req)
+      |> Pattern.load_required_scopes(scope_data_req)
 
     {clauses, state} = normalize_clauses(clauses, data_req, subject, state)
 
@@ -167,6 +168,11 @@ defmodule Dx.Defd.Case do
 
   def quoted_guard_data_reqs(ast, acc) do
     Macro.prewalk(ast, acc, fn
+      var, acc when is_var(var) ->
+        acc = Dx.Util.Map.put_in_create(acc, [Ast.var_id(var), :__load__], %{})
+
+        {var, acc}
+
       {{:., _meta, [_module, fun_name]}, meta2, args} = fun, acc
       when is_atom(fun_name) and is_list(args) ->
         # Access.get/2
