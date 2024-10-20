@@ -1,6 +1,8 @@
 defmodule Dx.Defd.Ast.State do
   @moduledoc false
 
+  alias Dx.Defd.Ast
+
   @doc """
   Pass in state overrides (fixed values or update functions)
   that are reverted after the function call.
@@ -35,5 +37,13 @@ defmodule Dx.Defd.Ast.State do
       {key, fun}, state when is_function(fun, 1) -> Map.update!(state, key, fun)
       {key, val}, state -> Map.put(state, key, val)
     end)
+  end
+
+  def mark_var_as_finalized(var, state) do
+    %{state | finalized_vars: MapSet.put(state.finalized_vars, Ast.var_id(var))}
+  end
+
+  def var_finalized?(var, state) do
+    Ast.var_id(var) in state.finalized_vars
   end
 end

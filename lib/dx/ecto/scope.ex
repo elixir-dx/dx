@@ -713,6 +713,11 @@ defmodule Dx.Ecto.Scope do
     end
   end
 
+  defp build_condition(bool, state) when is_boolean(bool) do
+    bool
+    |> with_fallback_and_state(state)
+  end
+
   defp maybe_prepend(:skip, acc), do: acc
   defp maybe_prepend(elem, acc), do: [elem | acc]
 

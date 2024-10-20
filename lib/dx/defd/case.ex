@@ -3,12 +3,12 @@ defmodule Dx.Defd.Case do
 
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
+  alias Dx.Defd.Ast.Pattern
   alias Dx.Defd.Compiler
 
-  import Dx.Defd.Ast.Guards
-
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
-    data_req = data_req_from_clauses(clauses, %{})
+    data_req = data_req_from_clauses(clauses, :preloads)
+    scope_data_req = data_req_from_clauses(clauses, :scopes)
 
     {subject, state} = Compiler.normalize(subject, state)
 
@@ -22,18 +22,26 @@ defmodule Dx.Defd.Case do
 
           {var, state}
       end
-      |> Ast.load_scopes()
+      |> Pattern.load_required_scopes(scope_data_req)
 
-    {clauses, state} = normalize_clauses(clauses, state)
+    {clauses, state} = normalize_clauses(clauses, data_req, subject, state)
 
     ast =
       if data_req == %{} do
         # nothing to load in any pattern
-        {:case, meta, [subject, [do: clauses]]}
+        case to_ok_clauses(clauses) do
+          {:ok, clauses} -> {:ok, {:case, meta, [subject, [do: clauses]]}}
+          :error -> {:case, meta, [subject, [do: clauses]]}
+        end
       else
         # ensure data requirements are preloaded
         subject_var = Macro.unique_var(:subject, __MODULE__)
-        case_ast = {:case, meta, [subject_var, [do: clauses]]}
+
+        case_ast =
+          case to_ok_clauses(clauses) do
+            {:ok, clauses} -> {:ok, {:case, meta, [subject_var, [do: clauses]]}}
+            :error -> {:case, meta, [subject_var, [do: clauses]]}
+          end
 
         quote do
           case Dx.Defd.Runtime.fetch(
@@ -61,11 +69,22 @@ defmodule Dx.Defd.Case do
     """)
   end
 
-  def normalize_clauses(clauses, state) do
-    Enum.map_reduce(clauses, state, &normalize_clause/2)
+  def normalize_clauses(clauses, data_reqs, subject, state) do
+    Enum.map_reduce(clauses, state, &normalize_clause(&1, data_reqs, subject, &2))
   end
 
-  def normalize_clause({:->, meta, [[{:when, meta2, [pattern | guards]}], ast]}, state) do
+  def normalize_clause(
+        {:->, meta, [[{:when, meta2, [pattern | guards]}], ast]},
+        data_reqs,
+        subject,
+        state
+      ) do
+    {pattern, state} =
+      pattern
+      |> ensure_carets_loaded(state)
+      |> Pattern.mark_finalized_vars(data_reqs)
+      |> Pattern.mark_finalized_input_vars(subject)
+
     guards = guards |> normalize_guards()
 
     {ast, state} =
@@ -78,7 +97,13 @@ defmodule Dx.Defd.Case do
     {ast, state}
   end
 
-  def normalize_clause({:->, meta, [[pattern], ast]}, state) do
+  def normalize_clause({:->, meta, [[pattern], ast]}, data_reqs, subject, state) do
+    {pattern, state} =
+      pattern
+      |> ensure_carets_loaded(state)
+      |> Pattern.mark_finalized_vars(data_reqs)
+      |> Pattern.mark_finalized_input_vars(subject)
+
     {ast, state} =
       Ast.with_root_args(pattern, state, fn state ->
         Compiler.normalize(ast, state)
@@ -87,6 +112,32 @@ defmodule Dx.Defd.Case do
     ast = {:->, meta, [[pattern], ast]}
 
     {ast, state}
+  end
+
+  defp to_ok_clauses(clauses, result \\ {:ok, []})
+
+  defp to_ok_clauses([], {:ok, result}) do
+    {:ok, :lists.reverse(result)}
+  end
+
+  defp to_ok_clauses([{:->, meta, [[pattern], {:ok, ast}]} | rest], {:ok, result}) do
+    to_ok_clauses(rest, {:ok, [{:->, meta, [[pattern], ast]} | result]})
+  end
+
+  defp to_ok_clauses(_, _) do
+    :error
+  end
+
+  defp ensure_carets_loaded(pattern, state) do
+    Macro.prewalk(pattern, state, fn
+      {:^, meta, args}, state ->
+        {args, state} = Ast.load_scopes(args, state)
+
+        {{:^, meta, args}, state}
+
+      other, state ->
+        {other, state}
+    end)
   end
 
   defp normalize_guards(guards) do
@@ -107,118 +158,26 @@ defmodule Dx.Defd.Case do
     end)
   end
 
-  defp data_req_from_clauses([], acc) do
+  def data_req_from_clauses(pattern_ast, mode, acc \\ %{})
+
+  def data_req_from_clauses([], _mode, acc) do
     acc
   end
 
-  defp data_req_from_clauses(
-         [{:->, _meta, [[{:when, _meta2, [pattern | guards]}], _result]} | tail],
-         acc
-       ) do
-    vars = quoted_guard_data_reqs(guards, %{})
-    data_req = quoted_data_req(pattern, vars)
+  def data_req_from_clauses(
+        [{:->, _meta, [[{:when, _meta2, [pattern | guards]}], _result]} | tail],
+        mode,
+        acc
+      ) do
+    vars = Pattern.quoted_guard_data_reqs(guards)
+    data_req = Pattern.quoted_data_req(pattern, mode, vars)
     acc = Dx.Util.deep_merge(acc, data_req)
-    data_req_from_clauses(tail, acc)
+    data_req_from_clauses(tail, mode, acc)
   end
 
-  defp data_req_from_clauses([{:->, _meta, [[pattern], _result]} | tail], acc) do
-    data_req = quoted_data_req(pattern, %{})
+  def data_req_from_clauses([{:->, _meta, [[pattern], _result]} | tail], mode, acc) do
+    data_req = Pattern.quoted_data_req(pattern, mode)
     acc = Dx.Util.deep_merge(acc, data_req)
-    data_req_from_clauses(tail, acc)
+    data_req_from_clauses(tail, mode, acc)
   end
-
-  def quoted_guard_data_reqs(ast, acc) do
-    Macro.prewalk(ast, acc, fn
-      {{:., _meta, [_module, fun_name]}, meta2, args} = fun, acc
-      when is_atom(fun_name) and is_list(args) ->
-        # Access.get/2
-        if meta2[:no_parens] do
-          acc =
-            case quoted_access_data_req(fun) do
-              {:ok, var, fields} ->
-                data_req = Dx.Util.Map.put_in_create(%{}, [var | :lists.reverse(fields)], %{})
-                Dx.Util.deep_merge(acc, data_req)
-
-              :error ->
-                acc
-            end
-
-          {fun, acc}
-        else
-          {fun, acc}
-        end
-
-      ast, acc ->
-        {ast, acc}
-    end)
-    |> elem(1)
-  end
-
-  def quoted_access_data_req({{:., _meta2, [base, field]}, meta, []}) do
-    if meta[:no_parens] == true do
-      case quoted_access_data_req(base) do
-        {:ok, var} -> {:ok, var, [field]}
-        {:ok, var, fields} -> {:ok, var, [field | fields]}
-      end
-    else
-      :error
-    end
-  end
-
-  def quoted_access_data_req(var) when is_var(var) do
-    {:ok, Ast.var_id(var)}
-  end
-
-  def quoted_access_data_req(_other) do
-    :error
-  end
-
-  def quoted_data_req(ast, vars \\ %{})
-
-  def quoted_data_req({elem_0, elem_1}, vars) do
-    maybe_add_elems({:__tuple__, 2}, [elem_0, elem_1], vars)
-  end
-
-  def quoted_data_req({:{}, _meta, tuple_elems}, vars) do
-    maybe_add_elems({:__tuple__, length(tuple_elems)}, tuple_elems, vars)
-  end
-
-  def quoted_data_req(list, vars) when is_list(list) do
-    maybe_add_elems(:__list__, list, vars)
-  end
-
-  # struct
-  def quoted_data_req({:%, _meta, [_type, map]}, vars) do
-    quoted_data_req(map, vars)
-  end
-
-  def quoted_data_req({:%{}, _meta, pairs}, vars) do
-    Map.new(pairs, fn
-      {k, v} when is_atom(k) -> {k, quoted_data_req(v, vars)}
-      {k, v} -> {quoted_data_req(k, vars), quoted_data_req(v, vars)}
-    end)
-  end
-
-  def quoted_data_req(var, vars) when is_var(var) do
-    Map.get(vars, Ast.var_id(var), %{})
-  end
-
-  def quoted_data_req(_other, _vars) do
-    %{}
-  end
-
-  defp maybe_add_elems(key, elems, vars) do
-    maybe_add_nested(%{}, key, maybe_add_elems(elems, vars))
-  end
-
-  defp maybe_add_elems(list, vars) do
-    list
-    |> Enum.with_index()
-    |> Enum.reduce(%{}, fn {elem, index}, acc ->
-      maybe_add_nested(acc, index, quoted_data_req(elem, vars))
-    end)
-  end
-
-  defp maybe_add_nested(map, _key, val) when val == %{}, do: map
-  defp maybe_add_nested(map, key, val), do: Map.put(map, key, val)
 end

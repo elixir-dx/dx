@@ -3,6 +3,7 @@ defmodule Dx.Defd.Block do
 
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
+  alias Dx.Defd.Ast.Pattern
   alias Dx.Defd.Compiler
 
   def normalize({:__block__, meta, lines}, state) do
@@ -25,7 +26,7 @@ defmodule Dx.Defd.Block do
       end
 
     state = Map.update!(state, :args, &Ast.collect_vars(pattern, &1))
-    data_req = Dx.Defd.Case.quoted_data_req(pattern)
+    data_req = Pattern.quoted_data_req(pattern, :preloads)
 
     if data_req == %{} do
       pattern = Ast.strip_vars_meta(pattern)

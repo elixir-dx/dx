@@ -438,7 +438,7 @@ defmodule Dx.Defd.Compiler do
     right = Ast.unwrap(right)
 
     state = Map.update!(state, :args, &Ast.collect_vars(pattern, &1))
-    data_req = Dx.Defd.Case.quoted_data_req(pattern)
+    data_req = Ast.Pattern.quoted_data_req(pattern, :preloads)
 
     if data_req == %{} do
       {:ok, {:=, meta, [pattern, right]}}

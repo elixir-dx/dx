@@ -79,33 +79,20 @@ defmodule Dx.Defd.Runtime do
   end
 
   def fetch(map, data_reqs, eval) when is_map(map) and is_map(data_reqs) do
-    # for all key-value pairs in current map ...
-    Enum.reduce_while(data_reqs, {:ok, map}, fn {field, data_reqs}, acc ->
-      case Map.fetch(map, field) do
-        {:ok, %Dx.Scope{} = scope} ->
-          result =
-            Dx.Scope.lookup(scope, eval)
-            |> Result.then(fn loaded_value ->
-              fetch(loaded_value, data_reqs, eval)
-              |> Result.transform(&Map.put(map, field, &1))
-            end)
+    key_req = Map.get(data_reqs, :__keys__, %{})
 
-          Result.merge(acc, result)
+    Result.map(map, fn {key, val} ->
+      fetch(key, key_req, eval)
+      |> Result.then(fn loaded_key ->
+        val_req = Map.get(data_reqs, key)
 
-        {:ok, val} ->
-          result =
-            fetch(val, data_reqs, eval)
-            |> Result.then(fn loaded_value ->
-              fetch(loaded_value, data_reqs, eval)
-              |> Result.transform(&Map.put(map, field, &1))
-            end)
-
-          Result.merge(acc, result)
-
-        _else ->
-          {:cont, acc}
-      end
+        fetch(val, val_req, eval)
+        |> Result.transform(fn loaded_value ->
+          {loaded_key, loaded_value}
+        end)
+      end)
     end)
+    |> Result.transform(&Map.new/1)
   end
 
   def fetch(other, _data_reqs, _eval) do
