@@ -197,15 +197,16 @@ you have to keep that in mind yourself.
 
 ### Syntax
 
-- Defining functions using `defd`
-  - with multiple clauses
-  - with patterns in arguments
-  - with guards
-- Calling all `Enum` functions
-- Calling all `Kernel` functions without a function argument
-- `fn` with patterns in arguments and guards
-- `case` with patterns and guards
-- `cond`
+All syntax except `for` and `with` is supported in `defd` functions.
+
+### Standard library
+
+- All `Enum` functions
+- All `Kernel` functions **except**:
+  - `apply/2`, `apply/3`
+  - `spawn/1`, `spawn_link/1`, `spawn_monitor/1`
+  - `tap/2`
+  - `then/2`
 
 ### Translatable to database queries
 
