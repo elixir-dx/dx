@@ -46,6 +46,26 @@ defmodule Dx.Scope.Compiler do
     end)
   end
 
+  def prepend_fallback_assigns({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
+    result_var = {:result, [], __MODULE__}
+
+    arg_assigns =
+      Enum.map(args, fn arg ->
+        quote do
+          unquote(arg) =
+            case unquote(arg) do
+              {:ref, :a0} -> unquote(result_var)
+              _else -> unquote(arg)
+            end
+        end
+      end)
+
+    ast =
+      {:fn, meta, [{:->, meta2, [args, {:__block__, [], arg_assigns ++ [body]}]}]}
+
+    {:error, {:fn, meta, [{:->, meta2, [[result_var, state.eval_var], ast]}]}}
+  end
+
   def normalize_function({:v1, _kind, _meta, [{_clause_meta, args, [], ast}]}, state) do
     external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
     internal_scope_args = Ast.mark_vars_as_generated(args)
@@ -72,6 +92,10 @@ defmodule Dx.Scope.Compiler do
     {{state.all_args, {:error, nil}}, state}
   end
 
+  def normalize({:fn, _meta, [{:->, _meta2, [[{:when, _meta3, _args}], _body]}]}, state) do
+    {:error, state}
+  end
+
   def normalize({:fn, meta, [{:->, meta2, [args, body]}]}, state) do
     external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
     internal_scope_args = Ast.mark_vars_as_generated(args)
@@ -91,6 +115,10 @@ defmodule Dx.Scope.Compiler do
 
     {:fn, meta, [{:->, meta2, [args, body]}]}
     |> with_state(state)
+  end
+
+  def normalize({:fn, _meta, _clauses}, state) do
+    {:error, state}
   end
 
   def normalize(var, state) when is_var(var) do

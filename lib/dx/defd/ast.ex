@@ -135,13 +135,32 @@ defmodule Dx.Defd.Ast do
     ast
   end
 
-  def wrap_args([arg]) do
-    arg
-  end
+  def wrap_args([arg]), do: arg
+  def wrap_args(args) when is_list(args), do: args
 
-  def wrap_args(args) do
-    List.wrap(args)
-  end
+  @doc """
+  Unwraps arguments wrapped by `wrap_args/1` back to their original form.
+
+  ## Parameters
+
+  - `wrapped_args`: The wrapped form of the arguments.
+  - `original_args`: The original structure of the arguments before wrapping.
+
+  ## Examples
+
+      iex> unwrap_args([:a, :b, :c], [:x, :y, :z])
+      [:a, :b, :c]
+
+      iex> unwrap_args(:a, [:x])
+      [:a]
+
+      iex> unwrap_args([], [])
+      []
+
+  """
+  def unwrap_args(_wrapped_args, []), do: []
+  def unwrap_args(single_arg, [_]), do: [single_arg]
+  def unwrap_args(list, original_args) when is_list(original_args), do: list
 
   def flatten_kv_list(kv_list) do
     Enum.flat_map(kv_list, fn {k, v} -> [k, v] end)
@@ -416,6 +435,18 @@ defmodule Dx.Defd.Ast do
 
   def p(ast, label) do
     IO.puts("\n\n#{label}:\n" <> to_s(ast) <> "\n\n")
+    ast
+  end
+
+  def p_raw(ast, label \\ nil) do
+    formatted = Macro.to_string(ast)
+    output = "\n\n#{formatted}\n\n"
+
+    case label do
+      nil -> IO.puts(output)
+      label -> IO.puts("\n\n#{label}:\n#{formatted}\n\n")
+    end
+
     ast
   end
 end

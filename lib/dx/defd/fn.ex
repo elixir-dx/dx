@@ -30,15 +30,86 @@ defmodule Dx.Defd.Fn do
 
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.State
-  alias Dx.Defd.Compiler
+  alias Dx.Defd.Case.Clauses
 
-  def normalize({:fn, meta, clauses}, state) do
-    {clauses, state} = Enum.map_reduce(clauses, state, &normalize_clause/2)
+  def normalize(
+        {:fn, meta, [{:->, _meta, [args_and_guards, _body]} | _] = clauses} = orig_ast,
+        state
+      ) do
+    args = args_without_guards(args_and_guards)
+    arity = length(args)
+    generated_args = Macro.generate_unique_arguments(arity, __MODULE__)
+
+    external_scope_args = generated_args
+    internal_scope_args = generated_args
+    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
+    scope_args = generated_args
+
+    {scope_ast, scope_state} =
+      State.pass_in(
+        state,
+        [warn_non_dx?: false, scope_args: scope_args_map],
+        fn state ->
+          Ast.with_args_no_loaders!(args, state, fn state ->
+            Dx.Scope.Compiler.normalize(orig_ast, state)
+          end)
+        end
+      )
+
+    case_clauses = Dx.Defd.Case.Clauses.from_fn_clauses(clauses)
 
     line = meta[:line] || state.line
+    case_subject = Ast.wrap_args(generated_args)
+    case_ast = {:case, [line: line], [case_subject, [do: case_clauses]]}
 
-    ok? = Enum.all?(clauses, & &1[:ok?])
-    final_args_ok? = Enum.all?(clauses, & &1[:final_args_ok?])
+    {final_args_ast, final_args_state} =
+      State.pass_in(
+        state,
+        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(generated_args, &1)],
+        fn state ->
+          Ast.with_root_args(generated_args, state, fn state ->
+            Dx.Defd.Case.normalize(case_ast, state)
+          end)
+        end
+      )
+
+    final_args_ok? = match?({:ok, _}, final_args_ast)
+
+    final_args_fun =
+      case final_args_ast do
+        {:ok, {:case, _meta, [^case_subject, [do: case_clauses]]}} ->
+          {:fn, meta, Clauses.to_fn_clauses(case_clauses, args, &{:ok, &1})}
+
+        {:case, _meta, [^case_subject, [do: case_clauses]]} ->
+          {:fn, meta, Clauses.to_fn_clauses(case_clauses, args)}
+
+        _other ->
+          {:fn, meta, [{:->, meta, [generated_args, final_args_ast]}]}
+      end
+
+    {body, state} =
+      Ast.with_root_args(generated_args, state, fn state ->
+        Dx.Defd.Case.normalize(case_ast, state)
+      end)
+
+    ok? = match?({:ok, _}, body)
+
+    fun =
+      case body do
+        {:ok, {:case, _meta, [^case_subject, [do: case_clauses]]}} ->
+          {:fn, meta, Clauses.to_fn_clauses(case_clauses, args, &{:ok, &1})}
+
+        {:case, _meta, [^case_subject, [do: case_clauses]]} ->
+          {:fn, meta, Clauses.to_fn_clauses(case_clauses, args)}
+
+        _other ->
+          {:fn, meta, [{:->, meta, [generated_args, body]}]}
+      end
+
+    var_index = Enum.max([scope_state.var_index, final_args_state.var_index, state.var_index])
+    new_state = %{state | var_index: var_index}
+
+    line = meta[:line] || state.line
 
     {:ok,
      {:%, [line: line],
@@ -48,80 +119,30 @@ defmodule Dx.Defd.Fn do
          [
            ok?: ok?,
            final_args_ok?: final_args_ok?,
-           fun: {:fn, meta, Enum.map(clauses, & &1[:fun])},
-           ok_fun: if(ok?, do: {:fn, meta, Enum.map(clauses, & &1[:ok_fun])}),
-           final_args_fun: {:fn, meta, Enum.map(clauses, & &1[:final_args_fun])},
-           final_args_ok_fun:
-             if(final_args_ok?, do: {:fn, meta, Enum.map(clauses, & &1[:final_args_ok_fun])}),
-           scope: {:fn, meta, Enum.map(clauses, & &1[:scope])}
+           fun: fun,
+           ok_fun: if(ok?, do: orig_ast),
+           final_args_fun: final_args_fun,
+           final_args_ok_fun: if(final_args_ok?, do: orig_ast),
+           scope:
+             if(scope_ast == :error,
+               do:
+                 Dx.Scope.Compiler.prepend_fallback_assigns(
+                   {:fn, meta, [{:->, meta, [generated_args, body]}]},
+                   state
+                 ),
+               else: {:fn, meta, [{:->, meta, [scope_args, scope_ast]}]}
+             )
          ]}
       ]}}
-    |> with_state(state)
-  end
-
-  def normalize_clause({:->, meta2, [args, body]}, state) do
-    external_scope_args = Macro.generate_arguments(length(args), Dx.Scope.Compiler)
-    internal_scope_args = Ast.mark_vars_as_generated(args)
-    scope_args_map = Enum.zip(external_scope_args, internal_scope_args)
-
-    scope_args =
-      Enum.map(scope_args_map, fn {external_arg, internal_arg} ->
-        quote do: unquote(external_arg) = unquote(internal_arg)
-      end)
-
-    {scope_body, scope_state} =
-      State.pass_in(
-        state,
-        [warn_non_dx?: false, scope_args: Enum.zip(external_scope_args, internal_scope_args)],
-        fn state ->
-          Ast.with_args_no_loaders!(args, state, fn state ->
-            Dx.Scope.Compiler.normalize(body, state)
-          end)
-        end
-      )
-
-    {final_args_body, final_args_state} =
-      State.pass_in(
-        state,
-        [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(args, &1)],
-        fn state ->
-          Ast.with_root_args(args, state, fn state ->
-            Compiler.normalize(body, state)
-          end)
-        end
-      )
-
-    {final_args_ok?, final_args_ok_body} =
-      case final_args_body do
-        {:ok, final_args_ok_body} -> {true, final_args_ok_body}
-        _ -> {false, nil}
-      end
-
-    {defd_body, new_state} =
-      Ast.with_root_args(args, state, fn state ->
-        Compiler.normalize(body, state)
-      end)
-
-    {ok?, ok_body} =
-      case defd_body do
-        {:ok, ok_body} -> {true, ok_body}
-        _ -> {false, nil}
-      end
-
-    var_index = Enum.max([scope_state.var_index, final_args_state.var_index, new_state.var_index])
-    new_state = %{new_state | var_index: var_index}
-
-    [
-      ok?: ok?,
-      final_args_ok?: final_args_ok?,
-      fun: {:->, meta2, [args, defd_body]},
-      ok_fun: if(ok?, do: {:->, meta2, [args, ok_body]}),
-      final_args_fun: {:->, meta2, [args, final_args_body]},
-      final_args_ok_fun: if(final_args_ok?, do: {:->, meta2, [args, final_args_ok_body]}),
-      scope: {:->, meta2, [scope_args, scope_body]}
-    ]
     |> with_state(new_state)
   end
+
+  defp args_without_guards([{:when, _, args_and_guards}]) do
+    {args, _} = Enum.split(args_and_guards, -1)
+    args
+  end
+
+  defp args_without_guards(args), do: args
 
   ## Helpers
 

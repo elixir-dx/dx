@@ -4,6 +4,7 @@ defmodule Dx.Defd.Case do
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Ast.Pattern
+  alias Dx.Defd.Case.Clauses
   alias Dx.Defd.Compiler
 
   def normalize({:case, meta, [subject, [do: clauses]]}, state) do
@@ -29,7 +30,7 @@ defmodule Dx.Defd.Case do
     ast =
       if data_req == %{} do
         # nothing to load in any pattern
-        case to_ok_clauses(clauses) do
+        case Clauses.to_ok_clauses(clauses) do
           {:ok, clauses} -> {:ok, {:case, meta, [subject, [do: clauses]]}}
           :error -> {:case, meta, [subject, [do: clauses]]}
         end
@@ -38,7 +39,7 @@ defmodule Dx.Defd.Case do
         subject_var = Macro.unique_var(:subject, __MODULE__)
 
         case_ast =
-          case to_ok_clauses(clauses) do
+          case Clauses.to_ok_clauses(clauses) do
             {:ok, clauses} -> {:ok, {:case, meta, [subject_var, [do: clauses]]}}
             :error -> {:case, meta, [subject_var, [do: clauses]]}
           end
@@ -112,20 +113,6 @@ defmodule Dx.Defd.Case do
     ast = {:->, meta, [[pattern], ast]}
 
     {ast, state}
-  end
-
-  defp to_ok_clauses(clauses, result \\ {:ok, []})
-
-  defp to_ok_clauses([], {:ok, result}) do
-    {:ok, :lists.reverse(result)}
-  end
-
-  defp to_ok_clauses([{:->, meta, [[pattern], {:ok, ast}]} | rest], {:ok, result}) do
-    to_ok_clauses(rest, {:ok, [{:->, meta, [[pattern], ast]} | result]})
-  end
-
-  defp to_ok_clauses(_, _) do
-    :error
   end
 
   defp ensure_carets_loaded(pattern, state) do

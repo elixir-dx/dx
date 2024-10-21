@@ -53,6 +53,86 @@ defmodule Dx.Defd.DynamicFnTest do
     assert load!(DynMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
   end
 
+  test "non-loading multi-clause function", %{task: task, list: list} do
+    defmodule SimpleMultiClauseFunTest do
+      import Dx.Defd
+
+      defd run(tasks) do
+        name = "Joey"
+
+        joeys_fun = fn
+          task when is_binary(name) -> task.created_by.first_name == name
+        end
+
+        Enum.filter(tasks, joeys_fun)
+      end
+    end
+
+    assert load!(SimpleMultiClauseFunTest.run([task])) == []
+
+    joeys_task = create(Task, %{created_by: %{first_name: "Joey"}, list: list})
+    assert load!(SimpleMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
+  end
+
+  test "non-loading multi-clause function 2", %{task: task, list: list} do
+    defmodule SimpleMultiClauseFunTest2 do
+      import Dx.Defd
+
+      defd run(task) do
+        name = "Joey"
+
+        fun = fn
+          task, _id when is_binary(name) when not is_nil(name) when not is_integer(name) ->
+            {task, name}
+        end
+
+        fun.(task, 1)
+      end
+    end
+
+    assert load!(SimpleMultiClauseFunTest2.run(task)) == {task, "Joey"}
+  end
+
+  test "scope fallback for multi-clause dynamic function in variable", %{task: task, list: list} do
+    defmodule ScopeMultiClauseFunTest do
+      import Dx.Defd
+
+      defd run(tasks) do
+        joeys_fun = fn
+          %{created_by: %{first_name: "Joey"}} -> true
+          _other -> false
+        end
+
+        Enum.filter(tasks, joeys_fun)
+      end
+    end
+
+    assert load!(ScopeMultiClauseFunTest.run([task])) == []
+
+    joeys_task = create(Task, %{created_by: %{first_name: "Joey"}, list: list})
+    assert load!(ScopeMultiClauseFunTest.run([task, joeys_task])) == [joeys_task]
+  end
+
+  test "multi-clause function with guards", %{task: task, list: list} do
+    defmodule GuardedMultiClauseFunTest do
+      import Dx.Defd
+
+      defd run(tasks) do
+        joeys_fun = fn
+          %{created_by: %{first_name: name}} when is_binary(name) -> false
+          _other -> true
+        end
+
+        Enum.filter(tasks, joeys_fun)
+      end
+    end
+
+    assert load!(GuardedMultiClauseFunTest.run([task])) == []
+
+    joeys_task = create(Task, %{created_by: %{first_name: "Joey"}, list: list})
+    assert load!(GuardedMultiClauseFunTest.run([task, joeys_task])) == []
+  end
+
   test "calls dynamic function in passed in variable" do
     defmodule PassedInDynFunTest do
       import Dx.Defd
