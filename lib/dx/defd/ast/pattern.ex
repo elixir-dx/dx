@@ -101,6 +101,12 @@ defmodule Dx.Defd.Ast.Pattern do
     %{__load__: %{}}
   end
 
+  def quoted_data_req({:=, _meta, [left, right]}, mode, vars) do
+    left_req = quoted_data_req(left, mode, vars)
+    right_req = quoted_data_req(right, mode, vars)
+    Dx.Util.deep_merge(left_req, right_req)
+  end
+
   def quoted_data_req(_other, _mode, _vars) do
     %{}
   end

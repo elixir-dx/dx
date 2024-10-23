@@ -129,6 +129,39 @@ defmodule Dx.Defd.ArgsTest do
       assert load(ScopeGuardTest.run()) == {:ok, 1}
     end
 
+    test "work with patterns" do
+      defmodule PatternGuardTest do
+        import Dx.Defd
+
+        defd run_case() do
+          case Enum.find(User, &(&1.first_name == "Joey")) do
+            %{first_name: "Joey"} = user -> user.first_name
+            _other -> nil
+          end
+        end
+
+        defd run() do
+          Enum.find(User, &(&1.first_name == "Joey"))
+          |> do_run()
+        end
+
+        defd do_run(%{first_name: "Joey"} = user) do
+          user.first_name
+        end
+
+        defd do_run(_other) do
+          nil
+        end
+      end
+
+      assert load(PatternGuardTest.run_case()) == {:ok, nil}
+      assert load(PatternGuardTest.run()) == {:ok, nil}
+
+      create(User, %{first_name: "Joey"})
+      assert load(PatternGuardTest.run_case()) == {:ok, "Joey"}
+      assert load(PatternGuardTest.run()) == {:ok, "Joey"}
+    end
+
     test "work with functions" do
       defmodule FunGuardTest do
         import Dx.Defd
