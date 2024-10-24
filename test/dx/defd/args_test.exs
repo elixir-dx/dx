@@ -338,60 +338,6 @@ defmodule Dx.Defd.ArgsTest do
       assert {:ok, %{id: ^user_id}} = load(FullAssocTest.created_by(list))
     end
 
-    test "handles default arguments" do
-      defmodule DefaultArgs do
-        import Dx.Defd
-
-        defd(defargs(a, b \\ 1, c \\ :record))
-
-        defd defargs(0, 1, 2) do
-          :hit
-        end
-
-        defd defargs(0, 1, c) do
-          c
-        end
-
-        defd defargs(a, 1, _c) do
-          a
-        end
-      end
-
-      defmodule CallingDefaultArgs do
-        import Dx.Defd
-
-        defd call_defargs0() do
-          DefaultArgs.defargs(:first)
-        end
-
-        defd call_defargs1() do
-          DefaultArgs.defargs(:first, 1)
-        end
-
-        defd call_defargs2() do
-          DefaultArgs.defargs(:first, 1, 2)
-        end
-
-        defd call_defargs3() do
-          DefaultArgs.defargs(0, 1, :third)
-        end
-
-        defd call_defargs_error() do
-          DefaultArgs.defargs(:first, :second, :third)
-        end
-      end
-
-      assert load(DefaultArgs.defargs(0, 1, 2)) == {:ok, :hit}
-      assert load(CallingDefaultArgs.call_defargs0()) == {:ok, :first}
-      assert load(CallingDefaultArgs.call_defargs1()) == {:ok, :first}
-      assert load(CallingDefaultArgs.call_defargs2()) == {:ok, :first}
-      assert load(CallingDefaultArgs.call_defargs3()) == {:ok, :third}
-
-      assert_raise CaseClauseError, fn ->
-        load(CallingDefaultArgs.call_defargs_error())
-      end
-    end
-
     test "raises correct error when one function clause doesn't match" do
       defmodule ClauseErrorTest do
         import Dx.Defd
@@ -435,6 +381,47 @@ defmodule Dx.Defd.ArgsTest do
           load(ClausesErrorTest.created_by_id(nil))
         end
       )
+    end
+  end
+
+  test "handles default arguments" do
+    defmodule DefaultArgs do
+      import Dx.Defd
+
+      defd defargs(a, b \\ 1, c \\ :record)
+      defd defargs(0, 1, 2), do: :hit
+      defd defargs(0, 1, c), do: c
+      defd defargs(a, 1, _c), do: a
+    end
+
+    defmodule CallingDefaultArgs do
+      import Dx.Defd
+
+      defd call_defargs0(), do: DefaultArgs.defargs(:first)
+      defd call_defargs1(), do: DefaultArgs.defargs(:first, 1)
+      defd call_defargs2(), do: DefaultArgs.defargs(:first, 1, 2)
+      defd call_defargs3(), do: DefaultArgs.defargs(0, 1, :third)
+      defd call_defargs_error(), do: DefaultArgs.defargs(:first, :second, :third)
+    end
+
+    assert load!(DefaultArgs.defargs(0, 1, 2)) == :hit
+    assert load!(DefaultArgs.defargs(0, 1)) == :record
+    assert load!(DefaultArgs.defargs(:first)) == :first
+    assert load!(DefaultArgs.defargs(:first, 1)) == :first
+    assert load!(DefaultArgs.defargs(:first, 1, 2)) == :first
+    assert load!(DefaultArgs.defargs(0, 1, :third)) == :third
+
+    assert_raise CaseClauseError, fn ->
+      load!(DefaultArgs.defargs(:first, :second, :third))
+    end
+
+    assert load!(CallingDefaultArgs.call_defargs0()) == :first
+    assert load!(CallingDefaultArgs.call_defargs1()) == :first
+    assert load!(CallingDefaultArgs.call_defargs2()) == :first
+    assert load!(CallingDefaultArgs.call_defargs3()) == :third
+
+    assert_raise CaseClauseError, fn ->
+      load!(CallingDefaultArgs.call_defargs_error())
     end
   end
 end

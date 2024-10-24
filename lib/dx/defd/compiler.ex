@@ -91,6 +91,14 @@ defmodule Dx.Defd.Compiler do
         end
       end)
 
+    final_args_args =
+      Enum.with_index(final_args_args, fn arg, i ->
+        case defaults do
+          %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
+          %{} -> arg
+        end
+      end)
+
     defd_args = append_arg(defd_args, state.eval_var)
     final_args_args = append_arg(final_args_args, state.eval_var)
 
