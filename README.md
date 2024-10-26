@@ -197,7 +197,7 @@ you have to keep that in mind yourself.
 
 ### Syntax
 
-All syntax except `for` and `with` is supported in `defd` functions.
+All syntax except `for` and `with` is supported in `defd` and (private) `defdp` functions.
 
 ### Standard library
 

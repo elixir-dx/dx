@@ -21,6 +21,7 @@ defmodule Dx.Defd.Compiler do
   @doc false
   def __compile__(%Macro.Env{module: module, file: file, line: line}, exports, eval_var) do
     defds = compile_prepare_arities(exports)
+    all_arities = all_arities(exports)
 
     state = %{
       module: module,
@@ -28,6 +29,8 @@ defmodule Dx.Defd.Compiler do
       line: line,
       function: nil,
       defds: defds,
+      all_arities: all_arities,
+      used_defds: MapSet.new(),
       args: MapSet.new(),
       var_index: 1,
       scope_args: [],
@@ -39,9 +42,42 @@ defmodule Dx.Defd.Compiler do
       rewrite_underscore?: false
     }
 
-    quoted = Enum.flat_map(exports, &compile_each_defd(&1, state))
+    {quoted, state} =
+      Enum.flat_map_reduce(exports, state, fn def, state ->
+        {definitions, new_state} = compile_each_defd(def, state)
 
-    {:__block__, [], quoted}
+        state = %{state | used_defds: new_state.used_defds}
+
+        {definitions, state}
+      end)
+
+    generated_functions =
+      Enum.flat_map(defds, fn {name, arity} ->
+        [
+          {Util.defd_name(name), arity + 1},
+          {Util.final_args_name(name), arity + 1},
+          {Util.scope_name(name), arity}
+        ]
+      end)
+
+    suppress_unused_warnings_ast =
+      case MapSet.to_list(state.used_defds) ++ generated_functions do
+        [] ->
+          []
+
+        defs ->
+          ast = Enum.map(defs, &Ast.local_fun_ref/1)
+
+          [
+            quote do
+              def unquote(:"__dx:suppress_unused_warnings__")() do
+                unquote(ast)
+              end
+            end
+          ]
+      end
+
+    Ast.block(suppress_unused_warnings_ast ++ quoted)
   end
 
   defp compile_prepare_arities(definitions) do
@@ -49,6 +85,12 @@ defmodule Dx.Defd.Compiler do
         arity <- (arity - map_size(defaults))..arity,
         into: MapSet.new(),
         do: {name, arity}
+  end
+
+  defp all_arities(definitions) do
+    Map.new(definitions, fn {{_name, arity} = def, %{defaults: defaults}} ->
+      {def, (arity - map_size(defaults))..arity}
+    end)
   end
 
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
@@ -74,6 +116,14 @@ defmodule Dx.Defd.Compiler do
         other ->
           other
       end
+
+    all_args_with_defaults =
+      Enum.with_index(all_args, fn arg, i ->
+        case defaults do
+          %{^i => {meta, default}} -> {:\\, meta, [arg, default]}
+          %{} -> arg
+        end
+      end)
 
     scope_args =
       Enum.with_index(scope_args, fn arg, i ->
@@ -105,10 +155,11 @@ defmodule Dx.Defd.Compiler do
     entrypoints =
       case Keyword.get(opts, :def, :warn) do
         :warn ->
-          Module.delete_definition(state.module, def)
+          for arity <- state.all_arities[def],
+              do: Module.delete_definition(state.module, {name, arity})
 
           quote line: state.line do
-            Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
+            unquote(kind)(unquote(name)(unquote_splicing(all_args_with_defaults))) do
               IO.warn("""
               Use Dx.Defd.load as entrypoint.
               """)
@@ -120,19 +171,16 @@ defmodule Dx.Defd.Compiler do
           |> List.wrap()
 
         :no_warn ->
-          Module.delete_definition(state.module, def)
+          for arity <- state.all_arities[def],
+              do: Module.delete_definition(state.module, {name, arity})
 
           quote line: state.line do
-            Kernel.unquote(kind)(unquote(name)(unquote_splicing(all_args))) do
+            unquote(kind)(unquote(name)(unquote_splicing(all_args_with_defaults))) do
               Dx.Defd.load!(unquote(name)(unquote_splicing(all_args)))
             end
           end
           |> strip_definition_context()
           |> List.wrap()
-
-        false ->
-          Module.delete_definition(state.module, def)
-          []
 
         :original ->
           []
@@ -157,9 +205,9 @@ defmodule Dx.Defd.Compiler do
         end
       end
 
-    if Enum.any?([:compiled_scope, :all], &(&1 in debug_flags)), do: Ast.p(scope)
+    definitions = entrypoints ++ [defd, final_args, scope]
 
-    entrypoints ++ [defd, final_args, scope]
+    {definitions, state}
   end
 
   defp append_arg({:when, meta, [args | guards]}, arg),
@@ -194,7 +242,6 @@ defmodule Dx.Defd.Compiler do
 
   defp get_and_normalize_defd_and_scope({name, arity} = def, state) do
     {:v1, kind, meta, clauses} = Module.get_definition(state.module, def)
-    # |> IO.inspect(label: "ORIG #{name}/#{arity}\n")
 
     state = %{state | function: def, line: meta[:line] || state.line, rewrite_underscore?: true}
 
@@ -477,6 +524,8 @@ defmodule Dx.Defd.Compiler do
       final_args_name = Util.final_args_name(fun_name)
       scope_name = Util.scope_name(fun_name)
 
+      state = Map.update!(state, :used_defds, &MapSet.put(&1, {fun_name, arity}))
+
       {:ok,
        {:%, [line: line],
         [
@@ -589,6 +638,8 @@ defmodule Dx.Defd.Compiler do
     cond do
       {fun_name, arity} in state.defds ->
         defd_name = Util.defd_name(fun_name)
+
+        state = Map.update!(state, :used_defds, &MapSet.put(&1, {fun_name, arity}))
 
         normalize_call_args(args, state, fn args ->
           {defd_name, meta, args ++ [state.eval_var]}

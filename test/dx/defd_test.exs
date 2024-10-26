@@ -216,6 +216,142 @@ defmodule Dx.DefdTest do
     end
   end
 
+  describe "defdp" do
+    test "warns when unused" do
+      assert_stderr("function add/2 is unused", fn ->
+        defmodule UnusedTest do
+          import Dx.Defd
+
+          defdp add(a, b), do: a + b
+        end
+      end)
+    end
+
+    test "warns when default args are unused" do
+      assert_stderr("default values for the optional arguments in add/2 are never used", fn ->
+        defmodule UnusedDefaultArgsTest do
+          import Dx.Defd
+
+          defd main() do
+            add(1, 2)
+          end
+
+          defdp add(a, b \\ 1), do: a + b
+        end
+      end)
+    end
+
+    test "does not warn when default args are used" do
+      refute_stderr("never used", fn ->
+        defmodule NoWarnUnusedDefaultArgsTest do
+          import Dx.Defd
+
+          defd main() do
+            add(1)
+          end
+
+          defdp add(a, b \\ 1), do: a + b
+        end
+      end)
+    end
+
+    test "does not warn that clause always matches for default args" do
+      refute_stderr("always matches", fn ->
+        defmodule NoWarnAlwaysMatchingDefaultArgsTest do
+          import Dx.Defd
+
+          defd main() do
+            add(1)
+          end
+
+          defdp add(a, b \\ 1), do: a + b
+        end
+      end)
+    end
+
+    test "does not warn when used by defd" do
+      refute_stderr("is unused", fn ->
+        defmodule UsedByDefdTest do
+          import Dx.Defd
+
+          defd main() do
+            add(1, 2)
+          end
+
+          defdp add(a, b), do: a + b
+        end
+
+        assert load(UsedByDefdTest.main()) == {:ok, 3}
+      end)
+    end
+
+    test "does not warn when used by non-defd" do
+      refute_stderr("is unused", fn ->
+        defmodule UsedByNonDefdTest do
+          import Dx.Defd
+
+          def main() do
+            load(add(1, 2))
+          end
+
+          defdp add(a, b), do: a + b
+        end
+
+        assert UsedByNonDefdTest.main() == {:ok, 3}
+      end)
+    end
+
+    test "does not warn when def: :original and used by non-defd" do
+      refute_stderr("is unused", fn ->
+        defmodule DefOriginalUsedByNonDefdTest do
+          import Dx.Defd
+
+          def main() do
+            load(add(1, 2))
+          end
+
+          @dx def: :original
+          defdp add(a, b), do: a + b
+        end
+
+        assert DefOriginalUsedByNonDefdTest.main() == {:ok, 3}
+      end)
+    end
+
+    test "does not warn when def: :no_warn and used by non-defd" do
+      refute_stderr("is unused", fn ->
+        defmodule DefNoWarnUsedByNonDefdTest do
+          import Dx.Defd
+
+          def main() do
+            load(add(1, 2))
+          end
+
+          @dx def: :no_warn
+          defdp add(a, b), do: a + b
+        end
+
+        assert DefNoWarnUsedByNonDefdTest.main() == {:ok, 3}
+      end)
+    end
+
+    test "does not warn when referenced by defd" do
+      refute_stderr("is unused", fn ->
+        defmodule ReferencedByDefdTest do
+          import Dx.Defd
+
+          defd main() do
+            Enum.map([1, 2, 3], &add_one/1)
+          end
+
+          defdp add_one(a), do: a + 1
+        end
+
+        assert load!(ReferencedByDefdTest.main()) == [2, 3, 4]
+      end)
+    end
+  end
+
   describe "data loading" do
     setup context do
       user_attrs = context[:user] || %{}

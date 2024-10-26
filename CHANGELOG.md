@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Support `defdp`: Private `defd` functions with proper 'unused' warnings
 - `case`: Support carets, assigns and data loading in map keys
 - `fn`: Support multiple clauses
 

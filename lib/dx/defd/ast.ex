@@ -6,6 +6,16 @@ defmodule Dx.Defd.Ast do
 
   import Dx.Defd.Ast.Guards
 
+  def local_fun_ref({name, arity}), do: local_fun_ref(name, arity)
+
+  def local_fun_ref(name, meta \\ [], arity, meta2 \\ []) do
+    {:&, meta, [{:/, [], [{name, meta2, nil}, arity]}]}
+  end
+
+  def block(lines \\ [], meta \\ []) do
+    {:__block__, meta, lines}
+  end
+
   def is_function(
         {:ok,
          {:%, _,

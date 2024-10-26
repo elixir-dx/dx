@@ -1,4 +1,5 @@
 defmodule Dx.Defd do
+  alias Dx.Defd.Ast
   alias Dx.Defd.Util
   alias Dx.Evaluation, as: Eval
 
@@ -12,6 +13,7 @@ defmodule Dx.Defd do
         unquote(defd_call)
       end)
     end
+    |> mark_use(call)
   end
 
   defmacro load!(call, opts \\ []) do
@@ -22,6 +24,7 @@ defmodule Dx.Defd do
         unquote(defd_call)
       end)
     end
+    |> mark_use(call)
   end
 
   defmacro get(call, opts \\ []) do
@@ -32,6 +35,7 @@ defmodule Dx.Defd do
 
       unquote(defd_call)
     end
+    |> mark_use(call)
   end
 
   defmacro get!(call, opts \\ []) do
@@ -39,6 +43,7 @@ defmodule Dx.Defd do
       Dx.Defd.get(unquote(call), unquote(opts))
       |> Dx.Result.unwrap!()
     end
+    |> mark_use(call)
   end
 
   defp call_to_defd({:|>, _meta, _pipeline} = ast, env) do
@@ -61,12 +66,46 @@ defmodule Dx.Defd do
     {defd_name, meta, args}
   end
 
+  defp mark_use(ast, call) do
+    case call_to_use(call, __ENV__) do
+      {name, arity} ->
+        Ast.block([
+          Ast.local_fun_ref(name, arity),
+          ast
+        ])
+
+      _ ->
+        ast
+    end
+  end
+
+  defp call_to_use({:|>, _meta, _pipeline} = ast, env) do
+    ast
+    |> Macro.expand_once(env)
+    |> call_to_use(env)
+  end
+
+  defp call_to_use(call, _env) do
+    case Macro.decompose_call(call) do
+      {name, args} -> {name, length(args)}
+      _ -> nil
+    end
+  end
+
   defmacro defd(call) do
     define_defd(:def, call, __CALLER__)
   end
 
   defmacro defd(call, do: block) do
     define_defd(:def, call, block, __CALLER__)
+  end
+
+  defmacro defdp(call) do
+    define_defd(:defp, call, __CALLER__)
+  end
+
+  defmacro defdp(call, do: block) do
+    define_defd(:defp, call, block, __CALLER__)
   end
 
   @doc """
