@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-3C3864CD.js"></script>
+    <script src="dist/sidebar_items-9D026DF8.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -46,7 +46,7 @@
     <div class="sidebar-projectInfo">
 
       <div>
-        <a href="Dx.html" class="sidebar-projectName" translate="no">
+        <a href="Dx.Defd.html" class="sidebar-projectName" translate="no">
 dx
         </a>
         <div class="sidebar-projectVersion" translate="no">
@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/docs/basics/04_references.md#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/docs/basics/04_references.md#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -122,42 +122,42 @@ Guides (old)
   </h1>
 
 <p>Often times, we need to compare values in different fields with
-each other, not with fixed values. This is where references come in.</p><p>Say we want to add a <code class="inline">by_owner?</code> predicate to a <code class="inline">Todo.Task</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="2437040764-1">do</span><span class="w">
+each other, not with fixed values. This is where references come in.</p><p>Say we want to add a <code class="inline">by_owner?</code> predicate to a <code class="inline">Todo.Task</code>:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="8461859495-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="2437040764-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="8461859495-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="2437040764-2">end</span><span class="w">
+  </span><span class="k" data-group-id="8461859495-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">by_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2437040764-3">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2437040764-4">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2437040764-5">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:created_by_id</span><span class="p" data-group-id="2437040764-5">]</span><span class="p" data-group-id="2437040764-4">}</span><span class="p" data-group-id="2437040764-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">by_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8461859495-3">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8461859495-4">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8461859495-5">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:created_by_id</span><span class="p" data-group-id="8461859495-5">]</span><span class="p" data-group-id="8461859495-4">}</span><span class="p" data-group-id="8461859495-3">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">by_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
-</span><span class="k" data-group-id="2437040764-1">end</span></code></pre><h3 id="operators" class="section-heading">
+</span><span class="k" data-group-id="8461859495-1">end</span></code></pre><h3 id="operators" class="section-heading">
   <a href="#operators" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
   <span class="text">Operators</span>
 </h3>
 <p>By default, all comparisons need to match exactly. However, other comparisons are possible as well.</p><p>Say we support completing tasks on an already archived list.
-And we want to add a predicate <code class="inline">completed_later?</code> to capture that.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="0750477040-1">do</span><span class="w">
+And we want to add a predicate <code class="inline">completed_later?</code> to capture that.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="7101314680-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="0750477040-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="7101314680-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="0750477040-2">end</span><span class="w">
+  </span><span class="k" data-group-id="7101314680-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0750477040-3">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0750477040-3">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0750477040-4">%{</span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0750477040-5">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0750477040-5">}</span><span class="p" data-group-id="0750477040-4">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0750477040-6">%{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0750477040-7">{</span><span class="ss">:gt</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0750477040-8">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0750477040-9">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p" data-group-id="0750477040-9">]</span><span class="p" data-group-id="0750477040-8">}</span><span class="p" data-group-id="0750477040-7">}</span><span class="p" data-group-id="0750477040-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7101314680-3">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="7101314680-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7101314680-4">%{</span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7101314680-5">%{</span><span class="ss">archived?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="7101314680-5">}</span><span class="p" data-group-id="7101314680-4">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7101314680-6">%{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7101314680-7">{</span><span class="ss">:gt</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7101314680-8">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7101314680-9">[</span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p" data-group-id="7101314680-9">]</span><span class="p" data-group-id="7101314680-8">}</span><span class="p" data-group-id="7101314680-7">}</span><span class="p" data-group-id="7101314680-6">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">completed_later?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
-</span><span class="k" data-group-id="0750477040-1">end</span></code></pre><p>The <code class="inline">Todo.Task</code> must already by <code class="inline">completed?</code> and the <code class="inline">Todo.List</code> <code class="inline">archived?</code>.
+</span><span class="k" data-group-id="7101314680-1">end</span></code></pre><p>The <code class="inline">Todo.Task</code> must already by <code class="inline">completed?</code> and the <code class="inline">Todo.List</code> <code class="inline">archived?</code>.
 In particular, the <code class="inline">Todo.Task</code> must be <code class="inline">completed_at</code> after the <code class="inline">Todo.List</code> was archived.</p><p>Operators can also compare to fixed values (not references).</p><h4>Supported operators</h4><p>Operators with all aliases:</p><ul><li>Greater than: <code class="inline">:gt</code>, <code class="inline">:&gt;</code>, <code class="inline">:greater_than</code>, <code class="inline">:after</code></li><li>Greater than or equal: <code class="inline">:gte</code>, <code class="inline">:&gt;=</code>, <code class="inline">:greater_than_or_equal</code>, <code class="inline">:on_or_after</code>, <code class="inline">:at_or_after</code></li><li>Less than: <code class="inline">:lt</code>, <code class="inline">:&lt;</code>, <code class="inline">:less_than</code>, <code class="inline">:before</code></li><li>Less than or equal: <code class="inline">:lte</code>, <code class="inline">:&lt;=</code>, <code class="inline">:less_than_or_equal</code>, <code class="inline">:on_or_before</code>, <code class="inline">:at_or_before</code></li></ul>
 </div>
 

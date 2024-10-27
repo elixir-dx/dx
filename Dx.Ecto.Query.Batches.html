@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-3C3864CD.js"></script>
+    <script src="dist/sidebar_items-9D026DF8.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -46,7 +46,7 @@
     <div class="sidebar-projectInfo">
 
       <div>
-        <a href="Dx.html" class="sidebar-projectName" translate="no">
+        <a href="Dx.Defd.html" class="sidebar-projectName" translate="no">
 dx
         </a>
         <div class="sidebar-projectVersion" translate="no">
@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/ecto/query/batches.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/ecto/query/batches.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -153,52 +153,52 @@ other filters as a fixed set.</p><h2 id="module-examples" class="section-heading
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-1">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-2">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-2">]</span><span class="p" data-group-id="0158220143-1">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="0158220143-3">(</span><span class="p" data-group-id="0158220143-3">)</span><span class="w">
-</span><span class="p" data-group-id="0158220143-4">[</span><span class="w">
-  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0158220143-5">[</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-6">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-7">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-7">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="0158220143-6">}</span><span class="w">
-  </span><span class="p" data-group-id="0158220143-5">]</span><span class="w">
-</span><span class="p" data-group-id="0158220143-4">]</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-1">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-2">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-2">]</span><span class="p" data-group-id="3855989891-1">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="3855989891-3">(</span><span class="p" data-group-id="3855989891-3">)</span><span class="w">
+</span><span class="p" data-group-id="3855989891-4">[</span><span class="w">
+  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3855989891-5">[</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-6">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-7">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-7">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="3855989891-6">}</span><span class="w">
+  </span><span class="p" data-group-id="3855989891-5">]</span><span class="w">
+</span><span class="p" data-group-id="3855989891-4">]</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-8">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-9">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-9">]</span><span class="p" data-group-id="0158220143-8">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-10">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-11">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-11">]</span><span class="p" data-group-id="0158220143-10">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="0158220143-12">(</span><span class="p" data-group-id="0158220143-12">)</span><span class="w">
-</span><span class="p" data-group-id="0158220143-13">[</span><span class="w">
-  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0158220143-14">[</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-15">{</span><span class="ss">:color</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-16">[</span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="0158220143-16">]</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-15">}</span><span class="w">
-  </span><span class="p" data-group-id="0158220143-14">]</span><span class="w">
-</span><span class="p" data-group-id="0158220143-13">]</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-8">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-9">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-9">]</span><span class="p" data-group-id="3855989891-8">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-10">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-11">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-11">]</span><span class="p" data-group-id="3855989891-10">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="3855989891-12">(</span><span class="p" data-group-id="3855989891-12">)</span><span class="w">
+</span><span class="p" data-group-id="3855989891-13">[</span><span class="w">
+  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3855989891-14">[</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-15">{</span><span class="ss">:color</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-16">[</span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="3855989891-16">]</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-15">}</span><span class="w">
+  </span><span class="p" data-group-id="3855989891-14">]</span><span class="w">
+</span><span class="p" data-group-id="3855989891-13">]</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-17">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-18">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p" data-group-id="0158220143-18">]</span><span class="p" data-group-id="0158220143-17">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-19">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-20">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-20">]</span><span class="p" data-group-id="0158220143-19">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-21">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-22">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p" data-group-id="0158220143-22">]</span><span class="p" data-group-id="0158220143-21">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-23">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-24">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-24">]</span><span class="p" data-group-id="0158220143-23">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="0158220143-25">(</span><span class="p" data-group-id="0158220143-25">)</span><span class="w">
-</span><span class="p" data-group-id="0158220143-26">[</span><span class="w">
-  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0158220143-27">[</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-28">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-29">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-29">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p" data-group-id="0158220143-28">}</span><span class="p">,</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-30">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-31">[</span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p" data-group-id="0158220143-31">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p" data-group-id="0158220143-30">}</span><span class="p">,</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-32">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-33">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="0158220143-33">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p" data-group-id="0158220143-32">}</span><span class="w">
-  </span><span class="p" data-group-id="0158220143-27">]</span><span class="w">
-</span><span class="p" data-group-id="0158220143-26">]</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-17">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-18">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p" data-group-id="3855989891-18">]</span><span class="p" data-group-id="3855989891-17">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-19">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-20">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-20">]</span><span class="p" data-group-id="3855989891-19">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-21">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-22">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p" data-group-id="3855989891-22">]</span><span class="p" data-group-id="3855989891-21">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-23">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-24">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">char</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-24">]</span><span class="p" data-group-id="3855989891-23">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="3855989891-25">(</span><span class="p" data-group-id="3855989891-25">)</span><span class="w">
+</span><span class="p" data-group-id="3855989891-26">[</span><span class="w">
+  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3855989891-27">[</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-28">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-29">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-29">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p" data-group-id="3855989891-28">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-30">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-31">[</span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p" data-group-id="3855989891-31">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pink&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S&quot;</span><span class="p" data-group-id="3855989891-30">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-32">{</span><span class="ss">:char</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-33">[</span><span class="s">&quot;A&quot;</span><span class="p" data-group-id="3855989891-33">]</span><span class="p">,</span><span class="w"> </span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p" data-group-id="3855989891-32">}</span><span class="w">
+  </span><span class="p" data-group-id="3855989891-27">]</span><span class="w">
+</span><span class="p" data-group-id="3855989891-26">]</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-34">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-35">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="0158220143-35">]</span><span class="p" data-group-id="0158220143-34">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-36">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-37">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p" data-group-id="0158220143-37">]</span><span class="p" data-group-id="0158220143-36">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="0158220143-38">(</span><span class="p" data-group-id="0158220143-38">)</span><span class="w">
-</span><span class="p" data-group-id="0158220143-39">[</span><span class="w">
-  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0158220143-40">[</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-41">{</span><span class="ss">:color</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-42">[</span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="0158220143-42">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-43">[</span><span class="p" data-group-id="0158220143-43">]</span><span class="p" data-group-id="0158220143-41">}</span><span class="w">
-  </span><span class="p" data-group-id="0158220143-40">]</span><span class="w">
-</span><span class="p" data-group-id="0158220143-39">]</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-34">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-35">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="3855989891-35">]</span><span class="p" data-group-id="3855989891-34">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-36">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-37">[</span><span class="ss">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p" data-group-id="3855989891-37">]</span><span class="p" data-group-id="3855989891-36">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="3855989891-38">(</span><span class="p" data-group-id="3855989891-38">)</span><span class="w">
+</span><span class="p" data-group-id="3855989891-39">[</span><span class="w">
+  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3855989891-40">[</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-41">{</span><span class="ss">:color</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-42">[</span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;red&quot;</span><span class="p" data-group-id="3855989891-42">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-43">[</span><span class="p" data-group-id="3855989891-43">]</span><span class="p" data-group-id="3855989891-41">}</span><span class="w">
+  </span><span class="p" data-group-id="3855989891-40">]</span><span class="w">
+</span><span class="p" data-group-id="3855989891-39">]</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="0158220143-44">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0158220143-45">[</span><span class="p" data-group-id="0158220143-45">]</span><span class="p" data-group-id="0158220143-44">)</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="0158220143-46">(</span><span class="p" data-group-id="0158220143-46">)</span><span class="w">
-</span><span class="p" data-group-id="0158220143-47">[</span><span class="w">
-  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0158220143-48">[</span><span class="w">
-    </span><span class="p" data-group-id="0158220143-49">{</span><span class="p" data-group-id="0158220143-49">}</span><span class="w">
-  </span><span class="p" data-group-id="0158220143-48">]</span><span class="w">
-</span><span class="p" data-group-id="0158220143-47">]</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="n">add_filters</span><span class="p" data-group-id="3855989891-44">(</span><span class="ss">:query1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3855989891-45">[</span><span class="p" data-group-id="3855989891-45">]</span><span class="p" data-group-id="3855989891-44">)</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">get_batches</span><span class="p" data-group-id="3855989891-46">(</span><span class="p" data-group-id="3855989891-46">)</span><span class="w">
+</span><span class="p" data-group-id="3855989891-47">[</span><span class="w">
+  </span><span class="ss">query1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3855989891-48">[</span><span class="w">
+    </span><span class="p" data-group-id="3855989891-49">{</span><span class="p" data-group-id="3855989891-49">}</span><span class="w">
+  </span><span class="p" data-group-id="3855989891-48">]</span><span class="w">
+</span><span class="p" data-group-id="3855989891-47">]</span></code></pre>
     </section>
 
 </div>
@@ -279,7 +279,7 @@ other functions.</p></div>
     </a>
     <h1 class="signature" translate="no">add_filters(state \\ %{}, group, filters)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/ecto/query/batches.ex#L87" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/ecto/query/batches.ex#L87" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -302,7 +302,7 @@ to a given (or newly initialized) state</p>
     </a>
     <h1 class="signature" translate="no">get_batches(state)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/ecto/query/batches.ex#L133" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/ecto/query/batches.ex#L133" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -319,13 +319,13 @@ other functions.</p><h2 id="get_batches/1-format" class="section-heading">
   </a>
   <span class="text">Format</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="4710044754-1">[</span><span class="w">
-  </span><span class="ss">group1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4710044754-2">[</span><span class="w">
-    </span><span class="p" data-group-id="4710044754-3">{</span><span class="ss">:batch_key</span><span class="p">,</span><span class="w"> </span><span class="n">list_of_values</span><span class="p">,</span><span class="w"> </span><span class="n">other_filters_keyword</span><span class="p" data-group-id="4710044754-3">}</span><span class="p">,</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="0118004315-1">[</span><span class="w">
+  </span><span class="ss">group1</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0118004315-2">[</span><span class="w">
+    </span><span class="p" data-group-id="0118004315-3">{</span><span class="ss">:batch_key</span><span class="p">,</span><span class="w"> </span><span class="n">list_of_values</span><span class="p">,</span><span class="w"> </span><span class="n">other_filters_keyword</span><span class="p" data-group-id="0118004315-3">}</span><span class="p">,</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="p" data-group-id="4710044754-2">]</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="0118004315-2">]</span><span class="p">,</span><span class="w">
   </span><span class="c1"># ...</span><span class="w">
-</span><span class="p" data-group-id="4710044754-1">]</span></code></pre>
+</span><span class="p" data-group-id="0118004315-1">]</span></code></pre>
   </section>
 </section>
 <section class="detail" id="map_put_in/3">
@@ -337,7 +337,7 @@ other functions.</p><h2 id="get_batches/1-format" class="section-heading">
     </a>
     <h1 class="signature" translate="no">map_put_in(map, list, value)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/ecto/query/batches.ex#L112" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/ecto/query/batches.ex#L112" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -359,7 +359,7 @@ other functions.</p><h2 id="get_batches/1-format" class="section-heading">
     </a>
     <h1 class="signature" translate="no">new()</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/ecto/query/batches.ex#L81" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/ecto/query/batches.ex#L81" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

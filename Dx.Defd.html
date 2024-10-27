@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-3C3864CD.js"></script>
+    <script src="dist/sidebar_items-9D026DF8.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -46,7 +46,7 @@
     <div class="sidebar-projectInfo">
 
       <div>
-        <a href="Dx.html" class="sidebar-projectName" translate="no">
+        <a href="Dx.Defd.html" class="sidebar-projectName" translate="no">
 dx
         </a>
         <div class="sidebar-projectVersion" translate="no">
@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -122,6 +122,164 @@ Guides (old)
 
   </h1>
 
+
+    <section id="moduledoc">
+<p>Dx enables you to write Elixir code as if all your Ecto data is already (pre)loaded.</p><h3 id="module-example" class="section-heading">
+  <a href="#module-example" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Example</span>
+</h3>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="0668133937-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
+
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="0668133937-2">(</span><span class="n">user</span><span class="p" data-group-id="0668133937-2">)</span><span class="w"> </span><span class="k" data-group-id="0668133937-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="0668133937-4">(</span><span class="n">user</span><span class="p" data-group-id="0668133937-4">)</span><span class="w"> </span><span class="k" data-group-id="0668133937-5">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="0668133937-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="0668133937-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="0668133937-7">)</span><span class="p" data-group-id="0668133937-6">)</span><span class="w">
+    </span><span class="k" data-group-id="0668133937-5">else</span><span class="w">
+      </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
+    </span><span class="k" data-group-id="0668133937-5">end</span><span class="w">
+  </span><span class="k" data-group-id="0668133937-3">end</span><span class="w">
+
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="0668133937-8">(</span><span class="n">user</span><span class="p" data-group-id="0668133937-8">)</span><span class="w"> </span><span class="k" data-group-id="0668133937-9">do</span><span class="w">
+    </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w">
+  </span><span class="k" data-group-id="0668133937-9">end</span><span class="w">
+</span><span class="k" data-group-id="0668133937-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="0280195534-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="0280195534-2">(</span><span class="n">user</span><span class="p" data-group-id="0280195534-2">)</span><span class="p" data-group-id="0280195534-1">)</span></code></pre><p><a href="#load!/2"><code class="inline">Dx.Defd.load!/2</code></a> loads all required data automatically: The association <code class="inline">role</code>, and either all
+<code class="inline">Schema.List</code> matching the filter (translated to a single SQL query) or the user's associated lists,
+depending on whether it's an admin.</p><p>These function can just as well be called for many users, and Dx will load data efficiently (with batching and concurrently).</p><h2 id="module-background" class="section-heading">
+  <a href="#module-background" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Background</span>
+</h2>
+<p>Most server backends for web and mobile applications are split between
+the actual application and at least one database. In their day-to-day
+programming, most Elixir developers have to keep that in mind and think
+about how to store data in the database, and when and how to load it.
+It's so deeply engrained that we often take this problem for granted,
+having integrated it in how we think about code and code architecture.
+For example, Phoenix (the most popular web framework for Elixir) has
+API contexts that suggest structuring apps into modules that act as a
+boundary (or interface) to the rest of the code. Within these, data is
+loaded and returned. Since it's a generic interface, the simplest
+approach is to load all data that's possibly needed, and return it.
+However, as the app grows in functionality and thus complexity, this
+may become a lot of data. And it's still necessary to think about what
+to return, where it's needed, and how to slice it.</p><p>Imagine this problem would not exist. Enter Dx.</p><p>With Dx, Elixir developers don't have to think about loading data from
+the database at all. You just write Elixir code, as if all data is
+already loaded and readily available.</p><h2 id="module-how-it-works" class="section-heading">
+  <a href="#module-how-it-works" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">How it works</span>
+</h2>
+<p>When working with data in the database, you define Elixir functions
+using <code class="inline">defd</code> instead of <code class="inline">def</code> (the regular Elixir function definition).
+The <code class="inline">defd</code> function must be imported from the <a href="Dx.Defd.html"><code class="inline">Dx.Defd</code></a> module.
+Within <code class="inline">defd</code> functions, you can write regular Elixir code, accessing
+all fields and associations as if they're already loaded. You can also
+call other <code class="inline">defd</code> functions and structure your code in modules as usual.</p><p>When the app is compiled, Dx translates your <code class="inline">defd</code> code into multiple
+versions with different ways to load data:</p><ul><li><strong>Data loading</strong>: Any data that might need to be loaded is wrapped in a
+check that either returns the already loaded data, or returns a &quot;data
+requirement&quot;. Dx runs the code at the entry point (the first function
+that's a <code class="inline">defd</code> function) and either receives the result, or receives
+a number of data requirements. These are loaded, using the dataloader
+library under the hood. Then the code is run again, this time either
+returning the result, or more data requirements, and so on.</li><li><strong>Data querying</strong>: Parts of the code may be translated to &quot;data scopes&quot;,
+which are used to generate database queries out of your code. For
+example, using the standard library function <code class="inline">Enum.filter</code> in a <code class="inline">defd</code>
+function will try to translate the condition (the anonymous function
+passed as second argument) into a database query. When successful, the
+data will not be loaded and then filtered in Elixir, but will already
+be filtered in the database.</li></ul><p>All this happens automatically in the background. Parts of the work are
+done when compiling your code. Other parts are done when running it.</p><h2 id="module-caveats" class="section-heading">
+  <a href="#module-caveats" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Caveats</span>
+</h2>
+<p>Dx is designed with great care for developer experience. You can just start
+using it, and will get warnings with explanations if something should or must
+be done differently. It still helps to understand the main limitations:</p><h3 id="module-pure-functions" class="section-heading">
+  <a href="#module-pure-functions" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Pure functions</span>
+</h3>
+<p>Dx translates your code into different other versions of it. The translated
+versions may then be run any number of times, more or less often than the
+original would have been run. Thus, that any code defined using <code class="inline">defd</code> should
+be <strong>functionally pure</strong>. This means, it should not have any side effects.</p><ul><li>When the same code is run with the same arguments, it must always return
+the same result. Examples for non-pure code are using date and time, or
+random numbers.</li><li><code class="inline">defd</code> functions should also not modify any external state, such as
+modifying data in the database, or printing text to the console.
+Except if it's fine that the modification is applied multiple times.</li></ul><h3 id="module-calling-non-defd-functions" class="section-heading">
+  <a href="#module-calling-non-defd-functions" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Calling non-defd functions</span>
+</h3>
+<p>You can call non-defd functions from within <code class="inline">defd</code> functions. However, Dx
+can't &quot;look into&quot; them. No data inside them will be loaded, and they can
+never be translated to database queries. They will also be run any number
+of times, so they should be pure functions as well.</p><p>Dx will ask you to wrap the call in a <a href="#non_dx/1"><code class="inline">non_dx/1</code></a> function call. This is
+just to make clear that the called function is not defined using <code class="inline">defd</code>
+when reading the code.</p><h3 id="module-finding-good-entry-points" class="section-heading">
+  <a href="#module-finding-good-entry-points" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Finding good entry points</span>
+</h3>
+<p>Any time a <code class="inline">defd</code> function is called from a regular Elixir function,
+that's an <strong>entry point</strong>. That's where any needed data will be loaded.</p><p>Dx will ask you to wrap the call in a <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> function call.
+This is just to make clear that the called function is an entry point
+to <code class="inline">defd</code> land and data may be loaded here.</p><p>It may help to create dedicated modules for all <code class="inline">defd</code> functions. They
+are usually the core of the application, with much of the (business) logic.
+Any code calling into them - the entry points - in contrast, are outside
+these modules, for example in a API function, a Phoenix controller, or an
+Oban worker. This is where the data is loaded, whereas the <code class="inline">defd</code> modules
+consist only of pure functions with (business) logic.</p><h3 id="module-filter-conditions-in-elixir-vs-sql" class="section-heading">
+  <a href="#module-filter-conditions-in-elixir-vs-sql" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Filter conditions in Elixir vs. SQL</span>
+</h3>
+<p>Conditions can behave quite differently in SQL vs. Elixir.
+In the future, Dx will fully translate all nuances correctly, but for now,
+you have to keep that in mind yourself.</p><ul><li><code class="inline">NULL</code> never matches anything in SQL, but it does in Elixir.
+For example, <code class="inline">title != &quot;TODO&quot;</code> when <code class="inline">title = nil</code> will match in Elixir,
+but not match in SQL. Thus, <code class="inline">nil</code> cases must be handled individually:
+<code class="inline">is_nil(title) or title != &quot;TODO&quot;</code></li><li>Dx joins <code class="inline">has_one</code> and <code class="inline">belongs_to</code> associations using <code class="inline">LEFT JOIN</code> in
+SQL. This means, you can happily access association chains, even if
+interim assocation parts do not exist. This would crash in Elixir, but
+in SQL, all fields just appear as <code class="inline">NULL</code>. Thus, the presence of
+associations should be checked individually:
+<code class="inline">not is_nil (list.creator) and is_nil(list.creator.deleted_at)</code></li></ul><h2 id="module-currently-supported" class="section-heading">
+  <a href="#module-currently-supported" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Currently supported</span>
+</h2>
+<h3 id="module-syntax" class="section-heading">
+  <a href="#module-syntax" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Syntax</span>
+</h3>
+<p>All syntax except <code class="inline">for</code> and <code class="inline">with</code> is supported in <code class="inline">defd</code> and (private) <code class="inline">defdp</code> functions.</p><h3 id="module-standard-library" class="section-heading">
+  <a href="#module-standard-library" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Standard library</span>
+</h3>
+<ul><li>All <a href="https://hexdocs.pm/elixir/Enum.html"><code class="inline">Enum</code></a> functions</li><li>All <a href="https://hexdocs.pm/elixir/Kernel.html"><code class="inline">Kernel</code></a> functions <strong>except</strong>:<ul><li><a href="https://hexdocs.pm/elixir/Kernel.html#apply/2"><code class="inline">apply/2</code></a>, <a href="https://hexdocs.pm/elixir/Kernel.html#apply/3"><code class="inline">apply/3</code></a></li><li><a href="https://hexdocs.pm/elixir/Kernel.html#spawn/1"><code class="inline">spawn/1</code></a>, <a href="https://hexdocs.pm/elixir/Kernel.html#spawn_link/1"><code class="inline">spawn_link/1</code></a>, <a href="https://hexdocs.pm/elixir/Kernel.html#spawn_monitor/1"><code class="inline">spawn_monitor/1</code></a></li><li><a href="https://hexdocs.pm/elixir/Kernel.html#tap/2"><code class="inline">tap/2</code></a></li><li><a href="https://hexdocs.pm/elixir/Kernel.html#then/2"><code class="inline">then/2</code></a></li></ul></li></ul><h3 id="module-translatable-to-database-queries" class="section-heading">
+  <a href="#module-translatable-to-database-queries" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Translatable to database queries</span>
+</h3>
+<h4>Functions</h4><ul><li><a href="https://hexdocs.pm/elixir/Enum.html#count/1"><code class="inline">Enum.count/1</code></a></li><li><a href="https://hexdocs.pm/elixir/Enum.html#filter/2"><code class="inline">Enum.filter/2</code></a></li><li><a href="https://hexdocs.pm/elixir/Enum.html#find/2"><code class="inline">Enum.find/2</code></a></li></ul><p>will be translated to database queries, if both</p><ul><li>the first argument is either<ul><li>a schema module, f.ex. <code class="inline">Enum.filter(Todo.Task, fn task -&gt; task.priority == &quot;high&quot;)</code></li><li>the result of another function listed above</li></ul></li><li>the function passed as second argument (if any) consists only of functions listed above or:<ul><li><code class="inline">==</code>, <code class="inline">&lt;</code>, <code class="inline">&gt;</code></li><li><code class="inline">and</code>, <code class="inline">or</code>, <code class="inline">&amp;&amp;</code></li><li><a href="https://hexdocs.pm/elixir/Enum.html#any?/2"><code class="inline">Enum.any?/2</code></a>, <a href="https://hexdocs.pm/elixir/Enum.html#all?/2"><code class="inline">Enum.all?/2</code></a></li><li><a href="https://hexdocs.pm/elixir/DateTime.html#compare/2"><code class="inline">DateTime.compare/2</code></a></li></ul></li></ul>
+    </section>
 
 </div>
 
@@ -139,25 +297,11 @@ Guides (old)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#defd/1" data-no-tooltip translate="no">defd(call)</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
         <a href="#defd/2" data-no-tooltip translate="no">defd(call, list)</a>
 
       </div>
 
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#defdp/1" data-no-tooltip translate="no">defdp(call)</a>
-
-      </div>
+        <div class="summary-synopsis"><p>Defines a function that automatically loads required data.</p></div>
 
     </div>
 
@@ -167,6 +311,8 @@ Guides (old)
 
       </div>
 
+        <div class="summary-synopsis"><p>Private version of <a href="#defd/2"><code class="inline">defd/2</code></a>.</p></div>
+
     </div>
 
     <div class="summary-row">
@@ -174,6 +320,8 @@ Guides (old)
         <a href="#get/2" data-no-tooltip translate="no">get(call, opts \\ [])</a>
 
       </div>
+
+        <div class="summary-synopsis"><p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but returns a result tuple and evaluates without loading any data.</p></div>
 
     </div>
 
@@ -183,6 +331,8 @@ Guides (old)
 
       </div>
 
+        <div class="summary-synopsis"><p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but evaluates without loading any data.</p></div>
+
     </div>
 
     <div class="summary-row">
@@ -190,6 +340,8 @@ Guides (old)
         <a href="#load/2" data-no-tooltip translate="no">load(call, opts \\ [])</a>
 
       </div>
+
+        <div class="summary-synopsis"><p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but returns <code class="inline">{:ok, result}</code> on success, <code class="inline">{:error, error}</code> on failure.</p></div>
 
     </div>
 
@@ -199,6 +351,9 @@ Guides (old)
 
       </div>
 
+        <div class="summary-synopsis"><p>Wrap a <code class="inline">defd</code> function call to run it repeatedly, loading all required data.
+Raises an error if unsuccessful.</p></div>
+
     </div>
 
     <div class="summary-row">
@@ -207,8 +362,7 @@ Guides (old)
 
       </div>
 
-        <div class="summary-synopsis"><p>Used to wrap calls to non-Dx defined functions.
-It doesn't run any code, but makes these calls explicit and mutes Dx compiler warnings.</p></div>
+        <div class="summary-synopsis"><p>Used to wrap calls to non-Dx defined functions within a <code class="inline">defd</code> function.</p></div>
 
     </div>
 
@@ -225,30 +379,6 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="defd/1">
-
-  <div class="detail-header">
-    <a href="#defd/1" class="detail-link" data-no-tooltip title="Link to this macro">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
-    </a>
-    <h1 class="signature" translate="no">defd(call)</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L95" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-      <span class="note">(macro)</span>
-
-  </div>
-
-  <section class="docstring">
-
-
-  </section>
-</section>
 <section class="detail" id="defd/2">
 
   <div class="detail-header">
@@ -258,7 +388,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">defd(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L99" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L227" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -270,31 +400,55 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
+<p>Defines a function that automatically loads required data.</p><p><code class="inline">defd</code> functions are similar to regular Elixir functions defined with <code class="inline">def</code>,
+but they allow you to write code as if all data is already loaded.
+Dx will automatically handle loading the necessary data from the database
+when the function is called.</p><h2 id="defd/2-usage" class="section-heading">
+  <a href="#defd/2-usage" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Usage</span>
+</h2>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="3149638185-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
-  </section>
-</section>
-<section class="detail" id="defdp/1">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="3149638185-2">(</span><span class="n">user</span><span class="p" data-group-id="3149638185-2">)</span><span class="w"> </span><span class="k" data-group-id="3149638185-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="3149638185-4">(</span><span class="n">user</span><span class="p" data-group-id="3149638185-4">)</span><span class="w"> </span><span class="k" data-group-id="3149638185-5">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="3149638185-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="3149638185-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="3149638185-7">)</span><span class="p" data-group-id="3149638185-6">)</span><span class="w">
+    </span><span class="k" data-group-id="3149638185-5">else</span><span class="w">
+      </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
+    </span><span class="k" data-group-id="3149638185-5">end</span><span class="w">
+  </span><span class="k" data-group-id="3149638185-3">end</span><span class="w">
 
-  <div class="detail-header">
-    <a href="#defdp/1" class="detail-link" data-no-tooltip title="Link to this macro">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this macro</span>
-    </a>
-    <h1 class="signature" translate="no">defdp(call)</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L103" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-      <span class="note">(macro)</span>
-
-  </div>
-
-  <section class="docstring">
-
-
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="3149638185-8">(</span><span class="n">user</span><span class="p" data-group-id="3149638185-8">)</span><span class="w"> </span><span class="k" data-group-id="3149638185-9">do</span><span class="w">
+    </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w">
+  </span><span class="k" data-group-id="3149638185-9">end</span><span class="w">
+</span><span class="k" data-group-id="3149638185-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="0982554447-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="0982554447-2">(</span><span class="n">user</span><span class="p" data-group-id="0982554447-2">)</span><span class="p" data-group-id="0982554447-1">)</span></code></pre><h2 id="defd/2-important-notes" class="section-heading">
+  <a href="#defd/2-important-notes" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Important notes</span>
+</h2>
+<ul><li><code class="inline">defd</code> functions should be pure and not have side effects.</li><li>They should not rely on external state or perform I/O operations.</li><li>Calls to non-<code class="inline">defd</code> functions should be wrapped in <a href="#non_dx/1"><code class="inline">non_dx/1</code></a>.</li><li>To call a <code class="inline">defd</code> function from regular Elixir code, wrap it in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a>.</li></ul><h2 id="defd/2-options" class="section-heading">
+  <a href="#defd/2-options" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Options</span>
+</h2>
+<p>Additional options can be passed via a <code class="inline">@dx</code> attribute right before the <code class="inline">defd</code> definition:</p><pre><code class="makeup elixir" translate="no"><span class="na">@dx</span><span class="w"> </span><span class="ss">def</span><span class="p">:</span><span class="w"> </span><span class="ss">:original</span><span class="w">
+</span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="2799458958-1">(</span><span class="n">user</span><span class="p" data-group-id="2799458958-1">)</span><span class="w"> </span><span class="k" data-group-id="2799458958-2">do</span><span class="w">
+  </span><span class="c1"># ...</span><span class="w">
+</span><span class="k" data-group-id="2799458958-2">end</span></code></pre><p>Available options:</p><ul><li><code class="inline">def:</code> - Determines what the generated non-defd function should do.<ul><li><code class="inline">:warn</code> (default) - Call the <code class="inline">defd</code> function wrapped in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> and emit a warning
+asking to make the wrapping explicit.</li><li><code class="inline">:no_warn</code> - Call the <code class="inline">defd</code> function wrapped in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> without emitting a warning.</li><li><code class="inline">:original</code> - Keep the original function definition. This means, the original function can still
+be called directly without being changed by Dx. The <code class="inline">defd</code> version <em>must</em> be called from other
+<code class="inline">defd</code> functions or by wrapping the call in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a>. This can be useful when migrating
+existing code to Dx.</li></ul></li><li><code class="inline">debug:</code> - Takes one or multiple flags for printing generated code to the console. These <em>can</em> get
+<em>very</em> verbose, because Dx generates code for many combinations of cases. All flags have a <code class="inline">_raw</code>
+variant that prints the code without syntax highlighting.<ul><li><code class="inline">:original</code> - Prints the original function definition as passed to defd. All macros are already
+expanded at this point.</li><li><code class="inline">:def</code> - Prints the <code class="inline">def</code> version, which is the generated non-defd function. See the <code class="inline">def:</code> option.</li><li><code class="inline">:defd</code> - Prints the <code class="inline">defd</code> function definition.</li><li><code class="inline">:final_args</code> - Prints the <code class="inline">final_args</code> version, which is similar to the <code class="inline">defd</code> version but
+can be slightly shorter for some internal optimizations. This is also the version used
+as the entrypoint when calling <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a>.</li><li><code class="inline">:scope</code> - Prints the <code class="inline">scope</code> version, which is used to translate the function to SQL.
+It returns AST-like data structures with embedded <code class="inline">defd</code> code fallbacks.</li><li><code class="inline">:all</code> - Enables all the flags.</li></ul></li></ul>
   </section>
 </section>
 <section class="detail" id="defdp/2">
@@ -306,7 +460,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">defdp(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L107" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L237" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -318,7 +472,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
-
+<p>Private version of <a href="#defd/2"><code class="inline">defd/2</code></a>.</p>
   </section>
 </section>
 <section class="detail" id="get/2">
@@ -332,7 +486,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">get(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L30" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L75" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -344,7 +498,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
-
+<p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but returns a result tuple and evaluates without loading any data.</p><p>Returns either</p><ul><li><code class="inline">{:ok, result}</code> on success</li><li><code class="inline">{:error, error}</code> on failure</li><li><code class="inline">{:not_loaded, data_reqs}</code> if required data is missing</li></ul><p>See <a href="#get!/2"><code class="inline">get!/2</code></a> for a raising alternative, and <a href="#load!/2"><code class="inline">load!/2</code></a> and <a href="#load/2"><code class="inline">load/2</code></a> for loading alternatives.</p>
   </section>
 </section>
 <section class="detail" id="get!/2">
@@ -358,7 +512,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">get!(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L41" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L91" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -370,7 +524,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
-
+<p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but evaluates without loading any data.</p><p>See <a href="#get/2"><code class="inline">get/2</code></a> for a non-raising alternative, and <a href="#load!/2"><code class="inline">load!/2</code></a> and <a href="#load/2"><code class="inline">load/2</code></a> for loading alternatives.</p>
   </section>
 </section>
 <section class="detail" id="load/2">
@@ -384,7 +538,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">load(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L8" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L20" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -396,7 +550,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
-
+<p>Like <a href="#load!/2"><code class="inline">load!/2</code></a> but returns <code class="inline">{:ok, result}</code> on success, <code class="inline">{:error, error}</code> on failure.</p><p>See <a href="#load!/2"><code class="inline">load!/2</code></a> for a raising alternative, and <a href="#get!/2"><code class="inline">get!/2</code></a> and <a href="#get/2"><code class="inline">get/2</code></a> for non-loading alternatives.</p>
   </section>
 </section>
 <section class="detail" id="load!/2">
@@ -410,7 +564,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">load!(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L19" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L54" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -422,7 +576,27 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
+<p>Wrap a <code class="inline">defd</code> function call to run it repeatedly, loading all required data.
+Raises an error if unsuccessful.</p><p>See <a href="#load/2"><code class="inline">load/2</code></a>, <a href="#get!/2"><code class="inline">get!/2</code></a> and <a href="#get/2"><code class="inline">get/2</code></a> for non-raising and/or non-loading alternatives.</p><h2 id="load!/2-example" class="section-heading">
+  <a href="#load!/2-example" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Example</span>
+</h2>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="7921709034-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="7921709034-2">(</span><span class="n">user</span><span class="p" data-group-id="7921709034-2">)</span><span class="w"> </span><span class="k" data-group-id="7921709034-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w"> </span><span class="k" data-group-id="7921709034-4">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="7921709034-5">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="7921709034-6">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="7921709034-6">)</span><span class="p" data-group-id="7921709034-5">)</span><span class="w">
+    </span><span class="k" data-group-id="7921709034-4">else</span><span class="w">
+      </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
+    </span><span class="k" data-group-id="7921709034-4">end</span><span class="w">
+  </span><span class="k" data-group-id="7921709034-3">end</span><span class="w">
+</span><span class="k" data-group-id="7921709034-1">end</span><span class="w">
+
+</span><span class="c1"># Will raise if data loading fails</span><span class="w">
+</span><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="7921709034-7">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="7921709034-8">(</span><span class="n">user</span><span class="p" data-group-id="7921709034-8">)</span><span class="p" data-group-id="7921709034-7">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="non_dx/1">
@@ -434,7 +608,7 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
     </a>
     <h1 class="signature" translate="no">non_dx(code)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/06d6a713c0c684eeb32711c294386bf61d890b91/lib/dx/defd.ex#L115" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/2c58cf0b3a51ae91d3177b50892500693bd98617/lib/dx/defd.ex#L266" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -444,8 +618,29 @@ It doesn't run any code, but makes these calls explicit and mutes Dx compiler wa
 
   <section class="docstring">
 
-<p>Used to wrap calls to non-Dx defined functions.
-It doesn't run any code, but makes these calls explicit and mutes Dx compiler warnings.</p>
+<p>Used to wrap calls to non-Dx defined functions within a <code class="inline">defd</code> function.</p><p>When writing <code class="inline">defd</code> functions, any calls to regular Elixir functions (non-<code class="inline">defd</code> functions)
+should be wrapped with <a href="#non_dx/1"><code class="inline">non_dx/1</code></a>. This makes the external calls explicit and suppresses
+Dx compiler warnings.</p><h2 id="non_dx/1-example" class="section-heading">
+  <a href="#non_dx/1-example" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Example</span>
+</h2>
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Stats</span><span class="w"> </span><span class="k" data-group-id="9003166360-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">calculate_percentage</span><span class="p" data-group-id="9003166360-2">(</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="9003166360-2">)</span><span class="w"> </span><span class="k" data-group-id="9003166360-3">do</span><span class="w">
+    </span><span class="p" data-group-id="9003166360-4">(</span><span class="n">value</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="9003166360-4">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="w">
+  </span><span class="k" data-group-id="9003166360-3">end</span><span class="w">
+
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">user_completion_rate</span><span class="p" data-group-id="9003166360-5">(</span><span class="n">user</span><span class="p" data-group-id="9003166360-5">)</span><span class="w"> </span><span class="k" data-group-id="9003166360-6">do</span><span class="w">
+    </span><span class="n">completed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="9003166360-7">(</span><span class="n">user</span><span class="o">.</span><span class="n">completed_tasks</span><span class="p" data-group-id="9003166360-7">)</span><span class="w">
+    </span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="9003166360-8">(</span><span class="n">user</span><span class="o">.</span><span class="n">all_tasks</span><span class="p" data-group-id="9003166360-8">)</span><span class="w">
+
+    </span><span class="c1"># Wrap the regular def function call with non_dx</span><span class="w">
+    </span><span class="n">non_dx</span><span class="p" data-group-id="9003166360-9">(</span><span class="n">calculate_percentage</span><span class="p" data-group-id="9003166360-10">(</span><span class="n">completed</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="9003166360-10">)</span><span class="p" data-group-id="9003166360-9">)</span><span class="w">
+  </span><span class="k" data-group-id="9003166360-6">end</span><span class="w">
+</span><span class="k" data-group-id="9003166360-1">end</span></code></pre>
   </section>
 </section>
 
