@@ -1,6 +1,7 @@
 defmodule Dx do
   @moduledoc """
-  This is the main entry for using the Dx API.
+  This module used to be the main entry for using the Dx API. It is now deprecated.
+  Please use `Dx.Defd` instead.
 
   - `get/3` evaluates the given predicate(s) using only the (pre)loaded data available, and returns the result(s)
   - `load/3` is like `get`, but loads any additional data as needed

@@ -6,6 +6,7 @@
 [![Last Updated](https://img.shields.io/github/last-commit/elixir-dx/dx/main)](https://github.com/elixir-dx/dx/tree/main)
 ![CI](https://github.com/elixir-dx/dx/actions/workflows/ci.yml/badge.svg)
 
+<!-- MODULEDOC -->
 Dx enables you to write Elixir code as if all your Ecto data is already (pre)loaded.
 
 ### Example
@@ -34,9 +35,12 @@ This can be called using
 Dx.Defd.load!(MyApp.Core.Authorization.visible_lists(user))
 ```
 
-All data needed is loaded automatically: The association `role`, and either all `Schema.List` matching the filter (translated to a single SQL query) or the user's associated lists, depending on whether it's an admin.
+`Dx.Defd.load!/2` loads all required data automatically: The association `role`, and either all
+`Schema.List` matching the filter (translated to a single SQL query) or the user's associated lists,
+depending on whether it's an admin.
 
 These function can just as well be called for many users, and Dx will load data efficiently (with batching and concurrently).
+<!-- MODULEDOC -->
 
 ## Demo
 
@@ -76,6 +80,7 @@ Import the formatter rules in `.formatter.exs`:
 ]
 ```
 
+<!-- MODULEDOC -->
 ## Background
 
 Most server backends for web and mobile applications are split between
@@ -226,6 +231,7 @@ will be translated to database queries, if both
   - `and`, `or`, `&&`
   - `Enum.any?/2`, `Enum.all?/2`
   - `DateTime.compare/2`
+<!-- MODULEDOC -->
 
 ### Roadmap
 

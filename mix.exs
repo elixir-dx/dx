@@ -19,7 +19,7 @@ defmodule Dx.MixProject do
 
   defp package do
     [
-      description: "Inference engine written in Elixir",
+      description: "Automatic data loading for Elixir functions",
       files: ["lib", "mix.exs", "README*", "VERSION"],
       maintainers: ["Arno Dirlam"],
       licenses: ["MIT"],
@@ -69,7 +69,7 @@ defmodule Dx.MixProject do
 
   defp docs do
     [
-      main: "Dx",
+      main: "Dx.Defd",
       extra_section: "Guides (old)",
       extras: Path.wildcard("docs/**/*.md"),
       groups_for_extras: [
