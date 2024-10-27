@@ -28,3 +28,21 @@ import Config
 # here (which is why it is important to import them last).
 #
 import_config "#{Mix.env()}.exs"
+
+config :elixir,
+  ansi_syntax_colors: [
+    atom: :cyan,
+    binary: :default_color,
+    boolean: :magenta,
+    charlist: :yellow,
+    list: :default_color,
+    map: :default_color,
+    nil: :magenta,
+    number: :yellow,
+    string: :green,
+    tuple: :default_color,
+    # default: :light_cyan
+    variable: :yellow,
+    call: :default_color,
+    operator: :default_color
+  ]

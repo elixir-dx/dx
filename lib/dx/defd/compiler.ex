@@ -96,6 +96,36 @@ defmodule Dx.Defd.Compiler do
   defp compile_each_defd({{name, arity} = def, def_meta}, state) do
     %{defaults: defaults, opts: opts} = def_meta
     debug_flags = List.wrap(opts[:debug])
+    debug_flag? = fn flag -> flag in debug_flags or :all in debug_flags end
+    debug_flag_raw? = fn flag -> flag in debug_flags or :all_raw in debug_flags end
+
+    if debug_flag?.(:original) or debug_flag_raw?.(:original_raw) do
+      {:v1, kind, _meta, clauses} = Module.get_definition(state.module, def)
+
+      original_ast =
+        Enum.map(clauses, fn
+          {_meta, args, [], ast} ->
+            quote do
+              unquote(kind)(unquote(name)(unquote_splicing(args))) do
+                unquote(ast)
+              end
+            end
+
+          {_meta, args, guards, ast} ->
+            quote do
+              unquote(kind)(
+                unquote(name)(unquote_splicing(args))
+                when unquote_splicing(guards)
+              ) do
+                unquote(ast)
+              end
+            end
+        end)
+        |> then(&Ast.block/1)
+
+      if debug_flag?.(:original), do: Ast.p(original_ast)
+      if debug_flag_raw?.(:original_raw), do: Ast.p_raw(original_ast)
+    end
 
     all_args = Macro.generate_arguments(arity, __MODULE__)
     state = Map.put(state, :all_args, all_args)
@@ -189,14 +219,19 @@ defmodule Dx.Defd.Compiler do
           compile_error!(meta, state, "Invalid option @dx def: #{inspect(invalid)}")
       end
 
+    if debug_flag?.(:def), do: Ast.p(Ast.block(entrypoints))
+    if debug_flag_raw?.(:def_raw), do: Ast.p_raw(Ast.block(entrypoints))
+
     defd = define_function(kind, defd_name, state.line, defd_args, ast)
 
-    if Enum.any?([:compiled, :all], &(&1 in debug_flags)), do: Ast.p(defd)
+    if debug_flag?.(:defd), do: Ast.p(defd)
+    if debug_flag_raw?.(:defd_raw), do: Ast.p_raw(defd)
 
     final_args =
       define_function(kind, final_args_name, state.line, final_args_args, final_args_ast)
 
-    if Enum.any?([:compiled_final_args, :all], &(&1 in debug_flags)), do: Ast.p(final_args)
+    if debug_flag?.(:final_args), do: Ast.p(final_args)
+    if debug_flag_raw?.(:final_args_raw), do: Ast.p_raw(final_args)
 
     scope =
       quote line: state.line do
@@ -204,6 +239,9 @@ defmodule Dx.Defd.Compiler do
           unquote(scope_ast)
         end
       end
+
+    if debug_flag?.(:scope), do: Ast.p(scope)
+    if debug_flag_raw?.(:scope_raw), do: Ast.p_raw(scope)
 
     definitions = entrypoints ++ [defd, final_args, scope]
 

@@ -28,11 +28,23 @@ defmodule Dx.Test.DefdCase do
     end
 
     def refute_stderr(msg_part, fun) do
-      refute ExUnit.CaptureIO.capture_io(:stderr, fun) =~ msg_part
+      output = ExUnit.CaptureIO.capture_io(:stderr, fun)
+
+      refute output =~ msg_part, """
+      Expected stderr not to contain "#{msg_part}", but got:
+
+      #{output}
+      """
     end
 
     def assert_stderr(msg_part, fun) do
-      assert ExUnit.CaptureIO.capture_io(:stderr, fun) =~ msg_part
+      output = ExUnit.CaptureIO.capture_io(:stderr, fun)
+
+      assert output =~ msg_part, """
+      Expected stderr to contain "#{msg_part}", but got:
+
+      #{output}
+      """
     end
 
     def assert_same_error(expected_type, location, fun1, fun2) do
