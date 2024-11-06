@@ -102,6 +102,28 @@ defmodule Dx.Defd.KernelTest do
     end
   end
 
+  describe "apply/2" do
+    test "works", %{list: list, task: task} do
+      defmodule Apply2TestOther do
+        import Dx.Defd
+
+        defd hourly_points(list) do
+          list.hourly_points
+        end
+      end
+
+      defmodule Apply2Test do
+        import Dx.Defd
+
+        defd run(list) do
+          apply(&Apply2TestOther.hourly_points/1, [list]) + 2.5
+        end
+      end
+
+      assert load!(Apply2Test.run(list)) == 6.0
+    end
+  end
+
   describe "or/2" do
     test "works", %{list: list, task: task} do
       defmodule OrTest do
@@ -252,6 +274,42 @@ defmodule Dx.Defd.KernelTest do
 
       assert_queries(["FROM \"users\""], fn ->
         assert load!(IfLoadBeforeTest.run(list)) == "#{user.first_name} #{user.last_name}"
+      end)
+    end
+  end
+
+  describe "tap/2" do
+    test "works", %{list: list, user: user} do
+      defmodule TapTest do
+        import Dx.Defd
+
+        defd run(list) do
+          tap(list, fn list ->
+            non_dx(IO.warn("Hello " <> list.created_by.first_name))
+          end)
+        end
+      end
+
+      assert_stderr("Hello " <> user.first_name, fn ->
+        assert load!(TapTest.run(list)) == list
+      end)
+    end
+  end
+
+  describe "then/2" do
+    test "works", %{list: list, user: user} do
+      defmodule ThenTest do
+        import Dx.Defd
+
+        defd run(list) do
+          then(list, fn list ->
+            non_dx(IO.warn("Hello " <> list.created_by.first_name))
+          end)
+        end
+      end
+
+      assert_stderr("Hello " <> user.first_name, fn ->
+        assert load!(ThenTest.run(list)) == :ok
       end)
     end
   end

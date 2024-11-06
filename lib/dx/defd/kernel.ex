@@ -22,6 +22,14 @@ defmodule Dx.Defd.Kernel do
     end
   end
 
+  def apply(%Dx.Defd.Fn{fun: fun}, args) do
+    Kernel.apply(fun, args)
+  end
+
+  def apply(fun, args) do
+    Kernel.apply(fun, args)
+  end
+
   defscope unquote(:not)(term, _generate_fallback) do
     {:not, term}
   end
@@ -32,6 +40,10 @@ defmodule Dx.Defd.Kernel do
 
   def is_function(term) do
     :erlang.is_function(term)
+  end
+
+  def is_function(%Dx.Defd.Fn{fun: fun}, arity) do
+    :erlang.is_function(fun, arity)
   end
 
   def is_function(term, arity) do

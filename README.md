@@ -210,8 +210,6 @@ All syntax except `for` and `with` is supported in `defd` and (private) `defdp` 
 - All `Kernel` functions **except**:
   - `apply/2`, `apply/3`
   - `spawn/1`, `spawn_link/1`, `spawn_monitor/1`
-  - `tap/2`
-  - `then/2`
 
 ### Translatable to database queries
 
