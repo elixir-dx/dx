@@ -105,7 +105,7 @@ defmodule Dx.Defd.Ext do
 
     quote do
       unquote(__MODULE__).__define__(
-        __MODULE__,
+        unquote(Macro.escape(env)),
         unquote(kind),
         unquote(name),
         unquote(arity),
@@ -126,7 +126,7 @@ defmodule Dx.Defd.Ext do
 
     quote do
       unquote(__MODULE__).__define__(
-        __MODULE__,
+        unquote(Macro.escape(env)),
         unquote(kind),
         unquote(name),
         unquote(arity),
@@ -188,12 +188,10 @@ defmodule Dx.Defd.Ext do
   end
 
   # Internal attributes
-  @defd_exports_key :__defd_exports__
   @defd__exports_key :__defd__exports__
-  @scope_exports_key :__defd_scope_exports__
 
   @doc false
-  def __define__(module, kind, name, arity, defaults, opts) do
+  def __define__(%Macro.Env{module: module} = env, kind, name, arity, defaults, opts) do
     exports =
       if exports = Module.get_attribute(module, @defd__exports_key) do
         exports
@@ -202,10 +200,27 @@ defmodule Dx.Defd.Ext do
         %{}
       end
 
+    fun_info =
+      try do
+        Dx.Defd.Ext.FunInfo.new!(opts || [], %{module: module, fun_name: name, arity: arity})
+      rescue
+        e ->
+          compile_error!(
+            env,
+            """
+            #{Exception.message(e)}
+
+            in annotation
+
+            @dx #{opts |> List.wrap() |> inspect() |> String.replace_prefix("[", "") |> String.replace_suffix("]", "")}
+            """
+          )
+      end
+
     current_export = %{
       kind: kind,
       defaults: defaults,
-      opts: opts || []
+      fun_info: fun_info
     }
 
     exports = Map.put_new(exports, {name, arity}, current_export)
@@ -220,13 +235,8 @@ defmodule Dx.Defd.Ext do
 
   @doc false
   defmacro __before_compile__(env) do
-    defd_exports = Module.get_attribute(env.module, @defd_exports_key)
     defd__exports = Module.get_attribute(env.module, @defd__exports_key)
-    scope_exports = Module.get_attribute(env.module, @scope_exports_key)
 
-    quote do
-      def __dx_defds__(), do: unquote(defd_exports ++ defd__exports)
-      def __dx_scopes__(), do: unquote(scope_exports)
-    end
+    Dx.Defd.Ext.Compiler.__compile__(env, defd__exports)
   end
 end

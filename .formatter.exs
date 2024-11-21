@@ -1,6 +1,8 @@
 locals_without_parens = [
   defd: 1,
   defd: 2,
+  defd_: 1,
+  defd_: 2,
   defdp: 1,
   defdp: 2,
   field_group: 1,
