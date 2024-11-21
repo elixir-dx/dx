@@ -75,6 +75,9 @@ defmodule Dx.MixProject do
       groups_for_extras: [
         Basics: Path.wildcard("docs/basics/*.md")
       ],
+      groups_for_modules: [
+        Extending: [Dx.Defd.Ext, Dx.Defd.Fn, Dx.Defd.Result, Dx.Evaluation, Dx.Scope]
+      ],
       source_url: @source_url,
       source_ref: "v#{version()}"
     ]

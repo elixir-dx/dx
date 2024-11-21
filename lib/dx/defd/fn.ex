@@ -1,17 +1,61 @@
 defmodule Dx.Defd.Fn do
-  @moduledoc false
+  @moduledoc """
+  Internal wrapper for a function.
+
+  This includes multiple compiled versions of the function, plus some meta information on whether
+  the function can ever load any data (i.e. return `{:not_loaded, ...}` instead of `{:ok, ...}`).
+
+  The `final_args` versions assume that arguments are already finalized, i.e. hold no `Dx.Scope` or
+  `Dx.Defd.Fn` structs.
+  """
+
+  @typedoc """
+  A wrapper struct for a function with multiple compiled versions and metadata.
+
+  Fields:
+  - `:ok?` - Whether the function can be guaranteed to return `{:ok, result}`
+  - `:final_args_ok?` - Whether the function can be guaranteed to return `{:ok, result}` when given final arguments
+  - `:fun` - defd-compatible function that may return `{:not_loaded, ...}` or `{:ok, ...}`
+  - `:ok_fun` - Version of function guaranteed to return `{:ok, ...}` (can be nil)
+  - `:final_args_fun` - Version of function that assumes final arguments
+  - `:final_args_ok_fun` - Version of function that assumes final arguments and returns `{:ok, ...}` (can be nil)
+  - `:scope` - scope version of the function. See `Dx.Scope`.
+  """
+  @type t :: %__MODULE__{
+          ok?: boolean(),
+          final_args_ok?: boolean(),
+          fun: function(),
+          ok_fun: function() | nil,
+          final_args_fun: function(),
+          final_args_ok_fun: function() | nil,
+          scope: function()
+        }
 
   defstruct [:ok?, :final_args_ok?, :fun, :ok_fun, :final_args_fun, :final_args_ok_fun, :scope]
 
+  @doc """
+  Extracts the defd-compatible function from a `Dx.Defd.Fn` struct if given one, otherwise returns the input unchanged.
+  """
   def maybe_unwrap(%__MODULE__{fun: fun}), do: fun
   def maybe_unwrap(other), do: other
 
+  @doc """
+  Extracts the `ok_fun` from a `Dx.Defd.Fn` struct if given one, otherwise returns the input unchanged.
+  The `ok_fun` is guaranteed to return `{:ok, result}`.
+  """
   def maybe_unwrap_ok(%__MODULE__{ok_fun: fun}), do: fun
   def maybe_unwrap_ok(other), do: other
 
+  @doc """
+  Extracts the `final_args_ok_fun` from a `Dx.Defd.Fn` struct if given one, otherwise returns the input unchanged.
+  The `final_args_ok_fun` assumes final arguments and is guaranteed to return `{:ok, result}`.
+  """
   def maybe_unwrap_final_args_ok(%__MODULE__{final_args_ok_fun: fun}), do: fun
   def maybe_unwrap_final_args_ok(other), do: other
 
+  @doc """
+  Convert a function or `Dx.Defd.Fn` struct to a function returning a `Dx.Defd.Result`.
+  """
   def to_defd_fun(%__MODULE__{fun: fun}), do: fun
   def to_defd_fun(fun) when is_function(fun), do: wrap_defd_fun(fun)
   def to_defd_fun(other), do: other
@@ -32,6 +76,7 @@ defmodule Dx.Defd.Fn do
   alias Dx.Defd.Ast.State
   alias Dx.Defd.Case.Clauses
 
+  @doc false
   def normalize(
         {:fn, meta, [{:->, _meta, [args_and_guards, _body]} | _] = clauses} = orig_ast,
         state

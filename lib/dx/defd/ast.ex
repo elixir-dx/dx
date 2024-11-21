@@ -17,6 +17,13 @@ defmodule Dx.Defd.Ast do
   end
 
   def is_function(
+        {:ok, {:%, _, [{:__aliases__, _, [:Dx, :Defd, :Fn]}, {:%{}, _, _fields}]}},
+        _arity = nil
+      ) do
+    true
+  end
+
+  def is_function(
         {:ok,
          {:%, _,
           [
@@ -33,8 +40,16 @@ defmodule Dx.Defd.Ast do
     length(args) == arity
   end
 
+  def is_function({:ok, {:fn, _meta, [{:->, _meta2, [_args, _body]}]}}, _arity = nil) do
+    true
+  end
+
   def is_function({:ok, {:fn, _meta, [{:->, _meta2, [args, _body]}]}}, arity) do
     length(args) == arity
+  end
+
+  def is_function({:&, _meta, [{:/, [], [{_fun_name, _meta2, nil}, _]}]}, _arity = nil) do
+    true
   end
 
   def is_function({:&, _meta, [{:/, [], [{_fun_name, _meta2, nil}, arity]}]}, arity) do
@@ -417,7 +432,7 @@ defmodule Dx.Defd.Ast do
   # Helpers
 
   @compile {:inline, with_state: 2}
-  defp with_state(ast, state), do: {ast, state}
+  def with_state(ast, state), do: {ast, state}
 
   def closest_meta({_, meta, _}), do: meta
   def closest_meta([elem | _rest]), do: closest_meta(elem)

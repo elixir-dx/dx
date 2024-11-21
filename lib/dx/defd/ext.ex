@@ -1,5 +1,53 @@
 defmodule Dx.Defd.Ext do
-  @moduledoc false
+  @moduledoc """
+  Used to make existing libraries compatible with `Dx.Defd`.
+
+  ## Usage
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd.Ext
+
+    @impl true
+    def __fun_info(fun_name, arity) do
+      %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
+    end
+  end
+  ```
+
+  ## Options
+
+  Return a map with the following keys:
+
+  - `args` - list or map of argument indexes mapping to argument information
+    - `:atom_to_scope` - whether to wrap atoms in `Dx.Scope.all/1`
+    - `:preload_scope` - tells the compiler to load any scopes passed via this argument
+    - `:fn` - tells the compiler to unwrap any Dx-specific function definitions
+    - `{:fn, arity: 2, warn_not_ok: "Can't load data here"}` - pass more information about the function
+    - `:final_args_fn` - like `fn` but assumes that no scopes can be passed to the function in this argument
+    - `{:final_args_fn, arity: 2, warn_always: "Don't use this function"}` - pass more information about the function
+    - `%{}` - placeholder for an argument without any special information
+  - `warn_not_ok` - compiler warning to display when the function possibly loads data
+  - `warn_always` - compiler warning to display when the function is used
+  """
+
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour Dx.Defd.Ext
+
+      alias Dx.Defd.Ext.ArgInfo
+      alias Dx.Defd.Ext.FunInfo
+
+      import Dx.Defd.Ext
+    end
+  end
+
+  @doc """
+  This callback is used to provide information about a function to `Dx.Defd`.
+  """
+  @callback __fun_info(atom(), non_neg_integer()) :: __MODULE__.FunInfo.input()
+
+  @optional_callbacks __fun_info: 2
 
   alias Dx.Defd.Util
 

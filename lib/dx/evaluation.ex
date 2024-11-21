@@ -1,9 +1,11 @@
 defmodule Dx.Evaluation do
-  # Represents an evaluation run in `Dx.Engine` according to the
-  # [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
-  # in Elixir.
+  @moduledoc """
+  Holds run options and already loaded data passed between `Dx.Defd`-defined functions according to the
+  [token pattern](https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/)
+  in Elixir.
 
-  @moduledoc false
+  This is also used in the now deprecated `infer` approach of Dx.
+  """
 
   use TypedStruct
 
@@ -44,13 +46,12 @@ defmodule Dx.Evaluation do
     end)
   end
 
-  @doc """
-  Loads the given data requirements in an evaluation, and returns it updated.
-  """
+  @doc false
   def load_data_reqs(eval, data_reqs) do
     Map.update!(eval, :cache, &eval.loader.load(&1, data_reqs))
   end
 
+  @doc false
   def load_all_data_reqs!(eval_opts, fun) when is_list(eval_opts) do
     from_options(eval_opts)
     |> load_all_data_reqs(fun)
@@ -63,6 +64,7 @@ defmodule Dx.Evaluation do
     |> Dx.Result.unwrap!()
   end
 
+  @doc false
   def load_all_data_reqs(eval_opts, fun) when is_list(eval_opts) do
     from_options(eval_opts)
     |> load_all_data_reqs(fun)

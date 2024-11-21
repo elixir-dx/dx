@@ -1,5 +1,54 @@
 defmodule Dx.Defd.Result do
-  @moduledoc false
+  @moduledoc """
+  Collection of functions to work with Dx-internal result types.
+
+  A result is either:
+
+    - `{:error, e}` if an error occurred
+    - `{:not_loaded, data_reqs}` if the result could not be determined without loading more data
+    - `{:ok, result}` otherwise
+      - `result` can also be a `Dx.Scope` or a `Dx.Defd.Fn`
+
+  ## Data loading
+
+  In general, `{:not_loaded, all_reqs}` only ever returns data requirements that are really needed.
+
+  ### Example using `all`
+
+  For example, using `all?/1` with 3 conditions A, B and C, where
+
+      iex> [
+      ...>   {:ok, true},   # A
+      ...>   {:not_loaded, [1]}, # B
+      ...>   {:ok, false},  # C
+      ...> ]
+      ...> |> Dx.Defd.Result.all?()
+      {:ok, false}
+
+  The overall result is `{:ok, false}`.
+  While B would need more data to be loaded, C can already determined and is `false`,
+  so and any additional data loaded will not change that.
+
+  ### Example using `find`
+
+  Another example, using `find/1` with 5 conditions A, B, C, D and E, where
+
+      iex> [
+      ...>   {:ok, false},  # A
+      ...>   {:not_loaded, [1]}, # B
+      ...>   {:not_loaded, [2]}, # C
+      ...>   {:ok, true},   # D
+      ...>   {:not_loaded, [3]}, # E
+      ...> ]
+      ...> |> Dx.Defd.Result.find()
+      {:not_loaded, [1, 2]}
+
+  The overall result is `{:not_loaded, data_reqs1 + data_reqs2}`.
+  While D can already be determined and is `{:ok, true}`, B and C come first and need more data
+  to be loaded, so they can be determined and returned if either is `{:ok, true}` first.
+  All data requirements that might be needed are returned together in the result (those of B and C),
+  while those of E can be ruled out, as D already returns `{:ok, true}` and comes first.
+  """
 
   # Shorthand to conveniently declare optional functions as `fun \\ &identity/1`.
   defp identity(term), do: term

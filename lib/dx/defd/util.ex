@@ -2,6 +2,8 @@
 defmodule Dx.Defd.Util do
   @moduledoc false
 
+  alias Dx.Defd.Ext.FunInfo
+
   @defd_exports_key :__defd_exports__
 
   def defd_name(name), do: :"__defd:#{name}__"
@@ -13,18 +15,14 @@ defmodule Dx.Defd.Util do
     function_exported?(module, scope_name(fun_name), arity + 1)
   end
 
-  def is_scopable?(module, fun_name, arity) do
-    Code.ensure_loaded(module)
-    function_exported?(module, :__scopable?, 2) and module.__scopable?(fun_name, arity)
-  end
-
-  def scopable_args(module, fun_name, arity) do
+  def fun_info(module, fun_name, arity) do
     Code.ensure_loaded(module)
 
-    if function_exported?(module, :__scopable_args, 2) do
-      module.__scopable_args(fun_name, arity)
+    if function_exported?(module, :__fun_info, 2) do
+      module.__fun_info(fun_name, arity)
+      |> FunInfo.new!(%{module: module, fun_name: fun_name, arity: arity})
     else
-      []
+      %{}
     end
   end
 

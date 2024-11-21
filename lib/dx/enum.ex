@@ -1,12 +1,9 @@
 defmodule Dx.Enum do
   @moduledoc false
 
-  alias Dx.Defd.Ast
-  alias Dx.Defd.Ast.Loader
-  alias Dx.Defd.Compiler
-  alias Dx.Defd.Result
+  use Dx.Defd.Ext
 
-  import Dx.Defd.Ext
+  alias Dx.Defd.Result
 
   @chunk_while_chunk_fun_warning """
   Dx can't load data efficiently within functions passed as chunk_fun to Enum.chunk_while
@@ -181,203 +178,192 @@ defmodule Dx.Enum do
     {:each, 2} => @each_warning
   }
 
-  @warnings %{
-    {:flat_map_reduce, 3} => @flat_map_reduce_warning,
-    {:map_reduce, 3} => @map_reduce_warning,
-    {:max, 3} => @max_warning,
-    {:min, 3} => @min_warning,
-    {:reduce, 2} => @reduce_warning,
-    {:reduce, 3} => @reduce_warning,
-    {:reduce_while, 3} => @reduce_while_warning,
-    {:scan, 2} => @scan_warning,
-    {:scan, 3} => @scan_warning,
-    {:sort, 2} => @sort_warning,
-    {:zip_reduce, 3} => @zip_reduce_3_warning,
-    {:zip_reduce, 4} => @zip_reduce_4_warning
-  }
-
-  # &Enum.fun/3
-  def rewrite(
-        {:&, meta, [{:/, [], [{{:., _meta2, [Enum, fun_name]}, _meta3, []}, arity]}]},
-        state
-      ) do
-    ast =
-      cond do
-        function_exported?(__MODULE__, fun_name, arity) ->
-          args = Macro.generate_arguments(arity, __MODULE__)
-          line = meta[:line] || state.line
-
-          quote line: line do
-            {:ok,
-             fn unquote_splicing(args) ->
-               unquote(__MODULE__).unquote(fun_name)(unquote_splicing(args))
-             end}
-          end
-
-        true ->
-          args = Macro.generate_arguments(arity, __MODULE__)
-          line = meta[:line] || state.line
-
-          quote line: line do
-            {:ok,
-             fn unquote_splicing(args) ->
-               {:ok, unquote(Enum).unquote(fun_name)(unquote_splicing(args))}
-             end}
-          end
-      end
-
-    {ast, state}
+  @impl true
+  def __fun_info(fun_name, arity) do
+    %FunInfo{
+      args: arg_info(fun_name, arity),
+      can_return_scope: can_return_scope(fun_name, arity),
+      warn_always: Map.get(@static_warnings, {fun_name, arity})
+    }
   end
 
-  def rewrite({{:., meta, [Enum, fun_name]}, meta2, orig_args}, orig_state) do
-    arity = length(orig_args)
+  defp can_return_scope(:count, 1), do: true
+  defp can_return_scope(:find, 2), do: true
+  defp can_return_scope(:filter, 2), do: true
+  defp can_return_scope(_fun_name, _arity), do: false
 
-    {args, state} = Enum.map_reduce(orig_args, orig_state, &Compiler.normalize/2)
+  defp arg_info(:chunk_while, 4),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, arity: 2, warn_not_ok: @chunk_while_chunk_fun_warning},
+      :final_args_fn
+    ]
 
-    cond do
-      __scopable?(fun_name, arity) ->
-        maybe_warn_static(meta, fun_name, arity, args, state)
+  defp arg_info(:count_until, 3), do: [[:atom_to_scope, :preload_scope], :final_args_fn, %{}]
 
-        maybe_warn(meta, fun_name, arity, args, state)
+  defp arg_info(:filter_map, 3),
+    do: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
 
-        args = Enum.map(args, &Ast.unwrap/1)
+  defp arg_info(:flat_map_reduce, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @flat_map_reduce_warning}
+    ]
 
-        {{:., meta, [__MODULE__, fun_name]}, meta2, args}
-        |> Loader.add(state)
+  defp arg_info(:group_by, 3),
+    do: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
 
-      args_ok?(args, __fn_args(fun_name, arity)) ->
-        maybe_warn_static(meta, fun_name, arity, args, state)
+  defp arg_info(:map_reduce, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @map_reduce_warning}
+    ]
 
-        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
-        args = Enum.map(args, &Ast.unwrap_final_args_inner/1)
+  defp arg_info(:max, 2),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, arity: 2, warn_not_ok: @max_warning}
+    ]
 
-        ast =
-          quote do
-            unquote({:ok, {{:., meta, [Enum, fun_name]}, meta2, args}})
-          end
+  defp arg_info(:max, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, arity: 2, warn_not_ok: @max_warning},
+      :final_args_fn
+    ]
 
-        {ast, state}
+  defp arg_info(:max_by, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+    ]
 
-      function_exported?(__MODULE__, fun_name, arity) ->
-        maybe_warn_static(meta, fun_name, arity, args, state)
+  defp arg_info(:max_by, 4),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+      :final_args_fn
+    ]
 
-        {args, state} = Enum.map_reduce(orig_args, orig_state, &Compiler.normalize/2)
+  defp arg_info(:min, 2),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, arity: 2, warn_not_ok: @min_warning}
+    ]
 
-        maybe_warn(meta, fun_name, arity, args, state)
+  defp arg_info(:min, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, arity: 2, warn_not_ok: @min_warning},
+      :final_args_fn
+    ]
 
-        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
-        args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
-        ast = {{:., meta, [__MODULE__, fun_name]}, meta2, args}
+  defp arg_info(:min_by, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+    ]
 
-        Loader.add(ast, state)
+  defp arg_info(:min_by, 4),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+      :final_args_fn
+    ]
 
-      true ->
-        maybe_warn_static(meta, fun_name, arity, args, state)
+  defp arg_info(:min_max_by, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+    ]
 
-        {args, state} = Enum.map_reduce(orig_args, state, &Compiler.normalize/2)
+  defp arg_info(:min_max_by, 4),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+      :final_args_fn
+    ]
 
-        maybe_warn(meta, fun_name, arity, args, state)
+  defp arg_info(:reduce, 2),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, warn_not_ok: @reduce_warning}
+    ]
 
-        {args, state} = maybe_preload_scopes(args, __scopable_args(fun_name, arity), state)
-        args = Enum.map(args, &Ast.unwrap_maybe_fn/1)
+  defp arg_info(:reduce, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @reduce_warning}
+    ]
 
-        ast = {:ok, {{:., meta, [Enum, fun_name]}, meta2, args}}
-        {ast, state}
-    end
-  end
+  defp arg_info(:reduce_while, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @reduce_while_warning}
+    ]
 
-  defp maybe_warn(meta, fun_name, arity, args, state) do
-    cond do
-      fun_name == :chunk_while and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 2)) ->
-        Compiler.warn(meta, state, @chunk_while_chunk_fun_warning)
+  defp arg_info(:scan, 2),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, warn_not_ok: @scan_warning}
+    ]
 
-      fun_name == :max and Ast.is_function(Enum.at(args, 1), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 1)) ->
-        Compiler.warn(meta, state, @max_warning)
+  defp arg_info(:scan, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @scan_warning}
+    ]
 
-      fun_name == :max_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 2)) ->
-        Compiler.warn(meta, state, @sorter_warning)
+  defp arg_info(:sort, 2),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, warn_not_ok: @sort_warning}
+    ]
 
-      fun_name == :min and Ast.is_function(Enum.at(args, 1), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 1)) ->
-        Compiler.warn(meta, state, @min_warning)
+  defp arg_info(:sort_by, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      :final_args_fn,
+      {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+    ]
 
-      fun_name == :min_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 2)) ->
-        Compiler.warn(meta, state, @sorter_warning)
+  defp arg_info(:zip, 2), do: [[:atom_to_scope, :preload_scope], [:atom_to_scope, :preload_scope]]
 
-      fun_name == :min_max_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 2)) ->
-        Compiler.warn(meta, state, @sorter_warning)
+  defp arg_info(:zip_reduce, 3),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      [:atom_to_scope, :preload_scope],
+      {:final_args_fn, warn_not_ok: @zip_reduce_3_warning}
+    ]
 
-      fun_name == :sort_by and Ast.is_function(Enum.at(args, 2), 2) and
-          not Ast.final_args_ok?(Enum.at(args, 2)) ->
-        Compiler.warn(meta, state, @sorter_warning)
+  defp arg_info(:zip_reduce, 4),
+    do: [
+      [:atom_to_scope, :preload_scope],
+      [:atom_to_scope, :preload_scope],
+      %{},
+      {:final_args_fn, warn_not_ok: @zip_reduce_4_warning}
+    ]
 
-      warning = Map.get(@warnings, {fun_name, arity}) ->
-        Compiler.warn(meta, state, warning)
+  defp arg_info(:zip_with, 3),
+    do: [[:atom_to_scope, :preload_scope], [:atom_to_scope, :preload_scope], :final_args_fn]
 
-      true ->
-        :ok
-    end
-  end
+  # defp arg_info(_fun_name, 1), do: [:preload_scope]
+  defp arg_info(_fun_name, 1), do: [[:atom_to_scope, :preload_scope]]
 
-  defp maybe_warn_static(meta, fun_name, arity, _args, state) do
-    cond do
-      warning = Map.get(@static_warnings, {fun_name, arity}) ->
-        Compiler.warn(meta, state, warning)
-
-      true ->
-        :ok
-    end
-  end
-
-  defp args_ok?(args, fn_arg_indexes) do
-    args
-    |> Enum.with_index()
-    |> Enum.all?(fn {arg, i} ->
-      Ast.final_args_ok?(arg, i in fn_arg_indexes)
-    end)
-  end
-
-  defp maybe_preload_scopes(args, scopable_arg_indexes, state) do
-    args
-    |> Enum.with_index()
-    |> Enum.map_reduce(state, fn {arg, i}, state ->
-      if i in scopable_arg_indexes do
-        Compiler.maybe_load_scope(arg, state)
-      else
-        {arg, state}
-      end
-    end)
-  end
-
-  def __scopable?(:count, 1), do: true
-  def __scopable?(:find, 2), do: true
-  def __scopable?(:filter, 2), do: true
-  def __scopable?(_fun_name, _arity), do: false
-
-  def __scopable_args(:zip, 2), do: [0, 1]
-  def __scopable_args(:zip_with, 3), do: [0, 1]
-  def __scopable_args(_fun_name, _arity), do: [0]
-
-  def __fn_args(:chunk_while, 4), do: [2, 3]
-  def __fn_args(:count_until, 3), do: [1]
-  def __fn_args(:filter_map, 3), do: [1, 2]
-  def __fn_args(:group_by, 3), do: [1, 2]
-  def __fn_args(:max, 3), do: [1, 2]
-  def __fn_args(:max_by, 3), do: [1, 2]
-  def __fn_args(:max_by, 4), do: [1, 2, 3]
-  def __fn_args(:min, 3), do: [1, 2]
-  def __fn_args(:min_by, 3), do: [1, 2]
-  def __fn_args(:min_by, 4), do: [1, 2, 3]
-  def __fn_args(:min_max_by, 3), do: [1, 2]
-  def __fn_args(:min_max_by, 4), do: [1, 2, 3]
-  def __fn_args(:sort_by, 3), do: [1, 2]
-  def __fn_args(_fun_name, 1), do: []
-  def __fn_args(_fun_name, arity), do: [arity - 1]
+  defp arg_info(_fun_name, arity),
+    do: %{0 => [:atom_to_scope, :preload_scope], (arity - 1) => :final_args_fn}
 
   defscope all?(enumerable, fun, _generate_fallback) do
     quote do: {:not, {:any?, {:filter, unquote(enumerable), {:not, unquote(fun)}}}}

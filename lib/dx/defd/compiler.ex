@@ -611,7 +611,7 @@ defmodule Dx.Defd.Compiler do
 
     cond do
       rewriter = @rewriters[module] ->
-        rewriter.rewrite(fun, state)
+        Dx.Defd.Rewriter.rewrite(fun, rewriter, state)
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
@@ -740,7 +740,7 @@ defmodule Dx.Defd.Compiler do
         end)
 
       rewriter = @rewriters[module] ->
-        rewriter.rewrite(fun, state)
+        Dx.Defd.Rewriter.rewrite(fun, rewriter, state)
 
       Util.is_defd?(module, fun_name, arity) ->
         defd_name = Util.defd_name(fun_name)
@@ -793,34 +793,38 @@ defmodule Dx.Defd.Compiler do
     """)
   end
 
-  def maybe_load_scope({:ok, module}, state) when is_atom(module) do
+  def maybe_load_scope({:ok, module}, true, state) when is_atom(module) do
     quote do
       Dx.Scope.lookup(Dx.Scope.all(unquote(module)), unquote(state.eval_var))
     end
     |> Loader.add(state)
   end
 
-  def maybe_load_scope({:ok, var}, state) when is_var(var) do
-    quote do
-      Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
+  def maybe_load_scope({:ok, var}, _convert_atoms_to_scopes?, state) when is_var(var) do
+    if Ast.var_id(var) in state.finalized_vars do
+      {{:ok, var}, state}
+    else
+      quote do
+        Dx.Scope.maybe_lookup(unquote(var), unquote(state.eval_var))
+      end
+      |> Loader.add(state)
     end
-    |> Loader.add(state)
   end
 
-  def maybe_load_scope({:ok, {:%{}, _meta, [{:__struct__, Dx.Scope} | _]} = ast}, state) do
+  def maybe_load_scope({:ok, {:%{}, _meta, [{:__struct__, Dx.Scope} | _]} = ast}, _, state) do
     quote do
       Dx.Scope.lookup(unquote(ast), unquote(state.eval_var))
     end
     |> Loader.add(state)
   end
 
-  def maybe_load_scope({:ok, ast}, state) do
+  def maybe_load_scope({:ok, ast}, _, state) do
     {{:ok, ast}, state}
   end
 
   # for undefined variables
-  def maybe_load_scope(other, state) do
-    {other, state}
+  def maybe_load_scope(other, _, state) do
+    {{:ok, other}, state}
   end
 
   def add_scope_loader_for({:ok, ast}, state) do

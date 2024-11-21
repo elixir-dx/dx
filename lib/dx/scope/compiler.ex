@@ -235,18 +235,23 @@ defmodule Dx.Scope.Compiler do
         |> with_state(state)
 
       rewriter = @rewriters[module] ->
-        Code.ensure_loaded(rewriter)
-
-        scopable_args = Util.scopable_args(rewriter, fun_name, arity)
+        fun_info = Util.fun_info(rewriter, fun_name, arity)
 
         cond do
           Util.scope_defined?(rewriter, fun_name, arity) ->
             {args, state} = Enum.map_reduce(args, state, &normalize/2)
 
             args =
-              Dx.Util.Enum.map_indexes(args, scopable_args, fn
-                atom when is_atom(atom) -> quote do: Dx.Scope.all(unquote(atom))
-                arg -> quote do: Dx.Scope.maybe_atom(unquote(arg))
+              Enum.zip_with(args, fun_info.args, fn arg, arg_info ->
+                if arg_info.atom_to_scope do
+                  if is_atom(arg) do
+                    quote do: Dx.Scope.all(unquote(arg))
+                  else
+                    quote do: Dx.Scope.maybe_atom(unquote(arg))
+                  end
+                else
+                  arg
+                end
               end)
 
             {fallback, state} = generate_fallback(fun, meta, state)
@@ -255,7 +260,7 @@ defmodule Dx.Scope.Compiler do
             apply(rewriter, Util.scope_name(fun_name), args ++ [generate_fallback])
             |> with_state(state)
 
-          Util.is_scopable?(rewriter, fun_name, arity) ->
+          fun_info.can_return_scope ->
             {args, state} = Enum.map_reduce(args, state, &normalize/2)
 
             {{:., meta, [rewriter, fun_name]}, meta2, args}
