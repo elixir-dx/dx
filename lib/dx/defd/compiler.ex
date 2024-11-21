@@ -441,7 +441,7 @@ defmodule Dx.Defd.Compiler do
     {parts, state} =
       Enum.map_reduce(parts, state, fn
         {:"::", meta, [ast, {:binary, binary_meta, context}]}, state ->
-          {ast, state} = normalize_load_unwrap(ast, state)
+          {ast, state} = normalize_load_unwrap(ast, state) |> Ast.load_scopes()
 
           {:"::", meta, [ast, {:binary, binary_meta, context}]}
           |> with_state(state)

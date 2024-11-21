@@ -312,7 +312,7 @@ defmodule Dx.Defd.Ast do
   def finalize(ast, state) do
     prewalk(ast, state, fn
       var, state when is_var(var) ->
-        if var in state.finalized_vars do
+        if var_id(var) in state.finalized_vars do
           {var, state}
         else
           {{:ok, var}, state} =

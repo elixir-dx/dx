@@ -28,12 +28,23 @@ defmodule Dx.Defd.Ext do
   end
 
   defp define_scope(kind, call, block, env) do
-    {name, args} = replace_function_name!(kind, call, env, &Util.scope_name/1)
+    case replace_function_name!(kind, call, env, &Util.scope_name/1) do
+      {name, args} ->
+        quote do
+          unquote(kind)(unquote(name)(unquote_splicing(args))) do
+            unquote(block)
+          end
+        end
 
-    quote do
-      unquote(kind)(unquote(name)(unquote_splicing(args))) do
-        unquote(block)
-      end
+      {:when, _meta, [{name, args}, guards]} ->
+        quote do
+          unquote(kind)(
+            unquote(name)(unquote_splicing(args))
+            when unquote_splicing(guards)
+          ) do
+            unquote(block)
+          end
+        end
     end
   end
 
@@ -107,7 +118,7 @@ defmodule Dx.Defd.Ext do
     end
   end
 
-  defp replace_function_name!(kind, {:when, meta, [call, guards]}, env, fun) do
+  defp replace_function_name!(kind, {:when, meta, [call | guards]}, env, fun) do
     {:when, meta, [replace_function_name!(kind, call, env, fun), guards]}
   end
 

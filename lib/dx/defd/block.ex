@@ -74,7 +74,7 @@ defmodule Dx.Defd.Block do
     new_vars = MapSet.difference(new_state.args, state.args)
 
     {rest, state} =
-      if new_vars == %{} do
+      if Enum.empty?(new_vars) do
         normalize_block_body(rest, new_state)
       else
         case normalize_block_body(rest, new_state) do

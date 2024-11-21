@@ -146,7 +146,9 @@ defmodule Dx.Defd.Ast.Loader do
     {assigns, loaders} = Enum.split_with(loaders, &match?(%{ast: {:ok, _}}, &1))
 
     assigns_ast =
-      Enum.map(assigns, fn %{ast: {:ok, right}} = loader ->
+      assigns
+      |> :lists.reverse()
+      |> Enum.map(fn %{ast: {:ok, right}} = loader ->
         {:ok, {:=, [], [loader.data_var, right]}}
       end)
 
