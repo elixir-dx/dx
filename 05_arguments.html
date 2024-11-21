@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-9D026DF8.js"></script>
+    <script src="dist/sidebar_items-5BE5EAC4.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/docs/basics/05_arguments.md#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/docs/basics/05_arguments.md#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -124,21 +124,21 @@ Guides (old)
 <p>To pass in data from the caller context and make it available in the rules, there's the <code class="inline">args</code> option.
 Any <code class="inline">args</code> passed to the <a href="Dx.html"><code class="inline">Dx</code></a> API function will be available in rules as if <code class="inline">args</code> was
 an association on the current root record.</p><p>Say we implement some authorization, where a user can archive a <code class="inline">Todo.List</code> only if they are an admin, or they are the owner of the list.
-We pass in the currently logged-in user struct, which was already loaded as part of authentication.</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="9738504704-1">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9738504704-2">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9738504704-2">]</span><span class="p" data-group-id="9738504704-1">)</span></code></pre><p>The <code class="inline">current_user</code> is then available within <code class="inline">args</code>, including any
-fields, associations and predicates defined on it.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="1778741901-1">do</span><span class="w">
+We pass in the currently logged-in user struct, which was already loaded as part of authentication.</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="9506231850-1">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9506231850-2">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9506231850-2">]</span><span class="p" data-group-id="9506231850-1">)</span></code></pre><p>The <code class="inline">current_user</code> is then available within <code class="inline">args</code>, including any
+fields, associations and predicates defined on it.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="3016974136-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="1778741901-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="3016974136-2">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="1778741901-2">end</span><span class="w">
+  </span><span class="k" data-group-id="3016974136-2">end</span><span class="w">
 
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1778741901-3">%{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1778741901-4">%{</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1778741901-5">%{</span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1778741901-5">}</span><span class="p" data-group-id="1778741901-4">}</span><span class="p" data-group-id="1778741901-3">}</span><span class="w">
-  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1778741901-6">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1778741901-7">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1778741901-8">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="1778741901-8">]</span><span class="p" data-group-id="1778741901-7">}</span><span class="p" data-group-id="1778741901-6">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3016974136-3">%{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3016974136-4">%{</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3016974136-5">%{</span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="3016974136-5">}</span><span class="p" data-group-id="3016974136-4">}</span><span class="p" data-group-id="3016974136-3">}</span><span class="w">
+  </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3016974136-6">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3016974136-7">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3016974136-8">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="3016974136-8">]</span><span class="p" data-group-id="3016974136-7">}</span><span class="p" data-group-id="3016974136-6">}</span><span class="w">
   </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
-</span><span class="k" data-group-id="1778741901-1">end</span></code></pre>
+</span><span class="k" data-group-id="3016974136-1">end</span></code></pre>
 </div>
 
 <div class="bottom-actions" id="bottom-actions">

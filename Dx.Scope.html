@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-9D026DF8.js"></script>
+    <script src="dist/sidebar_items-5BE5EAC4.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -136,6 +136,22 @@ Guides (old)
       </a>
       <span class="text">Summary</span>
     </h1>
+<div class="summary-types summary">
+  <h2>
+    <a href="#types">Types</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:t/0" data-no-tooltip translate="no">t()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>A scope struct used for translating defd code to SQL queries.</p></div>
+
+    </div>
+
+</div>
 <div class="summary-functions summary">
   <h2>
     <a href="#functions">Functions</a>
@@ -161,25 +177,12 @@ Guides (old)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#extract_main_condition_candidates/1" data-no-tooltip translate="no">extract_main_condition_candidates(scope)</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
         <a href="#lookup/2" data-no-tooltip translate="no">lookup(scope, eval)</a>
 
       </div>
 
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#main_condition_candidates/1" data-no-tooltip translate="no">main_condition_candidates(other)</a>
-
-      </div>
+        <div class="summary-synopsis"><p>Looks up a scope using the provided <a href="Dx.Evaluation.html"><code class="inline">Dx.Evaluation</code></a> struct.
+Runs any post-load processing defined in the scope.</p></div>
 
     </div>
 
@@ -197,6 +200,8 @@ Guides (old)
 
       </div>
 
+        <div class="summary-synopsis"><p>Converts an atom to a scope using <a href="#all/1"><code class="inline">all/1</code></a> if given an atom, otherwise returns the input unchanged.</p></div>
+
     </div>
 
     <div class="summary-row">
@@ -204,6 +209,8 @@ Guides (old)
         <a href="#maybe_load/2" data-no-tooltip translate="no">maybe_load(other, eval)</a>
 
       </div>
+
+        <div class="summary-synopsis"><p>Looks up a scope if given {:ok, scope}, otherwise returns the input unchanged.</p></div>
 
     </div>
 
@@ -213,13 +220,7 @@ Guides (old)
 
       </div>
 
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#to_data_req/1" data-no-tooltip translate="no">to_data_req(scope)</a>
-
-      </div>
+        <div class="summary-synopsis"><p>Looks up a scope if given one, otherwise wraps the input in an <code class="inline">:ok</code> tuple.</p></div>
 
     </div>
 
@@ -227,6 +228,56 @@ Guides (old)
 
   </section>
 
+
+  <section id="types" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h1>
+    <div class="types-list">
+<section class="detail" id="t:t/0">
+
+  <div class="detail-header">
+    <a href="#t:t/0" class="detail-link" data-no-tooltip title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">t()</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L21" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> t() :: %Dx.Scope{
+  aggregate?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  aggregate_default: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>(),
+  cardinality: :one | :many,
+  main_condition_candidates: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>(),
+  opts: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>(),
+  plan: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>(),
+  post_load: {:loaded} | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>(),
+  ref: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(),
+  type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>()
+}</pre>
+
+      </div>
+
+<p>A scope struct used for translating defd code to SQL queries.</p><p>Fields:</p><ul><li><code class="inline">:plan</code> - The query plan to be executed</li><li><code class="inline">:type</code> - The schema module type</li><li><code class="inline">:cardinality</code> - Either <code class="inline">:one</code> or <code class="inline">:many</code> (default: <code class="inline">:many</code>)</li><li><code class="inline">:aggregate?</code> - Whether this scope represents an aggregate query</li><li><code class="inline">:aggregate_default</code> - Default value to use for empty aggregates (e.g. <code class="inline">0</code> for <code class="inline">count</code>)</li><li><code class="inline">:ref</code> - Root alias when building the Ecto query (default: <code class="inline">:root</code>)</li><li><code class="inline">:main_condition_candidates</code> - Candidates for the main query condition</li><li><code class="inline">:post_load</code> - Post-processing defd functions to apply after loading (default: <code class="inline">{:loaded}</code>),<pre><code class="makeup elixir" translate="no"><span class="w">           </span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="w"> </span><span class="n">filters</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">could</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">translated</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="nc">SQL</span></code></pre></li><li><code class="inline">:opts</code> - Additional options (default: <code class="inline">[]</code>)</li></ul>
+  </section>
+</section>
+
+    </div>
+  </section>
 
   <section id="functions" class="details-list">
     <h1 class="section-heading">
@@ -245,7 +296,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">add_conditions(scope, ext_ok_fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L126" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L168" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -267,7 +318,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">all(module)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L24" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L50" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -280,28 +331,6 @@ Guides (old)
 <p>Explicitly create an unfiltered scope for a schema module.</p>
   </section>
 </section>
-<section class="detail" id="extract_main_condition_candidates/1">
-
-  <div class="detail-header">
-    <a href="#extract_main_condition_candidates/1" class="detail-link" data-no-tooltip title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">extract_main_condition_candidates(scope)</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L59" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-
-  </section>
-</section>
 <section class="detail" id="lookup/2">
 
   <div class="detail-header">
@@ -311,7 +340,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">lookup(scope, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L37" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L76" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -321,29 +350,8 @@ Guides (old)
 
   <section class="docstring">
 
-
-  </section>
-</section>
-<section class="detail" id="main_condition_candidates/1">
-
-  <div class="detail-header">
-    <a href="#main_condition_candidates/1" class="detail-link" data-no-tooltip title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">main_condition_candidates(other)</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L68" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-
+<p>Looks up a scope using the provided <a href="Dx.Evaluation.html"><code class="inline">Dx.Evaluation</code></a> struct.
+Runs any post-load processing defined in the scope.</p>
   </section>
 </section>
 <section class="detail" id="map_plan/2">
@@ -355,7 +363,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">map_plan(scope, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L122" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L164" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -377,7 +385,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">maybe_atom(atom)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L28" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L57" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -387,7 +395,7 @@ Guides (old)
 
   <section class="docstring">
 
-
+<p>Converts an atom to a scope using <a href="#all/1"><code class="inline">all/1</code></a> if given an atom, otherwise returns the input unchanged.</p>
   </section>
 </section>
 <section class="detail" id="maybe_load/2">
@@ -399,7 +407,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">maybe_load(other, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L34" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L69" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -409,7 +417,7 @@ Guides (old)
 
   <section class="docstring">
 
-
+<p>Looks up a scope if given {:ok, scope}, otherwise returns the input unchanged.</p>
   </section>
 </section>
 <section class="detail" id="maybe_lookup/2">
@@ -421,7 +429,7 @@ Guides (old)
     </a>
     <h1 class="signature" translate="no">maybe_lookup(scope, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L31" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/defd/scope.ex#L63" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -431,29 +439,7 @@ Guides (old)
 
   <section class="docstring">
 
-
-  </section>
-</section>
-<section class="detail" id="to_data_req/1">
-
-  <div class="detail-header">
-    <a href="#to_data_req/1" class="detail-link" data-no-tooltip title="Link to this function">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
-    </a>
-    <h1 class="signature" translate="no">to_data_req(scope)</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/a6c69695039109ac9ef32c355a53a1c44dd2c5ed/lib/dx/defd/scope.ex#L53" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-
+<p>Looks up a scope if given one, otherwise wraps the input in an <code class="inline">:ok</code> tuple.</p>
   </section>
 </section>
 

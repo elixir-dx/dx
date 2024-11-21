@@ -8,7 +8,7 @@
     <meta name="project" content="dx main">
 
 
-    <title>Dx.Error.Timeout — dx main</title>
+    <title>Dx.Evaluation — dx main</title>
     <link rel="stylesheet" href="dist/html-elixir-F2VRIOKR.css" />
 
 
@@ -19,7 +19,7 @@
     <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
-  <body data-type="modules" class="page-exception">
+  <body data-type="modules" class="page-module">
     <script>
 
       try {
@@ -112,16 +112,22 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/error/timeout.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/evaluation.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">Dx.Error.Timeout</span> <small>exception</small>
+    <span translate="no">Dx.Evaluation</span> 
     <small class="app-vsn" translate="no">(dx main)</small>
 
   </h1>
 
+
+    <section id="moduledoc">
+<p>Holds run options and already loaded data passed between <a href="Dx.Defd.html"><code class="inline">Dx.Defd</code></a>-defined functions according to the
+<a href="https://rrrene.org/2018/03/26/flow-elixir-using-plug-like-token/">token pattern</a>
+in Elixir.</p><p>This is also used in the now deprecated <code class="inline">infer</code> approach of Dx.</p>
+    </section>
 
 </div>
 
@@ -132,6 +138,20 @@ Guides (old)
       </a>
       <span class="text">Summary</span>
     </h1>
+<div class="summary-types summary">
+  <h2>
+    <a href="#types">Types</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:t/0" data-no-tooltip translate="no">t()</a>
+
+      </div>
+
+    </div>
+
+</div>
 <div class="summary-functions summary">
   <h2>
     <a href="#functions">Functions</a>
@@ -139,11 +159,17 @@ Guides (old)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#message/1" data-no-tooltip translate="no">message(error)</a>
+        <a href="#add_options/2" data-no-tooltip translate="no">add_options(eval, opts)</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Callback implementation for <a href="https://hexdocs.pm/elixir/Exception.html#c:message/1"><code class="inline">Exception.message/1</code></a>.</p></div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#from_options/1" data-no-tooltip translate="no">from_options(opts)</a>
+
+      </div>
 
     </div>
 
@@ -152,24 +178,24 @@ Guides (old)
   </section>
 
 
-  <section id="functions" class="details-list">
+  <section id="types" class="details-list">
     <h1 class="section-heading">
-      <a class="hover-link" href="#functions">
+      <a class="hover-link" href="#types">
         <i class="ri-link-m" aria-hidden="true"></i>
       </a>
-      <span class="text">Functions</span>
+      <span class="text">Types</span>
     </h1>
-    <div class="functions-list">
-<section class="detail" id="message/1">
+    <div class="types-list">
+<section class="detail" id="t:t/0">
 
   <div class="detail-header">
-    <a href="#message/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#t:t/0" class="detail-link" data-no-tooltip title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
+      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">message(error)</h1>
+    <h1 class="signature" translate="no">t()</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/error/timeout.ex#L4" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/evaluation.ex#L12" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -179,7 +205,83 @@ Guides (old)
 
   <section class="docstring">
 
-<p>Callback implementation for <a href="https://hexdocs.pm/elixir/Exception.html#c:message/1"><code class="inline">Exception.message/1</code></a>.</p>
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> t() :: %Dx.Evaluation{
+  args: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  binds: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil,
+  cache: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>() | nil,
+  debug?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  extra_rules: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>()],
+  finalize?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  loader: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>(),
+  loader_options: <a href="https://hexdocs.pm/elixir/Keyword.html#t:t/0">Keyword.t</a>(),
+  negate?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  resolve_predicates?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  return_cache?: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  root_subject: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil,
+  select: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">any</a>() | nil
+}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="add_options/2">
+
+  <div class="detail-header">
+    <a href="#add_options/2" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">add_options(eval, opts)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/evaluation.ex#L39" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="from_options/1">
+
+  <div class="detail-header">
+    <a href="#from_options/1" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">from_options(opts)</h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/c536f126bb306d94afb2a14046311b44b8bff9f7/lib/dx/evaluation.ex#L30" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
   </section>
 </section>
 
