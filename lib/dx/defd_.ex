@@ -1,4 +1,4 @@
-defmodule Dx.Defd.Ext do
+defmodule Dx.Defd_ do
   @moduledoc """
   Used to make existing libraries compatible with `Dx.Defd`.
 
@@ -6,10 +6,10 @@ defmodule Dx.Defd.Ext do
 
   ```elixir
   defmodule MyExt do
-    use Dx.Defd.Ext
+    use Dx.Defd_
 
     @impl true
-    def __fun_info(fun_name, arity) do
+    def __dx_fun_info(fun_name, arity) do
       %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
     end
   end
@@ -33,21 +33,21 @@ defmodule Dx.Defd.Ext do
 
   defmacro __using__(_opts) do
     quote do
-      @behaviour Dx.Defd.Ext
+      @behaviour Dx.Defd_
 
-      alias Dx.Defd.Ext.ArgInfo
-      alias Dx.Defd.Ext.FunInfo
+      alias Dx.Defd_.ArgInfo
+      alias Dx.Defd_.FunInfo
 
-      import Dx.Defd.Ext
+      import Dx.Defd_
     end
   end
 
   @doc """
   This callback is used to provide information about a function to `Dx.Defd`.
   """
-  @callback __fun_info(atom(), non_neg_integer()) :: __MODULE__.FunInfo.input()
+  @callback __dx_fun_info(atom(), non_neg_integer()) :: __MODULE__.FunInfo.input()
 
-  @optional_callbacks __fun_info: 2
+  @optional_callbacks __dx_fun_info: 2
 
   alias Dx.Defd.Util
 
@@ -110,7 +110,7 @@ defmodule Dx.Defd.Ext do
         unquote(name),
         unquote(arity),
         %{unquote_splicing(defaults)},
-        Module.delete_attribute(__MODULE__, :dx)
+        Module.delete_attribute(__MODULE__, :dx_)
       )
 
       unquote(kind)(unquote(call))
@@ -131,7 +131,7 @@ defmodule Dx.Defd.Ext do
         unquote(name),
         unquote(arity),
         %{unquote_splicing(defaults)},
-        Module.delete_attribute(__MODULE__, :dx)
+        Module.delete_attribute(__MODULE__, :dx_)
       )
 
       unquote(kind)(unquote(call)) do
@@ -191,6 +191,10 @@ defmodule Dx.Defd.Ext do
   @defd__exports_key :__defd__exports__
 
   @doc false
+  def __define__(_env, _kind, _name, _arity, _defaults, nil) do
+    :ok
+  end
+
   def __define__(%Macro.Env{module: module} = env, kind, name, arity, defaults, opts) do
     exports =
       if exports = Module.get_attribute(module, @defd__exports_key) do
@@ -202,7 +206,7 @@ defmodule Dx.Defd.Ext do
 
     fun_info =
       try do
-        Dx.Defd.Ext.FunInfo.new!(opts || [], %{module: module, fun_name: name, arity: arity})
+        Dx.Defd_.FunInfo.new!(opts || [], %{module: module, fun_name: name, arity: arity})
       rescue
         e ->
           compile_error!(
@@ -237,6 +241,6 @@ defmodule Dx.Defd.Ext do
   defmacro __before_compile__(env) do
     defd__exports = Module.get_attribute(env.module, @defd__exports_key)
 
-    Dx.Defd.Ext.Compiler.__compile__(env, defd__exports)
+    Dx.Defd_.Compiler.__compile__(env, defd__exports)
   end
 end

@@ -1,7 +1,7 @@
 defmodule Dx.Enum do
   @moduledoc false
 
-  use Dx.Defd.Ext
+  use Dx.Defd_
 
   alias Dx.Defd.Result
 
@@ -175,7 +175,7 @@ defmodule Dx.Enum do
   """
 
   @impl true
-  def __fun_info(:zip, 2) do
+  def __dx_fun_info(:zip, 2) do
     %FunInfo{
       args: [
         [:atom_to_scope, :preload_scope],
@@ -184,7 +184,7 @@ defmodule Dx.Enum do
     }
   end
 
-  def __fun_info(:zip_with, 3) do
+  def __dx_fun_info(:zip_with, 3) do
     %FunInfo{
       args: [
         [:atom_to_scope, :preload_scope],
@@ -194,7 +194,7 @@ defmodule Dx.Enum do
     }
   end
 
-  def __fun_info(_fun_name, 1) do
+  def __dx_fun_info(_fun_name, 1) do
     %FunInfo{
       args: [
         [:atom_to_scope, :preload_scope]
@@ -202,7 +202,7 @@ defmodule Dx.Enum do
     }
   end
 
-  def __fun_info(_fun_name, arity) do
+  def __dx_fun_info(_fun_name, arity) do
     %FunInfo{
       args: %{
         0 => [:atom_to_scope, :preload_scope],
@@ -215,7 +215,7 @@ defmodule Dx.Enum do
     quote do: {:not, {:any?, {:filter, unquote(enumerable), {:not, unquote(fun)}}}}
   end
 
-  def all?(enumerable, fun) do
+  defd_ all?(enumerable, fun) do
     Result.all?(enumerable, fun)
   end
 
@@ -223,15 +223,15 @@ defmodule Dx.Enum do
     quote do: {:any?, {:filter, unquote(enumerable), unquote(fun)}, unquote(generate_fallback.())}
   end
 
-  def any?(enumerable, fun) do
+  defd_ any?(enumerable, fun) do
     Result.any?(enumerable, fun)
   end
 
-  def chunk_by([], _fun) do
+  defd_ chunk_by([], _fun) do
     {:ok, []}
   end
 
-  def chunk_by(enumerable, fun) do
+  defd_ chunk_by(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, [], fn
       elem, mapped, [] ->
         {mapped, [[elem]]}
@@ -252,12 +252,12 @@ defmodule Dx.Enum do
     end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, arity: 2, warn_not_ok: @chunk_while_chunk_fun_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, arity: 2, warn_not_ok: @chunk_while_chunk_fun_warning},
+         :final_args_fn
+       ]
   defd_ chunk_while(enumerable, acc, chunk_fun, after_fun) do
     Result.reduce_while(enumerable, {[], acc}, fn entry, {buffer, acc} ->
       chunk_fun.(entry, acc)
@@ -280,7 +280,7 @@ defmodule Dx.Enum do
     quote do: {:count, unquote(base)}
   end
 
-  @dx can_return_scope: true, args: [:atom_to_scope]
+  @dx_ can_return_scope: true, args: [:atom_to_scope]
   defd_ count(%Dx.Scope{} = scope) do
     scope = %{scope | plan: {:count, scope.plan}}
 
@@ -291,13 +291,13 @@ defmodule Dx.Enum do
     {:ok, Enum.count(enumerable)}
   end
 
-  def count(enumerable, fun) do
+  defd_ count(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, 0, fn mapped, acc ->
       if mapped, do: acc + 1, else: acc
     end)
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn, %{}]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn, %{}]
   defd_ count_until(enumerable, fun, limit) do
     stop_at = limit - 1
 
@@ -310,7 +310,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def dedup_by(enumerable, fun) do
+  defd_ dedup_by(enumerable, fun) do
     map(enumerable, fun)
     |> Result.transform(fn mapped ->
       Enum.zip(enumerable, mapped)
@@ -319,7 +319,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def drop_while(enumerable, fun) do
+  defd_ drop_while(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, [], fn
       elem, mapped, [] -> if mapped, do: [], else: [elem]
       elem, _mapped, acc -> [elem | acc]
@@ -327,7 +327,7 @@ defmodule Dx.Enum do
     |> Result.transform(&:lists.reverse/1)
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn], warn_always: @each_warning
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn], warn_always: @each_warning
   defd_ each(enumerable, fun) do
     map(enumerable, fun)
     |> Result.transform(fn _ -> :ok end)
@@ -337,7 +337,7 @@ defmodule Dx.Enum do
     quote do: {:filter, unquote(base), unquote(condition)}
   end
 
-  @dx can_return_scope: true, args: [:atom_to_scope]
+  @dx_ can_return_scope: true, args: [:atom_to_scope]
   defd_ filter(%Dx.Scope{} = scope, conditions) do
     scope = Dx.Scope.add_conditions(scope, conditions)
 
@@ -353,13 +353,13 @@ defmodule Dx.Enum do
 
   @doc false
   @deprecated "Use Enum.filter/2 + Enum.map/2 or for comprehensions instead"
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
   defd_ filter_map(enumerable, filter, mapper) do
     filter(enumerable, %Dx.Defd.Fn{final_args_fun: filter})
     |> Result.then(&map(&1, mapper))
   end
 
-  @dx can_return_scope: true, args: [:atom_to_scope]
+  @dx_ can_return_scope: true, args: [:atom_to_scope]
   defd_ find(%Dx.Scope{} = scope, conditions) do
     scope =
       scope
@@ -373,12 +373,12 @@ defmodule Dx.Enum do
     Result.find(enumerable, fun, &Result.ok/1, Result.ok(nil))
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], [], :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], [], :final_args_fn]
   defd_ find(enumerable, default, fun) do
     Result.find(enumerable, fun, &Result.ok/1, Result.ok(default))
   end
 
-  def find_index(enumerable, fun) do
+  defd_ find_index(enumerable, fun) do
     Result.map_then_reduce_ok_while(enumerable, fun, 0, fn mapped, index ->
       if mapped, do: {:halt, {:found, index}}, else: {:cont, index + 1}
     end)
@@ -388,21 +388,21 @@ defmodule Dx.Enum do
     end)
   end
 
-  def find_value(enumerable, default \\ nil, fun) do
+  defd_ find_value(enumerable, default \\ nil, fun) do
     Result.find_value(enumerable, fun, Result.ok(default))
   end
 
-  def flat_map(enumerable, fun) do
+  defd_ flat_map(enumerable, fun) do
     Enum.map(enumerable, fun)
     |> Result.collect_reverse()
     |> Result.transform(&flat_reverse(&1, []))
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @flat_map_reduce_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @flat_map_reduce_warning}
+       ]
   defd_ flat_map_reduce(enumerable, acc, fun) do
     Result.reduce_while(enumerable, {[], acc}, fn elem, {list, acc} ->
       fun.(elem, acc)
@@ -430,13 +430,13 @@ defmodule Dx.Enum do
   defp flat_reverse([h | t], acc), do: flat_reverse(t, h ++ acc)
   defp flat_reverse([], acc), do: acc
 
-  def frequencies_by(enumerable, key_fun) do
+  defd_ frequencies_by(enumerable, key_fun) do
     Result.map_then_reduce_ok(enumerable, key_fun, %{}, fn mapped, acc ->
       Map.update(acc, mapped, 1, &(&1 + 1))
     end)
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn]
   defd_ group_by(enumerable, key_fun) when is_function(key_fun) do
     Result.map_then_reduce_ok(enumerable, key_fun, %{}, fn elem, mapped_key, acc ->
       Map.update(acc, mapped_key, [elem], &[elem | &1])
@@ -446,7 +446,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn, :final_args_fn]
   defd_ group_by(enumerable, key_fun, value_fun)
         when is_function(key_fun) do
     Result.map_then_reduce_ok(
@@ -462,22 +462,22 @@ defmodule Dx.Enum do
     end)
   end
 
-  def into(enumerable, collectable, transform) do
+  defd_ into(enumerable, collectable, transform) do
     map(enumerable, transform)
     |> Result.transform(&Enum.into(&1, collectable))
   end
 
-  def map(enumerable, fun) do
+  defd_ map(enumerable, fun) do
     Result.map(enumerable, fun)
     # Enum.map(enumerable, fun)
     # |> Result.collect()
   end
 
-  def map_every(enumerable, 1, fun), do: map(enumerable, fun)
-  def map_every(enumerable, 0, _fun), do: {:ok, Enum.to_list(enumerable)}
-  def map_every([], nth, _fun) when is_integer(nth) and nth > 1, do: {:ok, []}
+  defd_ map_every(enumerable, 1, fun), do: map(enumerable, fun)
+  defd_ map_every(enumerable, 0, _fun), do: {:ok, Enum.to_list(enumerable)}
+  defd_ map_every([], nth, _fun) when is_integer(nth) and nth > 1, do: {:ok, []}
 
-  def map_every(enumerable, nth, fun) when is_integer(nth) and nth > 1 do
+  defd_ map_every(enumerable, nth, fun) when is_integer(nth) and nth > 1 do
     Enum.reduce_while(enumerable, {{:ok, []}, nth}, fn
       elem, {acc, ^nth} ->
         Result.combine(fun.(elem), acc)
@@ -497,7 +497,7 @@ defmodule Dx.Enum do
     |> Result.transform(&:lists.reverse/1)
   end
 
-  def map_intersperse(enumerable, separator, mapper) do
+  defd_ map_intersperse(enumerable, separator, mapper) do
     Result.map_then_reduce_ok(enumerable, mapper, :first, fn
       mapped, :first -> [mapped]
       mapped, acc -> [mapped, separator | acc]
@@ -508,7 +508,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def map_join(enumerable, joiner \\ "", mapper) do
+  defd_ map_join(enumerable, joiner \\ "", mapper) do
     enumerable
     |> map_intersperse(joiner, fn entry ->
       mapper.(entry)
@@ -517,11 +517,11 @@ defmodule Dx.Enum do
     |> Result.transform(&IO.iodata_to_binary/1)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @map_reduce_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @map_reduce_warning}
+       ]
   defd_ map_reduce(enumerable, acc, fun) do
     Result.reduce(enumerable, {[], acc}, fn elem, {list, acc} ->
       fun.(elem, acc)
@@ -534,10 +534,10 @@ defmodule Dx.Enum do
     end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, arity: 2, warn_not_ok: @max_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, arity: 2, warn_not_ok: @max_warning}
+       ]
   defd_ max(enumerable, empty_fallback) when is_function(empty_fallback, 0) do
     case Enum.max(enumerable, fn -> :empty end) do
       :empty -> empty_fallback.()
@@ -545,11 +545,11 @@ defmodule Dx.Enum do
     end
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, arity: 2, warn_not_ok: @max_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, arity: 2, warn_not_ok: @max_warning},
+         :final_args_fn
+       ]
   defd_ max(enumerable, sorter, empty_fallback \\ fn -> raise Enum.EmptyError end) do
     sorter = max_sort_fun(sorter)
 
@@ -566,27 +566,27 @@ defmodule Dx.Enum do
   defp max_sort_fun(sorter) when is_function(sorter, 2), do: sorter
   defp max_sort_fun(module) when is_atom(module), do: &{:ok, module.compare(&1, &2) != :lt}
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn]
   defd_ max_by(enumerable, fun) do
     max_by(enumerable, fun, fn -> raise Enum.EmptyError end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+       ]
   defd_ max_by(enumerable, fun, empty_fallback)
         when is_function(fun, 1) and is_function(empty_fallback, 0) do
     max_by(enumerable, fun, &{:ok, &1 >= &2}, empty_fallback)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+         :final_args_fn
+       ]
   defd_ max_by(enumerable, fun, sorter, empty_fallback \\ fn -> raise Enum.EmptyError end)
         when is_function(fun, 1) do
     first_fun = fn elem -> fun.(elem) |> Result.transform(&{elem, &1}) end
@@ -602,10 +602,10 @@ defmodule Dx.Enum do
     |> Result.transform(empty_fallback, &elem(&1, 0))
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, arity: 2, warn_not_ok: @min_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, arity: 2, warn_not_ok: @min_warning}
+       ]
   defd_ min(enumerable, empty_fallback) when is_function(empty_fallback, 0) do
     case Enum.min(enumerable, fn -> :empty end) do
       :empty -> empty_fallback.()
@@ -613,11 +613,11 @@ defmodule Dx.Enum do
     end
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, arity: 2, warn_not_ok: @min_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, arity: 2, warn_not_ok: @min_warning},
+         :final_args_fn
+       ]
   defd_ min(enumerable, sorter, empty_fallback \\ fn -> raise Enum.EmptyError end) do
     Result.reduce(enumerable, fn elem, acc ->
       sorter.(acc, elem)
@@ -629,27 +629,27 @@ defmodule Dx.Enum do
     |> Result.transform(empty_fallback)
   end
 
-  @dx args: [[:atom_to_scope, :preload_scope], :final_args_fn]
+  @dx_ args: [[:atom_to_scope, :preload_scope], :final_args_fn]
   defd_ min_by(enumerable, fun) when is_function(fun, 1) do
     min_by(enumerable, fun, &{:ok, &1 <= &2}, fn -> raise Enum.EmptyError end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+       ]
   defd_ min_by(enumerable, fun, empty_fallback)
         when is_function(fun, 1) and is_function(empty_fallback, 0) do
     min_by(enumerable, fun, &{:ok, &1 <= &2}, empty_fallback)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+         :final_args_fn
+       ]
   defd_ min_by(enumerable, fun, sorter, empty_fallback \\ fn -> raise Enum.EmptyError end)
         when is_function(fun, 1) do
     first_fun = fn elem -> fun.(elem) |> Result.transform(&{elem, &1}) end
@@ -668,7 +668,7 @@ defmodule Dx.Enum do
   defp min_sort_fun(sorter) when is_function(sorter, 2), do: sorter
   defp min_sort_fun(module) when is_atom(module), do: &{:ok, module.compare(&1, &2) != :gt}
 
-  def min_max(enumerable, empty_fallback) when is_function(empty_fallback, 0) do
+  defd_ min_max(enumerable, empty_fallback) when is_function(empty_fallback, 0) do
     if Enum.empty?(enumerable) do
       empty_fallback.()
     else
@@ -676,22 +676,22 @@ defmodule Dx.Enum do
     end
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+       ]
   defd_ min_max_by(enumerable, fun, empty_fallback)
         when is_function(fun, 1) and is_function(empty_fallback, 0) do
     min_max_by(enumerable, fun, &{:ok, &1 < &2}, empty_fallback)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
-        :final_args_fn
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning},
+         :final_args_fn
+       ]
   defd_(
     min_max_by(
       enumerable,
@@ -701,13 +701,13 @@ defmodule Dx.Enum do
     )
   )
 
-  def min_max_by(enumerable, fun, sorter, empty_fallback)
-      when is_function(fun, 1) and is_atom(sorter) and is_function(empty_fallback, 0) do
+  defd_ min_max_by(enumerable, fun, sorter, empty_fallback)
+        when is_function(fun, 1) and is_atom(sorter) and is_function(empty_fallback, 0) do
     min_max_by(enumerable, fun, min_max_by_sort_fun(sorter), empty_fallback)
   end
 
-  def min_max_by(enumerable, fun, sorter, empty_fallback)
-      when is_function(fun, 1) and is_function(sorter, 2) and is_function(empty_fallback, 0) do
+  defd_ min_max_by(enumerable, fun, sorter, empty_fallback)
+        when is_function(fun, 1) and is_function(sorter, 2) and is_function(empty_fallback, 0) do
     first_fun = fn elem -> fun.(elem) |> Result.transform(&{elem, &1, elem, &1}) end
 
     Result.map_then_reduce(enumerable, fun, first_fun, fn
@@ -734,14 +734,14 @@ defmodule Dx.Enum do
 
   @doc false
   @deprecated "Use Enum.split_with/2 instead"
-  def partition(enumerable, fun) do
+  defd_ partition(enumerable, fun) do
     split_with(enumerable, fun)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, warn_not_ok: @reduce_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, warn_not_ok: @reduce_warning}
+       ]
   defd_ reduce([h | t], fun) do
     reduce(t, h, fun)
   end
@@ -755,35 +755,35 @@ defmodule Dx.Enum do
     |> Result.transform()
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @reduce_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @reduce_warning}
+       ]
   defd_ reduce(enumerable, acc, fun) do
     Result.reduce(enumerable, acc, fun)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @reduce_while_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @reduce_while_warning}
+       ]
   defd_ reduce_while(enumerable, acc, fun) do
     Result.reduce_while(enumerable, acc, fun)
   end
 
-  def reject(enumerable, fun) do
+  defd_ reject(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, [], fn elem, mapped, acc ->
       if mapped, do: acc, else: [elem | acc]
     end)
     |> Result.transform(&:lists.reverse/1)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, warn_not_ok: @scan_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, warn_not_ok: @scan_warning}
+       ]
   defd_ scan(enumerable, fun) do
     Result.reduce(enumerable, [], fn
       entry, [] ->
@@ -796,11 +796,11 @@ defmodule Dx.Enum do
     |> Result.transform(&:lists.reverse/1)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @scan_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @scan_warning}
+       ]
   defd_ scan(enumerable, acc, fun) do
     Result.reduce(enumerable, {:empty, acc}, fn
       entry, {:empty, acc} ->
@@ -817,10 +817,10 @@ defmodule Dx.Enum do
     end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, warn_not_ok: @sort_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, warn_not_ok: @sort_warning}
+       ]
   defd_ sort(enumerable, sorter) when is_function(sorter, 2) do
     Result.reduce(enumerable, [], &sort_reducer(&1, &2, sorter))
     |> Result.then(&sort_terminator(&1, sorter))
@@ -836,11 +836,11 @@ defmodule Dx.Enum do
   defp to_sort_fun({:desc, module}) when is_atom(module),
     do: &{:ok, module.compare(&1, &2) != :lt}
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        :final_args_fn,
-        {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         :final_args_fn,
+         {:final_args_fn, arity: 2, warn_not_ok: @sorter_warning}
+       ]
   defd_ sort_by(enumerable, mapper, sorter \\ :asc)
 
   defd_ sort_by(enumerable, mapper, :desc) when is_function(mapper, 1) do
@@ -868,7 +868,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def split_while(enumerable, fun) do
+  defd_ split_while(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, {[], []}, fn
       entry, mapped, {acc1, []} ->
         if mapped, do: {[entry | acc1], []}, else: {acc1, [entry]}
@@ -881,7 +881,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def split_with(enumerable, fun) do
+  defd_ split_with(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, {[], []}, fn entry, mapped, {acc1, acc2} ->
       if mapped do
         {[entry | acc1], acc2}
@@ -894,7 +894,7 @@ defmodule Dx.Enum do
     end)
   end
 
-  def take_while(enumerable, fun) do
+  defd_ take_while(enumerable, fun) do
     Result.map_then_reduce_ok_while(enumerable, fun, [], fn entry, mapped, acc ->
       if mapped, do: {:cont, [entry | acc]}, else: {:halt, acc}
     end)
@@ -903,11 +903,11 @@ defmodule Dx.Enum do
 
   @doc false
   @deprecated "Use Enum.uniq_by/2 instead"
-  def uniq(enumerable, fun) do
+  defd_ uniq(enumerable, fun) do
     uniq_by(enumerable, fun)
   end
 
-  def uniq_by(enumerable, fun) do
+  defd_ uniq_by(enumerable, fun) do
     Result.map_then_reduce_ok(enumerable, fun, {[], %{}}, fn entry, mapped, {list, prev} ->
       if Map.has_key?(prev, mapped) do
         {list, prev}
@@ -921,14 +921,14 @@ defmodule Dx.Enum do
   end
 
   # TODO: implement fun version
-  def with_index(enumerable, fun_or_offset \\ 0)
+  defd_ with_index(enumerable, fun_or_offset \\ 0)
 
-  def with_index(enumerable, offset) when is_integer(offset) do
+  defd_ with_index(enumerable, offset) when is_integer(offset) do
     {:ok, Enum.with_index(enumerable, offset)}
   end
 
   # TODO: warn
-  def with_index(enumerable, fun) when is_function(fun, 2) do
+  defd_ with_index(enumerable, fun) when is_function(fun, 2) do
     Result.reduce(enumerable, {[], 0}, fn entry, {acc, index} ->
       fun.(entry, index)
       |> Result.transform(fn
@@ -940,30 +940,30 @@ defmodule Dx.Enum do
     end)
   end
 
-  def zip_with(enumerable1, enumerable2, zip_fun) when is_function(zip_fun, 2) do
+  defd_ zip_with(enumerable1, enumerable2, zip_fun) when is_function(zip_fun, 2) do
     zip_with([enumerable1, enumerable2], fn [elem1, elem2] -> zip_fun.(elem1, elem2) end)
   end
 
-  def zip_with(enumerables, zip_fun) do
+  defd_ zip_with(enumerables, zip_fun) do
     Stream.zip(enumerables)
     |> Result.map(fn elems -> elems |> Tuple.to_list() |> zip_fun.() end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        [:atom_to_scope, :preload_scope],
-        %{},
-        {:final_args_fn, warn_not_ok: @zip_reduce_4_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         [:atom_to_scope, :preload_scope],
+         %{},
+         {:final_args_fn, warn_not_ok: @zip_reduce_4_warning}
+       ]
   defd_ zip_reduce(left, right, acc, reducer) when is_function(reducer, 3) do
     zip_reduce([left, right], acc, fn [elem1, elem2], acc -> reducer.(elem1, elem2, acc) end)
   end
 
-  @dx args: [
-        [:atom_to_scope, :preload_scope],
-        [:atom_to_scope, :preload_scope],
-        {:final_args_fn, warn_not_ok: @zip_reduce_3_warning}
-      ]
+  @dx_ args: [
+         [:atom_to_scope, :preload_scope],
+         [:atom_to_scope, :preload_scope],
+         {:final_args_fn, warn_not_ok: @zip_reduce_3_warning}
+       ]
   defd_ zip_reduce(enums, acc, reducer) when is_function(reducer, 2) do
     Stream.zip(enums)
     |> Result.reduce(acc, fn elems, acc -> elems |> Tuple.to_list() |> reducer.(acc) end)

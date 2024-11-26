@@ -1,8 +1,8 @@
-defmodule Dx.Defd.Ext.ArgInfo do
+defmodule Dx.Defd_.ArgInfo do
   @moduledoc false
 
-  alias Dx.Defd.Ext.ArgInfo
-  alias Dx.Defd.Ext.FunInfo
+  alias Dx.Defd_.ArgInfo
+  alias Dx.Defd_.FunInfo
 
   defstruct atom_to_scope: false,
             preload_scope: false,

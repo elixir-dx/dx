@@ -1,8 +1,8 @@
-defmodule Dx.Defd.Ext.FunInfo do
+defmodule Dx.Defd_.FunInfo do
   @moduledoc false
 
-  alias Dx.Defd.Ext.ArgInfo
-  alias Dx.Defd.Ext.FunInfo
+  alias Dx.Defd_.ArgInfo
+  alias Dx.Defd_.FunInfo
 
   defstruct module: nil,
             fun_name: nil,
@@ -17,7 +17,7 @@ defmodule Dx.Defd.Ext.FunInfo do
           fun_name: atom() | nil,
           arity: non_neg_integer() | nil,
           args:
-            %{non_neg_integer() => Dx.Defd.Ext.ArgInfo.input()}
+            %{non_neg_integer() => Dx.Defd_.ArgInfo.input()}
             | list()
             | nil,
           can_return_scope: boolean(),
@@ -30,8 +30,8 @@ defmodule Dx.Defd.Ext.FunInfo do
           fun_name: atom(),
           arity: non_neg_integer(),
           args:
-            %{non_neg_integer() => Dx.Defd.Ext.ArgInfo.t()}
-            | list(Dx.Defd.Ext.ArgInfo.t())
+            %{non_neg_integer() => Dx.Defd_.ArgInfo.t()}
+            | list(Dx.Defd_.ArgInfo.t())
             | nil,
           can_return_scope: boolean(),
           warn_not_ok: binary() | nil,
