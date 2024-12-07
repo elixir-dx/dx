@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support `defdp`: Private `defd` functions with proper 'unused' warnings
 - `case`: Support carets, assigns and data loading in map keys
 - `fn`: Support multiple clauses
-- Consolidate and document extension API (`Dx.Defd.Ext`)
+- Consolidate and document extension API (`Dx.Defd_`)
 
 ## [0.3.4] - 2024-10-12
 
