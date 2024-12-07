@@ -4,8 +4,8 @@ defmodule Dx.DateTime do
   use Dx.Defd_
 
   @impl true
-  def __dx_fun_info(_fun_name, arity) do
-    %FunInfo{args: List.duplicate(:preload_scope, arity)}
+  def __dx_fun_info(_fun_name, _arity) do
+    %FunInfo{args: %{all: :preload_scope}}
   end
 
   defscope after?(left, right, generate_fallback) do

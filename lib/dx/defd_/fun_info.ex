@@ -12,12 +12,14 @@ defmodule Dx.Defd_.FunInfo do
             warn_not_ok: nil,
             warn_always: nil
 
+  @type arg_key :: non_neg_integer() | :first | :last | :all
+
   @type input() :: %__MODULE__{
           module: atom() | nil,
           fun_name: atom() | nil,
           arity: non_neg_integer() | nil,
           args:
-            %{non_neg_integer() => Dx.Defd_.ArgInfo.input()}
+            %{arg_key() => Dx.Defd_.ArgInfo.input()}
             | list()
             | nil,
           can_return_scope: boolean(),
@@ -30,7 +32,7 @@ defmodule Dx.Defd_.FunInfo do
           fun_name: atom(),
           arity: non_neg_integer(),
           args:
-            %{non_neg_integer() => Dx.Defd_.ArgInfo.t()}
+            %{arg_key() => Dx.Defd_.ArgInfo.t()}
             | list(Dx.Defd_.ArgInfo.t())
             | nil,
           can_return_scope: boolean(),
@@ -43,34 +45,69 @@ defmodule Dx.Defd_.FunInfo do
 
   ## Examples
 
-      iex> new!(%{args: [:preload_scope]}, %{arity: 2})
-      %FunInfo{arity: 2, args: [%ArgInfo{preload_scope: true}, %ArgInfo{}]}
+      iex> new!(args: [:preload_scope], arity: 2)
+      %FunInfo{args: [%ArgInfo{preload_scope: true}, %ArgInfo{}], arity: 2}
 
-      iex> new!(%{args: %{0 => :preload_scope}}, %{arity: 2})
-      %FunInfo{arity: 2, args: [%ArgInfo{preload_scope: true}, %ArgInfo{}]}
+      iex> new!(args: %{0 => :preload_scope}, arity: 2)
+      %FunInfo{args: [%ArgInfo{preload_scope: true}, %ArgInfo{}], arity: 2}
 
       iex> new!(
-      ...>   %{args: [
+      ...>   args: [
       ...>     :preload_scope,
       ...>     %{},
       ...>     {:fn, arity: 2, warn_not_ok: "OOPS!"}
-      ...>   ]},
-      ...>   %{arity: 3}
+      ...>   ],
+      ...>   arity: 3
       ...> )
       %FunInfo{
-        arity: 3,
         args: [
           %ArgInfo{preload_scope: true},
           %ArgInfo{},
           %ArgInfo{
             fn: %FunInfo{
-              arity: 2,
+              args: [%ArgInfo{}, %ArgInfo{}],
               warn_not_ok: "OOPS!",
-              args: [%ArgInfo{}, %ArgInfo{}]
+              arity: 2
             }
           }
-        ]
+        ],
+        arity: 3
       }
+
+      iex> new!(args: %{first: :preload_scope, last: :preload_scope}, arity: 3)
+      %FunInfo{args: [%ArgInfo{preload_scope: true}, %ArgInfo{}, %ArgInfo{preload_scope: true}], arity: 3}
+
+      iex> new!(args: %{all: :atom_to_scope}, arity: 2)
+      %FunInfo{args: [%ArgInfo{atom_to_scope: true}, %ArgInfo{atom_to_scope: true}], arity: 2}
+
+      iex> new!(args: %{0 => :preload_scope, all: :atom_to_scope}, arity: 2)
+      %FunInfo{args: [%ArgInfo{atom_to_scope: true, preload_scope: true}, %ArgInfo{atom_to_scope: true}], arity: 2}
+
+      iex> new!(args: %{0 => %{atom_to_scope: false}, all: :atom_to_scope}, arity: 2)
+      %FunInfo{args: [%ArgInfo{atom_to_scope: false}, %ArgInfo{atom_to_scope: true}], arity: 2}
+
+      # Error cases
+      iex> new!(arity: -1)
+      ** (ArgumentError) function arity must be a non-negative integer, got: -1
+
+      iex> new!(args: %{2 => :preload_scope}, arity: 2)
+      ** (ArgumentError) argument index must be less than the function's arity 2. Got 2 => :preload_scope
+
+      iex> new!(args: %{invalid: :preload_scope}, arity: 2)
+      ** (ArgumentError) invalid argument key: :invalid. Must be an integer, :first, :last, or :all
+
+      iex> new!(args: [:preload_scope, :atom_to_scope], module: :m, fun_name: :f, arity: 1)
+      ** (ArgumentError) number of arguments must be within the function's arity 1. Got 2 arguments for :m.f/1
+
+      # Map inputs
+      iex> new!(%{args: [:preload_scope], warn_not_ok: "ERROR"})
+      %FunInfo{args: [:preload_scope], warn_not_ok: "ERROR"}
+
+      iex> new!(%{args: [:preload_scope], warn_not_ok: "ERROR"}, arity: 2)
+      %FunInfo{args: [%ArgInfo{preload_scope: true}, %ArgInfo{}], warn_not_ok: "ERROR", arity: 2}
+
+      iex> new!([args: [:atom_to_scope], warn_always: "WARNING"], %{arity: 1})
+      %FunInfo{args: [%ArgInfo{atom_to_scope: true}], warn_always: "WARNING", arity: 1}
   """
 
   @spec new!(input(), keyword() | %{atom() => term()}) :: t()
@@ -92,28 +129,39 @@ defmodule Dx.Defd_.FunInfo do
 
   defp args!(%FunInfo{arity: arity} = fun_info) when not is_integer(arity) or arity < 0 do
     raise ArgumentError,
-          """
-          function arity must be a non-negative integer, got: #{inspect(fun_info.arity)}
-
-          #{inspect(fun_info, pretty: true)}
-          """
+          "function arity must be a non-negative integer, got: #{inspect(fun_info.arity)}"
   end
 
   defp args!(%FunInfo{args: args} = fun_info) when is_map(args) do
-    Enum.each(args, fn {i, arg_info} ->
-      if i >= fun_info.arity do
-        raise ArgumentError,
-              "argument index must be less than the function's arity #{fun_info.arity}." <>
-                " Got #{i} => #{inspect(arg_info)}"
-      end
-    end)
+    {default, args} = Map.pop(args, :all, [])
+
+    normalized_args =
+      Enum.reduce(args, %{}, fn
+        {:first, value}, acc ->
+          Map.put(acc, 0, value)
+
+        {:last, value}, acc ->
+          Map.put(acc, fun_info.arity - 1, value)
+
+        {i, _value}, _acc when is_integer(i) and i >= fun_info.arity ->
+          raise ArgumentError,
+                "argument index must be less than the function's arity #{fun_info.arity}." <>
+                  " Got #{i} => #{inspect(args[i])}"
+
+        {i, value}, acc when is_integer(i) ->
+          Map.put(acc, i, value)
+
+        {key, _value}, _acc ->
+          raise ArgumentError,
+                "invalid argument key: #{inspect(key)}. Must be an integer, :first, :last, or :all"
+      end)
 
     args =
       0..(fun_info.arity - 1)
       |> Enum.map(fn i ->
-        case Map.fetch(args, i) do
-          {:ok, arg_info} -> ArgInfo.new!(arg_info)
-          :error -> %ArgInfo{}
+        case Map.fetch(normalized_args, i) do
+          {:ok, arg_info} -> ArgInfo.new!(default, arg_info)
+          :error -> ArgInfo.new!(default)
         end
       end)
 

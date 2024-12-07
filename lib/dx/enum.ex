@@ -202,13 +202,8 @@ defmodule Dx.Enum do
     }
   end
 
-  def __dx_fun_info(_fun_name, arity) do
-    %FunInfo{
-      args: %{
-        0 => [:atom_to_scope, :preload_scope],
-        (arity - 1) => :final_args_fn
-      }
-    }
+  def __dx_fun_info(_fun_name, _arity) do
+    %FunInfo{args: %{first: [:atom_to_scope, :preload_scope], last: :final_args_fn}}
   end
 
   defscope all?(enumerable, fun, _generate_fallback) do

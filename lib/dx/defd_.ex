@@ -4,6 +4,10 @@ defmodule Dx.Defd_ do
 
   ## Usage
 
+  There are two ways to provide function information:
+
+  1. Implementing the `__dx_fun_info/2 callback:
+
   ```elixir
   defmodule MyExt do
     use Dx.Defd_
@@ -15,20 +19,104 @@ defmodule Dx.Defd_ do
   end
   ```
 
+  2. Using `@dx_` module attributes before function definitions:
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    @dx_ args: [:preload_scope, %{}, :final_args_fn]
+    defd_ my_function(scope, value, callback) do
+      # ...
+    end
+
+    @dx_ args: %{first: :preload_scope}, warn_not_ok: "Be careful!"
+    defd_ another_function(scope, value) do
+      # ...
+    end
+  end
+  ```
+
+  Both can be combined. Annotations have precedence over `__dx_fun_info/2` clauses.
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    # Specific function pattern in __dx_fun_info
+    def __dx_fun_info(:special_case, 2) do
+      %FunInfo{args: [:preload_scope, :final_args_fn]}
+    end
+
+    # Fallback for all functions
+    def __dx_fun_info(_fun, _arity) do
+      %FunInfo{args: %{all: :atom_to_scope}}
+    end
+
+    # Specific function overrides with @dx_
+    @dx_ args: [:preload_scope, :fn]
+    defd_ process_data(scope, callback) do
+      # This function's settings override the fallback
+    end
+  end
+  ```
+
   ## Options
 
   Return a map with the following keys:
 
   - `args` - list or map of argument indexes mapping to argument information
+    - List format: `[:preload_scope, %{}, :fn]` - each element maps to an argument position
+    - Map format with special keys:
+      - Integer keys (0-based): `%{0 => :preload_scope}` - specific argument positions
+      - `:first` - applies to first argument
+      - `:last` - applies to last argument
+      - `:all` - applies to all arguments unless overridden
+
+    Precedence (highest to lowest):
+    1. Specific integer positions
+    2. `:first`/`:last` positions
+    3. `:all` default
+
+  Argument information options:
     - `:atom_to_scope` - whether to wrap atoms in `Dx.Scope.all/1`
     - `:preload_scope` - tells the compiler to load any scopes passed via this argument
     - `:fn` - tells the compiler to unwrap any Dx-specific function definitions
     - `{:fn, arity: 2, warn_not_ok: "Can't load data here"}` - pass more information about the function
     - `:final_args_fn` - like `fn` but assumes that no scopes can be passed to the function in this argument
     - `{:final_args_fn, arity: 2, warn_always: "Don't use this function"}` - pass more information about the function
-    - `%{}` - placeholder for an argument without any special information
-  - `warn_not_ok` - compiler warning to display when the function possibly loads data
-  - `warn_always` - compiler warning to display when the function is used
+    - `%{}` or `[]` - placeholder for an argument without any special information
+
+  Additional options:
+    - `warn_not_ok` - compiler warning to display when the function possibly loads data
+    - `warn_always` - compiler warning to display when the function is used
+
+  ## Examples
+
+  ```elixir
+  # Using list format
+  %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
+
+  # Using map format with specific positions
+  %FunInfo{args: %{0 => :preload_scope, 2 => :final_args_fn}}
+
+  # Using special keys
+  %FunInfo{args: %{
+    first: :preload_scope,
+    last: :final_args_fn,
+    all: :atom_to_scope
+  }}
+
+  # Complex function information
+  %FunInfo{
+    args: [
+      :preload_scope,
+      %{},
+      {:fn, arity: 2, warn_not_ok: "Can't load data here"}
+    ],
+    warn_always: "Use with caution"
+  }
+  ```
   """
 
   defmacro __using__(_opts) do
