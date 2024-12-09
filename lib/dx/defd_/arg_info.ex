@@ -1,8 +1,8 @@
-defmodule Dx.Defd.Ext.ArgInfo do
+defmodule Dx.Defd_.ArgInfo do
   @moduledoc false
 
-  alias Dx.Defd.Ext.ArgInfo
-  alias Dx.Defd.Ext.FunInfo
+  alias Dx.Defd_.ArgInfo
+  alias Dx.Defd_.FunInfo
 
   defstruct atom_to_scope: false,
             preload_scope: false,
@@ -40,12 +40,28 @@ defmodule Dx.Defd.Ext.ArgInfo do
 
   @spec new!(input()) :: t()
   def new!(%ArgInfo{} = arg_info), do: arg_info
-  def new!(field) when is_atom(field), do: new!([field])
+  def new!(fields), do: struct!(ArgInfo, normalize_fields(fields))
 
-  def new!(fields) when is_list(fields) or is_map(fields),
-    do: struct!(ArgInfo, Enum.map(fields, &field!/1))
+  @spec new!(input(), input()) :: t()
+  def new!(%ArgInfo{} = arg_info, extra_fields) do
+    struct!(arg_info, normalize_fields(extra_fields))
+  end
 
-  def new!(fields), do: new!(List.wrap(fields))
+  def new!(fields, extra_fields) do
+    new!(fields)
+    |> new!(extra_fields)
+  end
+
+  defp normalize_fields(fields) when is_map(fields) do
+    fields
+    |> Enum.map(&field!/1)
+  end
+
+  defp normalize_fields(fields) do
+    fields
+    |> List.wrap()
+    |> Enum.map(&field!/1)
+  end
 
   defp field!(field) when field in @fun_fields, do: {field, FunInfo.new!()}
   defp field!(field) when is_atom(field), do: {field, true}
