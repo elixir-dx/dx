@@ -110,19 +110,26 @@ defmodule Dx.Defd_.FunInfo do
       %FunInfo{args: [%ArgInfo{atom_to_scope: true}], warn_always: "WARNING", arity: 1}
   """
 
-  @spec new!(input(), keyword() | %{atom() => term()}) :: t()
-  def new!(fun_info \\ %FunInfo{}, extra_fields \\ [])
+  @spec new!(
+          input(),
+          keyword() | %{atom() => term()},
+          keyword() | %{atom() => term()},
+          keyword() | %{atom() => term()}
+        ) :: t()
+  def new!(fields \\ [], extra_fields1 \\ [], extra_fields2 \\ [], extra_fields3 \\ [])
 
-  def new!(%FunInfo{} = fun_info, extra_fields) do
+  def new!(%FunInfo{} = fun_info, extra_fields1, extra_fields2, extra_fields3) do
     fun_info
-    |> struct!(extra_fields)
+    |> struct!(extra_fields1)
+    |> struct!(extra_fields2)
+    |> struct!(extra_fields3)
     |> args!()
   end
 
-  def new!(fields, extra_fields) do
+  def new!(fields, extra_fields1, extra_fields2, extra_fields3) do
     FunInfo
     |> struct!(fields)
-    |> new!(extra_fields)
+    |> new!(extra_fields1, extra_fields2, extra_fields3)
   end
 
   defp args!(%FunInfo{arity: nil} = fun_info), do: fun_info

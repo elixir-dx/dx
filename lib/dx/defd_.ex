@@ -2,68 +2,31 @@ defmodule Dx.Defd_ do
   @moduledoc """
   Used to make existing libraries compatible with `Dx.Defd`.
 
-  ## Usage
+  ## Defining functions
 
-  There are two ways to provide function information:
+  Define functions using `defd_/2`. The `_` stands for *basic* or *native*.
+  `defd_` functions are not recompiled by the Dx compiler.
+  They have to return either `{:ok, result}` or `{:not_loaded, data_reqs}`.
+  See `Dx.Defd.Result` for more information and Enum-like functions to work with results.
 
-  1. Implementing the `__dx_fun_info/2 callback:
+  The input arguments can be a `Dx.Scope` struct or a `Dx.Defd.Fn` struct.
+  If you don't want to handle these internal structs, you can tell the compiler
+  to load/unwrap them by providing function information (see next section).
 
-  ```elixir
-  defmodule MyExt do
-    use Dx.Defd_
-
-    @impl true
-    def __dx_fun_info(fun_name, arity) do
-      %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
-    end
-  end
-  ```
-
-  2. Using `@dx_` module attributes before function definitions:
+  ## Function information
 
   ```elixir
   defmodule MyExt do
     use Dx.Defd_
 
-    @dx_ args: [:preload_scope, %{}, :final_args_fn]
-    defd_ my_function(scope, value, callback) do
-      # ...
-    end
-
-    @dx_ args: %{first: :preload_scope}, warn_not_ok: "Be careful!"
-    defd_ another_function(scope, value) do
+    @dx_ args: [:preload_scope, :fn], warn_not_ok: "Be careful!"
+    defd_ map(enum, mapper) do
       # ...
     end
   end
   ```
 
-  Both can be combined. Annotations have precedence over `__dx_fun_info/2` clauses.
-
-  ```elixir
-  defmodule MyExt do
-    use Dx.Defd_
-
-    # Specific function pattern in __dx_fun_info
-    def __dx_fun_info(:special_case, 2) do
-      %FunInfo{args: [:preload_scope, :final_args_fn]}
-    end
-
-    # Fallback for all functions
-    def __dx_fun_info(_fun, _arity) do
-      %FunInfo{args: %{all: :atom_to_scope}}
-    end
-
-    # Specific function overrides with @dx_
-    @dx_ args: [:preload_scope, :fn]
-    defd_ process_data(scope, callback) do
-      # This function's settings override the fallback
-    end
-  end
-  ```
-
-  ## Options
-
-  Return a map with the following keys:
+  ### Options
 
   - `args` - list or map of argument indexes mapping to argument information
     - List format: `[:preload_scope, %{}, :fn]` - each element maps to an argument position
@@ -91,31 +54,90 @@ defmodule Dx.Defd_ do
     - `warn_not_ok` - compiler warning to display when the function possibly loads data
     - `warn_always` - compiler warning to display when the function is used
 
-  ## Examples
+  ## Compiler annotations & callbacks
+
+  There are three ways to provide function information for the Dx compiler:
+
+  1. Using `@dx_` module attributes before function definitions:
 
   ```elixir
-  # Using list format
-  %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
+  defmodule MyExt do
+    use Dx.Defd_
 
-  # Using map format with specific positions
-  %FunInfo{args: %{0 => :preload_scope, 2 => :final_args_fn}}
+    @dx_ args: [:preload_scope, %{}, :final_args_fn]
+    defd_ my_function(scope, value, callback) do
+      # ...
+    end
 
-  # Using special keys
-  %FunInfo{args: %{
-    first: :preload_scope,
-    last: :final_args_fn,
-    all: :atom_to_scope
-  }}
+    @dx_ args: %{first: :preload_scope}, warn_not_ok: "Be careful!"
+    defd_ another_function(scope, value) do
+      # ...
+    end
+  end
+  ```
 
-  # Complex function information
-  %FunInfo{
-    args: [
-      :preload_scope,
-      %{},
-      {:fn, arity: 2, warn_not_ok: "Can't load data here"}
-    ],
-    warn_always: "Use with caution"
-  }
+  2. Using the `@moduledx_` module attribute for module-wide defaults (can only be set once per module):
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    @moduledx_ args: %{all: :atom_to_scope},
+               warn_always: "This module is deprecated"
+  end
+  ```
+
+  3. Implementing the `__dx_fun_info/2` callback:
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    @impl true
+    def __dx_fun_info(fun_name, arity) do
+      %FunInfo{args: [:preload_scope, %{}, :final_args_fn]}
+    end
+  end
+  ```
+
+  All three approaches can be combined. The precedence order (highest to lowest) is:
+
+  1. `@dx_` function-specific annotations
+    - merged into `@moduledx_` defaults for that function
+  2. `__dx_fun_info/2` callback implementations
+    - always overrides `@moduledx_` defaults
+  3. `@moduledx_` module-wide defaults
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    # Module-wide defaults (lowest precedence)
+    # Must be set once with all defaults
+    @moduledx_ args: %{all: :preload_scope},
+               warn_always: "Module under development"
+
+    # Function pattern in __dx_fun_info (middle precedence)
+    def __dx_fun_info(:special_case, 2) do
+      %FunInfo{args: [:preload_scope, :final_args_fn]}
+    end
+
+    # Function-specific override (highest precedence)
+    @dx_ args: [:preload_scope, :fn]
+    defd_ process_data(scope, callback) do
+      # This function's settings override both __dx_fun_info and @moduledx_
+    end
+
+    # Uses __dx_fun_info(:special_case, 2) settings
+    defd_ special_case(a, b) do
+      # ...
+    end
+
+    # Falls back to default @moduledx_ settings
+    defd_ other_function(x) do
+      # ...
+    end
+  end
   ```
   """
 
@@ -127,6 +149,8 @@ defmodule Dx.Defd_ do
       alias Dx.Defd_.FunInfo
 
       import Dx.Defd_
+
+      unquote(__MODULE__).__init__(__MODULE__)
     end
   end
 
@@ -279,22 +303,29 @@ defmodule Dx.Defd_ do
   @defd__exports_key :__defd__exports__
 
   @doc false
-  def __define__(_env, _kind, _name, _arity, _defaults, nil) do
+  def __init__(module) do
+    Module.put_attribute(module, @defd__exports_key, %{})
+    Module.put_attribute(module, :before_compile, __MODULE__)
+  end
+
+  @doc false
+  def __define__(%Macro.Env{module: module}, _kind, _name, _arity, _defaults, nil) do
+    if is_nil(Module.get_attribute(module, @defd__exports_key)) do
+      __init__(module)
+    end
+
     :ok
   end
 
   def __define__(%Macro.Env{module: module} = env, kind, name, arity, defaults, opts) do
-    exports =
-      if exports = Module.get_attribute(module, @defd__exports_key) do
-        exports
-      else
-        Module.put_attribute(module, :before_compile, __MODULE__)
-        %{}
-      end
-
     fun_info =
       try do
-        Dx.Defd_.FunInfo.new!(opts || [], %{module: module, fun_name: name, arity: arity})
+        Dx.Defd_.FunInfo.new!(
+          Module.get_attribute(module, :moduledx_, []),
+          %{arity: arity},
+          opts || [],
+          %{module: module, fun_name: name}
+        )
       rescue
         e ->
           compile_error!(
@@ -315,6 +346,14 @@ defmodule Dx.Defd_ do
       fun_info: fun_info
     }
 
+    exports =
+      if exports = Module.get_attribute(module, @defd__exports_key) do
+        exports
+      else
+        Module.put_attribute(module, :before_compile, __MODULE__)
+        %{}
+      end
+
     exports = Map.put_new(exports, {name, arity}, current_export)
 
     Module.put_attribute(module, @defd__exports_key, exports)
@@ -327,8 +366,9 @@ defmodule Dx.Defd_ do
 
   @doc false
   defmacro __before_compile__(env) do
-    defd__exports = Module.get_attribute(env.module, @defd__exports_key)
+    defd__exports = Module.get_attribute(env.module, @defd__exports_key, %{})
+    moduledx_ = Module.get_attribute(env.module, :moduledx_, [])
 
-    Dx.Defd_.Compiler.__compile__(env, defd__exports)
+    Dx.Defd_.Compiler.__compile__(env, moduledx_, defd__exports)
   end
 end

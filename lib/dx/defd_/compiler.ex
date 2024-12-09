@@ -3,7 +3,7 @@ defmodule Dx.Defd_.Compiler do
 
   alias Dx.Defd.Ast
 
-  def __compile__(%Macro.Env{module: module}, fun_infos) do
+  def __compile__(%Macro.Env{module: module}, moduledx_, fun_infos) do
     existing_clauses =
       case Module.get_definition(module, {:__dx_fun_info, 2}) do
         {:v1, :def, _meta, clauses} ->
@@ -43,7 +43,14 @@ defmodule Dx.Defd_.Compiler do
           []
       end)
 
-    (annotated_clauses ++ existing_clauses)
+    fallback_clause =
+      quote do
+        def __dx_fun_info(_fun_name, _arity) do
+          unquote(Macro.escape(moduledx_))
+        end
+      end
+
+    (annotated_clauses ++ existing_clauses ++ [fallback_clause])
     |> Ast.block()
   end
 end

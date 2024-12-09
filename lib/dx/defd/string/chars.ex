@@ -3,8 +3,5 @@ defmodule Dx.Defd.String.Chars do
 
   use Dx.Defd_
 
-  @impl true
-  def __dx_fun_info(_fun_name, _arity) do
-    %FunInfo{args: %{all: :preload_scope}}
-  end
+  @moduledx_ args: %{all: :preload_scope}
 end
