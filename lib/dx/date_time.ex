@@ -1,12 +1,9 @@
 defmodule Dx.DateTime do
   @moduledoc false
 
-  use Dx.Defd.Ext
+  use Dx.Defd_
 
-  @impl true
-  def __fun_info(_fun_name, arity) do
-    %FunInfo{args: List.duplicate(:preload_scope, arity)}
-  end
+  @moduledx_ args: %{all: :preload_scope}
 
   defscope after?(left, right, generate_fallback) do
     quote do: {:gt, unquote(left), unquote(right), unquote(generate_fallback.())}
