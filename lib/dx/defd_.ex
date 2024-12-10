@@ -76,6 +76,8 @@ defmodule Dx.Defd_ do
   end
   ```
 
+  `args` options will also be derived for functions with omitted default arguments.
+
   2. Using the `@moduledx_` module attribute for module-wide defaults (can only be set once per module):
 
   ```elixir

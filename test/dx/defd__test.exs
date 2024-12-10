@@ -108,11 +108,9 @@ defmodule Dx.Defd_Test do
                fun_info(Moduledx_Test, :run, 1)
     end
 
-    test "with default args" do
+    test "infers lower arity fun info for default args" do
       defmodule DefaultArgsTest do
         use Dx.Defd_
-
-        @moduledx_ args: %{all: :preload_scope}
 
         @dx_ args: %{0 => :preload_scope, 1 => :fn}
         defd_ run(enum, mapper \\ nil) do
@@ -126,16 +124,16 @@ defmodule Dx.Defd_Test do
 
       assert %FunInfo{
                args: [
-                 %ArgInfo{preload_scope: true}
-               ]
-             } = fun_info(DefaultArgsTest, :run, 1)
-
-      assert %FunInfo{
-               args: [
                  %ArgInfo{preload_scope: true},
                  %ArgInfo{fn: %FunInfo{}, preload_scope: false}
                ]
              } = fun_info(DefaultArgsTest, :run, 2)
+
+      assert %FunInfo{
+               args: [
+                 %ArgInfo{preload_scope: true}
+               ]
+             } = fun_info(DefaultArgsTest, :run, 1)
     end
   end
 end
