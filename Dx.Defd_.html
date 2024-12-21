@@ -112,7 +112,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -141,14 +141,14 @@ to load/unwrap them by providing function information (see next section).</p><h2
   </a>
   <span class="text">Function information</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="8160801907-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="2095290362-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8160801907-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="8160801907-2">]</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">map</span><span class="p" data-group-id="8160801907-3">(</span><span class="n">enum</span><span class="p">,</span><span class="w"> </span><span class="n">mapper</span><span class="p" data-group-id="8160801907-3">)</span><span class="w"> </span><span class="k" data-group-id="8160801907-4">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2095290362-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="2095290362-2">]</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">map</span><span class="p" data-group-id="2095290362-3">(</span><span class="n">enum</span><span class="p">,</span><span class="w"> </span><span class="n">mapper</span><span class="p" data-group-id="2095290362-3">)</span><span class="w"> </span><span class="k" data-group-id="2095290362-4">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="8160801907-4">end</span><span class="w">
-</span><span class="k" data-group-id="8160801907-1">end</span></code></pre><h3 id="module-options" class="section-heading">
+  </span><span class="k" data-group-id="2095290362-4">end</span><span class="w">
+</span><span class="k" data-group-id="2095290362-1">end</span></code></pre><h3 id="module-options" class="section-heading">
   <a href="#module-options" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -160,85 +160,85 @@ to load/unwrap them by providing function information (see next section).</p><h2
   </a>
   <span class="text">Examples</span>
 </h3>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="9184584899-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="4068947979-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
   </span><span class="c1"># Using list format - positional arguments</span><span class="w">
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9184584899-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9184584899-3">%{</span><span class="p" data-group-id="9184584899-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="9184584899-2">]</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">my_function</span><span class="p" data-group-id="9184584899-4">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="9184584899-4">)</span><span class="w"> </span><span class="k" data-group-id="9184584899-5">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4068947979-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4068947979-3">%{</span><span class="p" data-group-id="4068947979-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="4068947979-2">]</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">my_function</span><span class="p" data-group-id="4068947979-4">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="4068947979-4">)</span><span class="w"> </span><span class="k" data-group-id="4068947979-5">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="9184584899-5">end</span><span class="w">
+  </span><span class="k" data-group-id="4068947979-5">end</span><span class="w">
 
   </span><span class="c1"># Using map format with positive and negative indexes</span><span class="w">
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9184584899-6">%{</span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="9184584899-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">another_function</span><span class="p" data-group-id="9184584899-7">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="9184584899-7">)</span><span class="w"> </span><span class="k" data-group-id="9184584899-8">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4068947979-6">%{</span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="4068947979-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">another_function</span><span class="p" data-group-id="4068947979-7">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="4068947979-7">)</span><span class="w"> </span><span class="k" data-group-id="4068947979-8">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="9184584899-8">end</span><span class="w">
+  </span><span class="k" data-group-id="4068947979-8">end</span><span class="w">
 
   </span><span class="c1"># Using :all to set defaults for all arguments</span><span class="w">
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9184584899-9">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:atom_to_scope</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="9184584899-9">}</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">process_all</span><span class="p" data-group-id="9184584899-10">(</span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">second</span><span class="p">,</span><span class="w"> </span><span class="n">third</span><span class="p" data-group-id="9184584899-10">)</span><span class="w"> </span><span class="k" data-group-id="9184584899-11">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4068947979-9">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:atom_to_scope</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="4068947979-9">}</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">process_all</span><span class="p" data-group-id="4068947979-10">(</span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">second</span><span class="p">,</span><span class="w"> </span><span class="n">third</span><span class="p" data-group-id="4068947979-10">)</span><span class="w"> </span><span class="k" data-group-id="4068947979-11">do</span><span class="w">
     </span><span class="c1"># first will be :preload_scope, all will have :atom_to_scope</span><span class="w">
-  </span><span class="k" data-group-id="9184584899-11">end</span><span class="w">
-</span><span class="k" data-group-id="9184584899-1">end</span></code></pre><h2 id="module-compiler-annotations-callbacks" class="section-heading">
+  </span><span class="k" data-group-id="4068947979-11">end</span><span class="w">
+</span><span class="k" data-group-id="4068947979-1">end</span></code></pre><h2 id="module-compiler-annotations-callbacks" class="section-heading">
   <a href="#module-compiler-annotations-callbacks" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
   <span class="text">Compiler annotations &amp; callbacks</span>
 </h2>
-<p>There are three ways to provide function information for the Dx compiler:</p><ol><li>Using <code class="inline">@dx_</code> module attributes before function definitions:</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="5502374758-1">do</span><span class="w">
+<p>There are three ways to provide function information for the Dx compiler:</p><ol><li>Using <code class="inline">@dx_</code> module attributes before function definitions:</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="9862437138-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5502374758-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5502374758-3">%{</span><span class="p" data-group-id="5502374758-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="5502374758-2">]</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">my_function</span><span class="p" data-group-id="5502374758-4">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="5502374758-4">)</span><span class="w"> </span><span class="k" data-group-id="5502374758-5">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9862437138-2">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9862437138-3">%{</span><span class="p" data-group-id="9862437138-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="9862437138-2">]</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">my_function</span><span class="p" data-group-id="9862437138-4">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="9862437138-4">)</span><span class="w"> </span><span class="k" data-group-id="9862437138-5">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="5502374758-5">end</span><span class="w">
+  </span><span class="k" data-group-id="9862437138-5">end</span><span class="w">
 
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5502374758-6">%{</span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="5502374758-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">another_function</span><span class="p" data-group-id="5502374758-7">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p" data-group-id="5502374758-7">)</span><span class="w"> </span><span class="k" data-group-id="5502374758-8">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9862437138-6">%{</span><span class="mi">0</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="9862437138-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">warn_not_ok</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Be careful!&quot;</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">another_function</span><span class="p" data-group-id="9862437138-7">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p" data-group-id="9862437138-7">)</span><span class="w"> </span><span class="k" data-group-id="9862437138-8">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="5502374758-8">end</span><span class="w">
-</span><span class="k" data-group-id="5502374758-1">end</span></code></pre><p><code class="inline">args</code> options will also be derived for functions with omitted default arguments.</p><ol start="2"><li>Using the <code class="inline">@moduledx_</code> module attribute for module-wide defaults (can only be set once per module):</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="6700499414-1">do</span><span class="w">
+  </span><span class="k" data-group-id="9862437138-8">end</span><span class="w">
+</span><span class="k" data-group-id="9862437138-1">end</span></code></pre><p><code class="inline">args</code> options will also be derived for functions with omitted default arguments.</p><ol start="2"><li>Using the <code class="inline">@moduledx_</code> module attribute for module-wide defaults (can only be set once per module):</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="9237026172-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
-  </span><span class="na">@moduledx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6700499414-2">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:atom_to_scope</span><span class="p" data-group-id="6700499414-2">}</span><span class="p">,</span><span class="w">
+  </span><span class="na">@moduledx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9237026172-2">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:atom_to_scope</span><span class="p" data-group-id="9237026172-2">}</span><span class="p">,</span><span class="w">
              </span><span class="ss">warn_always</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;This module is deprecated&quot;</span><span class="w">
-</span><span class="k" data-group-id="6700499414-1">end</span></code></pre><ol start="3"><li>Implementing the <code class="inline">__dx_fun_info/2</code> callback:</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="9639750300-1">do</span><span class="w">
+</span><span class="k" data-group-id="9237026172-1">end</span></code></pre><ol start="3"><li>Implementing the <code class="inline">__dx_fun_info/2</code> callback:</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="0664289869-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
   </span><span class="na">@impl</span><span class="w"> </span><span class="no">true</span><span class="w">
-  </span><span class="kd">def</span><span class="w"> </span><span class="nf">__dx_fun_info</span><span class="p" data-group-id="9639750300-2">(</span><span class="n">fun_name</span><span class="p">,</span><span class="w"> </span><span class="n">arity</span><span class="p" data-group-id="9639750300-2">)</span><span class="w"> </span><span class="k" data-group-id="9639750300-3">do</span><span class="w">
-    </span><span class="p" data-group-id="9639750300-4">%</span><span class="nc" data-group-id="9639750300-4">FunInfo</span><span class="p" data-group-id="9639750300-4">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9639750300-5">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9639750300-6">%{</span><span class="p" data-group-id="9639750300-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="9639750300-5">]</span><span class="p" data-group-id="9639750300-4">}</span><span class="w">
-  </span><span class="k" data-group-id="9639750300-3">end</span><span class="w">
-</span><span class="k" data-group-id="9639750300-1">end</span></code></pre><p>All three approaches can be combined. The precedence order (highest to lowest) is:</p><ol><li><code class="inline">@dx_</code> function-specific annotations</li></ol><ul><li>merged into <code class="inline">@moduledx_</code> defaults for that function</li></ul><ol start="2"><li><code class="inline">__dx_fun_info/2</code> callback implementations</li></ol><ul><li>always overrides <code class="inline">@moduledx_</code> defaults</li></ul><ol start="3"><li><code class="inline">@moduledx_</code> module-wide defaults</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="2101794853-1">do</span><span class="w">
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">__dx_fun_info</span><span class="p" data-group-id="0664289869-2">(</span><span class="n">fun_name</span><span class="p">,</span><span class="w"> </span><span class="n">arity</span><span class="p" data-group-id="0664289869-2">)</span><span class="w"> </span><span class="k" data-group-id="0664289869-3">do</span><span class="w">
+    </span><span class="p" data-group-id="0664289869-4">%</span><span class="nc" data-group-id="0664289869-4">FunInfo</span><span class="p" data-group-id="0664289869-4">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0664289869-5">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0664289869-6">%{</span><span class="p" data-group-id="0664289869-6">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="0664289869-5">]</span><span class="p" data-group-id="0664289869-4">}</span><span class="w">
+  </span><span class="k" data-group-id="0664289869-3">end</span><span class="w">
+</span><span class="k" data-group-id="0664289869-1">end</span></code></pre><p>All three approaches can be combined. The precedence order (highest to lowest) is:</p><ol><li><code class="inline">@dx_</code> function-specific annotations</li></ol><ul><li>merged into <code class="inline">@moduledx_</code> defaults for that function</li></ul><ol start="2"><li><code class="inline">__dx_fun_info/2</code> callback implementations</li></ol><ul><li>always overrides <code class="inline">@moduledx_</code> defaults</li></ul><ol start="3"><li><code class="inline">@moduledx_</code> module-wide defaults</li></ol><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyExt</span><span class="w"> </span><span class="k" data-group-id="2273275952-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Defd_</span><span class="w">
 
   </span><span class="c1"># Module-wide defaults (lowest precedence)</span><span class="w">
   </span><span class="c1"># Must be set once with all defaults</span><span class="w">
-  </span><span class="na">@moduledx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2101794853-2">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="2101794853-2">}</span><span class="p">,</span><span class="w">
+  </span><span class="na">@moduledx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2273275952-2">%{</span><span class="ss">all</span><span class="p">:</span><span class="w"> </span><span class="ss">:preload_scope</span><span class="p" data-group-id="2273275952-2">}</span><span class="p">,</span><span class="w">
              </span><span class="ss">warn_always</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Module under development&quot;</span><span class="w">
 
   </span><span class="c1"># Function pattern in __dx_fun_info (middle precedence)</span><span class="w">
-  </span><span class="kd">def</span><span class="w"> </span><span class="nf">__dx_fun_info</span><span class="p" data-group-id="2101794853-3">(</span><span class="ss">:special_case</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="2101794853-3">)</span><span class="w"> </span><span class="k" data-group-id="2101794853-4">do</span><span class="w">
-    </span><span class="p" data-group-id="2101794853-5">%</span><span class="nc" data-group-id="2101794853-5">FunInfo</span><span class="p" data-group-id="2101794853-5">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2101794853-6">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="2101794853-6">]</span><span class="p" data-group-id="2101794853-5">}</span><span class="w">
-  </span><span class="k" data-group-id="2101794853-4">end</span><span class="w">
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">__dx_fun_info</span><span class="p" data-group-id="2273275952-3">(</span><span class="ss">:special_case</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="2273275952-3">)</span><span class="w"> </span><span class="k" data-group-id="2273275952-4">do</span><span class="w">
+    </span><span class="p" data-group-id="2273275952-5">%</span><span class="nc" data-group-id="2273275952-5">FunInfo</span><span class="p" data-group-id="2273275952-5">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2273275952-6">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:final_args_fn</span><span class="p" data-group-id="2273275952-6">]</span><span class="p" data-group-id="2273275952-5">}</span><span class="w">
+  </span><span class="k" data-group-id="2273275952-4">end</span><span class="w">
 
   </span><span class="c1"># Function-specific override (highest precedence)</span><span class="w">
-  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2101794853-7">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="2101794853-7">]</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">process_data</span><span class="p" data-group-id="2101794853-8">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="2101794853-8">)</span><span class="w"> </span><span class="k" data-group-id="2101794853-9">do</span><span class="w">
+  </span><span class="na">@dx_</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2273275952-7">[</span><span class="ss">:preload_scope</span><span class="p">,</span><span class="w"> </span><span class="ss">:fn</span><span class="p" data-group-id="2273275952-7">]</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">process_data</span><span class="p" data-group-id="2273275952-8">(</span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p" data-group-id="2273275952-8">)</span><span class="w"> </span><span class="k" data-group-id="2273275952-9">do</span><span class="w">
     </span><span class="c1"># This function&#39;s settings override both __dx_fun_info and @moduledx_</span><span class="w">
-  </span><span class="k" data-group-id="2101794853-9">end</span><span class="w">
+  </span><span class="k" data-group-id="2273275952-9">end</span><span class="w">
 
   </span><span class="c1"># Uses __dx_fun_info(:special_case, 2) settings</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">special_case</span><span class="p" data-group-id="2101794853-10">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p" data-group-id="2101794853-10">)</span><span class="w"> </span><span class="k" data-group-id="2101794853-11">do</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">special_case</span><span class="p" data-group-id="2273275952-10">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p" data-group-id="2273275952-10">)</span><span class="w"> </span><span class="k" data-group-id="2273275952-11">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="2101794853-11">end</span><span class="w">
+  </span><span class="k" data-group-id="2273275952-11">end</span><span class="w">
 
   </span><span class="c1"># Falls back to default @moduledx_ settings</span><span class="w">
-  </span><span class="n">defd_</span><span class="w"> </span><span class="n">other_function</span><span class="p" data-group-id="2101794853-12">(</span><span class="n">x</span><span class="p" data-group-id="2101794853-12">)</span><span class="w"> </span><span class="k" data-group-id="2101794853-13">do</span><span class="w">
+  </span><span class="n">defd_</span><span class="w"> </span><span class="n">other_function</span><span class="p" data-group-id="2273275952-12">(</span><span class="n">x</span><span class="p" data-group-id="2273275952-12">)</span><span class="w"> </span><span class="k" data-group-id="2273275952-13">do</span><span class="w">
     </span><span class="c1"># ...</span><span class="w">
-  </span><span class="k" data-group-id="2101794853-13">end</span><span class="w">
-</span><span class="k" data-group-id="2101794853-1">end</span></code></pre>
+  </span><span class="k" data-group-id="2273275952-13">end</span><span class="w">
+</span><span class="k" data-group-id="2273275952-1">end</span></code></pre>
     </section>
 
 </div>
@@ -325,7 +325,7 @@ to load/unwrap them by providing function information (see next section).</p><h2
     </a>
     <h1 class="signature" translate="no">__dx_fun_info(atom, non_neg_integer)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L182" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L182" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -367,7 +367,7 @@ to load/unwrap them by providing function information (see next section).</p><h2
     </a>
     <h1 class="signature" translate="no">defd_(call)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L196" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L196" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -391,7 +391,7 @@ to load/unwrap them by providing function information (see next section).</p><h2
     </a>
     <h1 class="signature" translate="no">defd_(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L200" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L200" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -415,7 +415,7 @@ to load/unwrap them by providing function information (see next section).</p><h2
     </a>
     <h1 class="signature" translate="no">defscope(call)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L188" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L188" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -439,7 +439,7 @@ to load/unwrap them by providing function information (see next section).</p><h2
     </a>
     <h1 class="signature" translate="no">defscope(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/19ca71aad81108986a027b24e9c551648f90d3c3/lib/dx/defd_.ex#L192" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/7cb121489a362bfe12764ff25317212b1890b034/lib/dx/defd_.ex#L192" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
