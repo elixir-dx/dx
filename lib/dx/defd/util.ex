@@ -2,7 +2,7 @@
 defmodule Dx.Defd.Util do
   @moduledoc false
 
-  alias Dx.Defd.Ext.FunInfo
+  alias Dx.Defd_.FunInfo
 
   @defd_exports_key :__defd_exports__
 
@@ -18,8 +18,8 @@ defmodule Dx.Defd.Util do
   def fun_info(module, fun_name, arity) do
     Code.ensure_loaded(module)
 
-    if function_exported?(module, :__fun_info, 2) do
-      module.__fun_info(fun_name, arity)
+    if function_exported?(module, :__dx_fun_info, 2) do
+      module.__dx_fun_info(fun_name, arity)
       |> FunInfo.new!(%{module: module, fun_name: fun_name, arity: arity})
     else
       %{}

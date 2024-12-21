@@ -1,12 +1,9 @@
 defmodule Dx.Defd.Kernel do
   @moduledoc false
 
-  use Dx.Defd.Ext
+  use Dx.Defd_
 
-  @impl true
-  def __fun_info(_fun_name, arity) do
-    %FunInfo{args: List.duplicate(:preload_scope, arity)}
-  end
+  @moduledx_ args: %{all: :preload_scope}
 
   defscope unquote(:==)({:error, _left}, _right, generate_fallback) do
     {:error, generate_fallback.()}
@@ -26,15 +23,15 @@ defmodule Dx.Defd.Kernel do
     {:not, term}
   end
 
-  def is_function(%Dx.Defd.Fn{}) do
+  defd_ is_function(%Dx.Defd.Fn{}) do
     true
   end
 
-  def is_function(term) do
+  defd_ is_function(term) do
     :erlang.is_function(term)
   end
 
-  def is_function(term, arity) do
+  defd_ is_function(term, arity) do
     :erlang.is_function(term, arity)
   end
 end
