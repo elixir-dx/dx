@@ -30,16 +30,10 @@ defmodule Dx.Defd_ do
 
   - `args` - list or map of argument indexes mapping to argument information
     - List format: `[:preload_scope, %{}, :fn]` - each element maps to an argument position
-    - Map format with special keys:
-      - Integer keys (0-based): `%{0 => :preload_scope}` - specific argument positions
-      - `:first` - applies to first argument
-      - `:last` - applies to last argument
-      - `:all` - applies to all arguments unless overridden
-
-    Precedence (highest to lowest):
-    1. Specific integer positions
-    2. `:first`/`:last` positions
-    3. `:all` default
+    - Map format with special keys (highest to lowest precedence):
+      - Positive argument indexes (0..arity-1) counting from the first argument: `%{0 => :preload_scope}`
+      - Negative argument indexes (-1..-arity) counting from the last argument: `%{-1 => :preload_scope}`
+      - `:all` - sets defaults for all arguments (explicitly defined or not)
 
   Argument information options:
     - `:atom_to_scope` - whether to wrap atoms in `Dx.Scope.all/1`
@@ -53,6 +47,32 @@ defmodule Dx.Defd_ do
   Additional options:
     - `warn_not_ok` - compiler warning to display when the function possibly loads data
     - `warn_always` - compiler warning to display when the function is used
+
+  ### Examples
+
+  ```elixir
+  defmodule MyExt do
+    use Dx.Defd_
+
+    # Using list format - positional arguments
+    @dx_ args: [:preload_scope, %{}, :final_args_fn]
+    defd_ my_function(scope, value, callback) do
+      # ...
+    end
+
+    # Using map format with positive and negative indexes
+    @dx_ args: %{0 => :preload_scope, -1 => :fn}, warn_not_ok: "Be careful!"
+    defd_ another_function(scope, value, callback) do
+      # ...
+    end
+
+    # Using :all to set defaults for all arguments
+    @dx_ args: %{all: :atom_to_scope, 0 => :preload_scope}
+    defd_ process_all(first, second, third) do
+      # first will be :preload_scope, all will have :atom_to_scope
+    end
+  end
+  ```
 
   ## Compiler annotations & callbacks
 
@@ -69,7 +89,7 @@ defmodule Dx.Defd_ do
       # ...
     end
 
-    @dx_ args: %{first: :preload_scope}, warn_not_ok: "Be careful!"
+    @dx_ args: %{0 => :preload_scope}, warn_not_ok: "Be careful!"
     defd_ another_function(scope, value) do
       # ...
     end

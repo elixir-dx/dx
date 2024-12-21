@@ -60,6 +60,24 @@ defmodule Dx.Defd_Test do
              } = fun_info(OverrideTest, :transform, 2)
     end
 
+    test "non-negative index overrides negative index" do
+      defmodule OverrideNegativeTest do
+        use Dx.Defd_
+
+        @dx_ args: %{1 => %{preload_scope: false}, -1 => :preload_scope}
+        defd_ transform(input, _mapper) do
+          {:ok, input}
+        end
+      end
+
+      assert %FunInfo{
+               args: [
+                 %ArgInfo{preload_scope: false},
+                 %ArgInfo{preload_scope: false}
+               ]
+             } = fun_info(OverrideNegativeTest, :transform, 2)
+    end
+
     test "with nested function arguments" do
       defmodule NestedFunTest do
         use Dx.Defd_

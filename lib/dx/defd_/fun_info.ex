@@ -12,7 +12,7 @@ defmodule Dx.Defd_.FunInfo do
             warn_not_ok: nil,
             warn_always: nil
 
-  @type arg_key :: non_neg_integer() | :first | :last | :all
+  @type arg_key :: non_neg_integer() | neg_integer() | :all
 
   @type input() :: %__MODULE__{
           module: atom() | nil,
@@ -74,15 +74,19 @@ defmodule Dx.Defd_.FunInfo do
         arity: 3
       }
 
-      iex> new!(args: %{first: :preload_scope, last: :preload_scope}, arity: 3)
+      # Using negative indexes to count from the end
+      iex> new!(args: %{0 => :preload_scope, -1 => :preload_scope}, arity: 3)
       %FunInfo{args: [%ArgInfo{preload_scope: true}, %ArgInfo{}, %ArgInfo{preload_scope: true}], arity: 3}
 
+      # Using :all to set defaults for all arguments
       iex> new!(args: %{all: :atom_to_scope}, arity: 2)
       %FunInfo{args: [%ArgInfo{atom_to_scope: true}, %ArgInfo{atom_to_scope: true}], arity: 2}
 
+      # Combining :all with specific indexes
       iex> new!(args: %{0 => :preload_scope, all: :atom_to_scope}, arity: 2)
       %FunInfo{args: [%ArgInfo{atom_to_scope: true, preload_scope: true}, %ArgInfo{atom_to_scope: true}], arity: 2}
 
+      # Overriding :all defaults with specific argument settings
       iex> new!(args: %{0 => %{atom_to_scope: false}, all: :atom_to_scope}, arity: 2)
       %FunInfo{args: [%ArgInfo{atom_to_scope: false}, %ArgInfo{atom_to_scope: true}], arity: 2}
 
@@ -94,7 +98,7 @@ defmodule Dx.Defd_.FunInfo do
       ** (ArgumentError) argument index must be less than the function's arity 2. Got 2 => :preload_scope
 
       iex> new!(args: %{invalid: :preload_scope}, arity: 2)
-      ** (ArgumentError) invalid argument key: :invalid. Must be an integer, :first, :last, or :all
+      ** (ArgumentError) Argument index must be an integer or :all. Got: :invalid
 
       iex> new!(args: [:preload_scope, :atom_to_scope], module: :m, fun_name: :f, arity: 1)
       ** (ArgumentError) number of arguments must be within the function's arity 1. Got 2 arguments for :m.f/1
@@ -143,24 +147,20 @@ defmodule Dx.Defd_.FunInfo do
     {default, args} = Map.pop(args, :all, [])
 
     normalized_args =
-      Enum.reduce(args, %{}, fn
-        {:first, value}, acc ->
-          Map.put(acc, 0, value)
+      Enum.reduce(args, args, fn
+        {key, _value}, _acc when not is_integer(key) ->
+          raise ArgumentError, "Argument index must be an integer or :all. Got: #{inspect(key)}"
 
-        {:last, value}, acc ->
-          Map.put(acc, fun_info.arity - 1, value)
-
-        {i, _value}, _acc when is_integer(i) and i >= fun_info.arity ->
+        {i, _value}, _acc when i >= fun_info.arity ->
           raise ArgumentError,
                 "argument index must be less than the function's arity #{fun_info.arity}." <>
                   " Got #{i} => #{inspect(args[i])}"
 
-        {i, value}, acc when is_integer(i) ->
-          Map.put(acc, i, value)
+        {i, value}, acc when i < 0 ->
+          Map.put_new(acc, fun_info.arity + i, value)
 
-        {key, _value}, _acc ->
-          raise ArgumentError,
-                "invalid argument key: #{inspect(key)}. Must be an integer, :first, :last, or :all"
+        {_i, _value}, acc ->
+          acc
       end)
 
     args =

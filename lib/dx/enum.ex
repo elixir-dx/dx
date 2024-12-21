@@ -194,15 +194,7 @@ defmodule Dx.Enum do
     }
   end
 
-  def __dx_fun_info(_fun_name, 1) do
-    %FunInfo{
-      args: [
-        [:atom_to_scope, :preload_scope]
-      ]
-    }
-  end
-
-  @moduledx_ args: %{first: [:atom_to_scope, :preload_scope], last: :final_args_fn}
+  @moduledx_ args: %{0 => [:atom_to_scope, :preload_scope], -1 => :final_args_fn}
 
   defscope all?(enumerable, fun, _generate_fallback) do
     quote do: {:not, {:any?, {:filter, unquote(enumerable), {:not, unquote(fun)}}}}
