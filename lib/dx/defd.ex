@@ -228,6 +228,13 @@ defmodule Dx.Defd do
     define_defd(:def, call, block, __CALLER__)
   end
 
+  defmacro defd(_call, do: _block, rescue: _rescue_block) do
+    compile_error!(
+      __CALLER__,
+      "`rescue` blocks are not supported in defd functions. Please use them only in non-defd functions."
+    )
+  end
+
   @doc false
   defmacro defdp(call) do
     define_defd(:defp, call, __CALLER__)
@@ -236,6 +243,13 @@ defmodule Dx.Defd do
   @doc "Private version of `defd/2`."
   defmacro defdp(call, do: block) do
     define_defd(:defp, call, block, __CALLER__)
+  end
+
+  defmacro defdp(_call, do: _block, rescue: _rescue_block) do
+    compile_error!(
+      __CALLER__,
+      "`rescue` blocks are not supported in defd functions. Please use them only in non-defd functions."
+    )
   end
 
   @doc """

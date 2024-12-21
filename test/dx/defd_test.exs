@@ -622,4 +622,86 @@ defmodule Dx.DefdTest do
       )
     end
   end
+
+  test "for comprehension raises error" do
+    assert_raise CompileError, ~r/#{location(+5)}/, fn ->
+      defmodule ForTest do
+        import Dx.Defd
+
+        defd run() do
+          for i <- [1, 2, 3], do: i
+        end
+      end
+    end
+  end
+
+  test "receive raises error" do
+    assert_raise CompileError, ~r/#{location(+5)}/, fn ->
+      defmodule ReceiveTest do
+        import Dx.Defd
+
+        defd run() do
+          receive do
+            msg -> msg
+          end
+        end
+      end
+    end
+  end
+
+  test "rescue in defd raises error" do
+    assert_raise CompileError, ~r/#{location(+4)}/, fn ->
+      defmodule DefdRescueTest do
+        import Dx.Defd
+
+        defd run(not_fun) do
+          not_fun.()
+        rescue
+          _e -> :boom
+        end
+      end
+    end
+  end
+
+  test "rescue in defdp raises error" do
+    assert_raise CompileError, ~r/#{location(+4)}/, fn ->
+      defmodule DefdpRescueTest do
+        import Dx.Defd
+
+        defdp run(not_fun) do
+          not_fun.()
+        rescue
+          _e -> :boom
+        end
+      end
+    end
+  end
+
+  test "try raises error" do
+    assert_raise CompileError, ~r/#{location(+5)}/, fn ->
+      defmodule TryTest do
+        import Dx.Defd
+
+        defd run(not_fun) do
+          try do
+            not_fun.()
+          after
+            :boom
+          end
+        end
+      end
+    end
+  end
+
+  test "with clauses raise error" do
+    assert_raise CompileError, ~r/#{location(+5)}/, fn ->
+      defmodule WithTest do
+        import Dx.Defd
+
+        defd run(result) do
+          with {:ok, result} <- result, do: result
+        end
+      end
+    end
+  end
 end

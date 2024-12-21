@@ -522,6 +522,30 @@ defmodule Dx.Defd.Compiler do
     Dx.Defd.Cond.normalize(ast, state)
   end
 
+  def normalize({:for, meta, _args}, state) do
+    compile_error!(meta, state, """
+    `for` comprehensions are not yet supported in defd functions. Please use `Enum` functions.
+    """)
+  end
+
+  def normalize({:receive, meta, _args}, state) do
+    compile_error!(meta, state, """
+    `receive` blocks are not supported in defd functions. Please use them only in non-defd functions.
+    """)
+  end
+
+  def normalize({:try, meta, _args}, state) do
+    compile_error!(meta, state, """
+    `try` blocks are not supported in defd functions. Please use them only in non-defd functions.
+    """)
+  end
+
+  def normalize({:with, meta, _args}, state) do
+    compile_error!(meta, state, """
+    `with` clauses are not yet supported in defd functions. Please use `case` clauses.
+    """)
+  end
+
   def normalize({:__block__, _meta, _lines} = ast, state) do
     Dx.Defd.Block.normalize(ast, state)
   end
