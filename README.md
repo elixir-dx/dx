@@ -219,12 +219,12 @@ All syntax except `for` and `with` is supported in `defd` and (private) `defdp` 
 
 - `Enum.count/1`
 - `Enum.filter/2`
-- `Enum.find/2`
+- `Enum.find/2` (not `Enum.find/3`!)
 
 will be translated to database queries, if both
 
 - the first argument is either
-  - a schema module, f.ex. `Enum.filter(Todo.Task, fn task -> task.priority == "high")`
+  - a schema module, f.ex. `Enum.filter(Todo.Task, fn task -> task.priority == "high" end)`
   - the result of another function listed above
 - the function passed as second argument (if any) consists only of functions listed above or:
   - `==`, `<`, `>`

@@ -954,7 +954,6 @@ defmodule Dx.Defd.EnumTest do
         defmodule Find3EmptyTest do
           import Dx.Defd
 
-          @dx def: :original
           defd run(tasks) do
             Enum.find(tasks, :none, fn _ -> true end)
           end
@@ -970,7 +969,6 @@ defmodule Dx.Defd.EnumTest do
         defmodule Find3MissTest do
           import Dx.Defd
 
-          @dx def: :original
           defd run(tasks) do
             Enum.find(tasks, :none, fn _ -> false end)
           end
@@ -978,6 +976,108 @@ defmodule Dx.Defd.EnumTest do
 
         assert load(Find3MissTest.run([])) == {:ok, :none}
         assert load(Find3MissTest.run([:a])) == {:ok, :none}
+      end)
+    end
+
+    test "works finding an element" do
+      refute_stderr(fn ->
+        defmodule Find3HitTest do
+          import Dx.Defd
+
+          defd run(entries) do
+            Enum.find(entries, :not_found, fn _ -> true end)
+          end
+        end
+
+        assert load(Find3HitTest.run([])) == {:ok, :not_found}
+        assert load(Find3HitTest.run([:a])) == {:ok, :a}
+      end)
+    end
+
+    test "works with loading data", %{
+      tasks: tasks,
+      task2: task2,
+      preloaded_tasks: preloaded_tasks,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule Find3LoadTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(tasks) do
+            Enum.find(tasks, :not_found, &match?("c" <> _, &1.created_by.email))
+          end
+        end
+
+        assert load(Find3LoadTest.run([])) == {:ok, :not_found}
+        assert load!(Find3LoadTest.run([])) == Find3LoadTest.run([])
+
+        assert load(Find3LoadTest.run(tasks)) == {:ok, task2}
+
+        assert load!(Find3LoadTest.run(tasks)) ==
+                 unload(Find3LoadTest.run(preloaded_tasks))
+      end)
+    end
+
+    test "works for maps with loading data", %{
+      tasks: tasks,
+      task2: task2,
+      preloaded_tasks: preloaded_tasks,
+      user: user
+    } do
+      refute_stderr(fn ->
+        defmodule Find3MapLoadTest do
+          import Dx.Defd
+
+          @dx def: :original
+          defd run(tasks) do
+            Enum.find(tasks, :not_found, fn {_, task} ->
+              match?("c" <> _, task.created_by.email)
+            end)
+          end
+        end
+
+        assert load(Find3MapLoadTest.run(%{})) == {:ok, :not_found}
+        assert load!(Find3MapLoadTest.run(%{})) == Find3MapLoadTest.run(%{})
+
+        assert load(Find3MapLoadTest.run(to_map(tasks))) == {:ok, {task2.id, task2}}
+
+        assert load!(Find3MapLoadTest.run(to_map(tasks))) ==
+                 unload(Find3MapLoadTest.run(to_map(preloaded_tasks)))
+      end)
+    end
+
+    test "works as scope", %{task: task} do
+      refute_stderr(fn ->
+        defmodule Find3ScopeTest do
+          import Dx.Defd
+
+          defd run(task_id) do
+            Enum.find(Task, :not_found, &(&1.id == task_id))
+          end
+        end
+
+        assert load!(Find3ScopeTest.run(task.id)) == task
+        assert load!(Find3ScopeTest.run(nil)) == :not_found
+      end)
+    end
+
+    test "works as scope with multiple results", %{tasks: tasks} do
+      refute_stderr(fn ->
+        defmodule Find3ScopeMultiTest do
+          import Dx.Defd
+
+          defd run(task_ids) do
+            Enum.map(task_ids, fn task_id ->
+              Enum.find(Task, :not_found, &(&1.id == task_id))
+            end)
+          end
+        end
+
+        task_ids = Enum.map(tasks, & &1.id)
+        assert load!(Find3ScopeMultiTest.run(task_ids)) == tasks
+        assert load!(Find3ScopeMultiTest.run([nil | task_ids])) == [:not_found | tasks]
       end)
     end
   end
