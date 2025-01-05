@@ -4,22 +4,21 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.34.2">
+    <meta name="generator" content="ExDoc v0.36.1">
     <meta name="project" content="dx main">
 
 
     <title>Dx — dx main</title>
-    <link rel="stylesheet" href="dist/html-elixir-F2VRIOKR.css" />
-
+    <link rel="stylesheet" href="dist/html-elixir-QYVRUQZX.css" />
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
     <script src="dist/sidebar_items-04B6C040.js"></script>
     <script src="docs_config.js"></script>
-    <script async src="dist/html-YIPIRHGU.js"></script>
+    <script async src="dist/html-HJ5ACJPS.js"></script>
 
   </head>
-  <body data-type="modules" class="page-module">
+  <body class="sidebar-closed">
     <script>
 
       try {
@@ -54,7 +53,7 @@ dx
         </div>
       </div>
     </div>
-    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist">
       <li>
         <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
 Guides (old)
@@ -82,9 +81,9 @@ Guides (old)
 
 </nav>
 
-<main class="content">
-  <output role="status" id="toast"></output>
+<output role="status" id="toast"></output>
 
+<main class="content page-module" id="main" data-type="modules">
   <div id="content" class="content-inner">
     <div class="top-search">
       <div class="search-settings">
@@ -93,8 +92,8 @@ Guides (old)
             <span class="sr-only">Search documentation of dx</span>
             <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </label>
-          <button type="submit" class="search-button" aria-label="Submit Search">
-            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
           </button>
           <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
             <i class="ri-close-line ri-lg" title="Cancel search"></i>
@@ -112,7 +111,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -131,7 +130,7 @@ directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><code cla
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><code class="inline">predicates</code> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a>
 of the predicates and their resulting values.</li><li><code class="inline">options</code> (optional) See below.</li></ul><p>Options:</p><ul><li><code class="inline">args</code> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="9242992533-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9242992533-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9242992533-2">]</span><span class="p" data-group-id="9242992533-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="9878833387-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9878833387-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9878833387-2">]</span><span class="p" data-group-id="9878833387-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
 and use them only where needed.</li><li><code class="inline">debug</code> (boolean) makes Dx print additional information to the console as rules are evaluated.
 Should only be used while debugging.</li><li><code class="inline">return_cache</code> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
@@ -271,15 +270,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="filter/2"></span>
 
   <div class="detail-header">
-    <a href="#filter/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#filter/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L152" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L152" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -295,15 +292,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="get/2"></span>
 
   <div class="detail-header">
-    <a href="#get/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#get/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L52" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L52" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -319,15 +314,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="get!/2"></span>
 
   <div class="detail-header">
-    <a href="#get!/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#get!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L79" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L79" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -343,15 +336,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="load/2"></span>
 
   <div class="detail-header">
-    <a href="#load/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#load/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L87" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L87" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -367,15 +358,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="load!/2"></span>
 
   <div class="detail-header">
-    <a href="#load!/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#load!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L103" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L103" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -391,15 +380,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="put/2"></span>
 
   <div class="detail-header">
-    <a href="#put/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#put/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L116" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L116" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -422,15 +409,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="put!/2"></span>
 
   <div class="detail-header">
-    <a href="#put!/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#put!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L132" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L132" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -446,15 +431,13 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="query_all/2"></span>
 
   <div class="detail-header">
-    <a href="#query_all/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#query_all/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L191" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L191" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -481,15 +464,13 @@ and evaluating the rules on them.</p>
     <span id="query_one/2"></span>
 
   <div class="detail-header">
-    <a href="#query_one/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#query_one/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L207" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L207" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -511,15 +492,13 @@ and evaluating the rules on them.</p>
     <span id="reject/2"></span>
 
   <div class="detail-header">
-    <a href="#reject/3" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#reject/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/527dadba9aba8e7a7fa21cf0d9c6ca829a3dd001/lib/dx.ex#L175" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/5dc3dc1aa6a6430b926e853c00480a0d96b4d94d/lib/dx.ex#L175" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
      </a>
 
 
@@ -558,7 +537,7 @@ and evaluating the rules on them.</p>
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.36.1) for the
 
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
 
