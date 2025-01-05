@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         # see https://hexdocs.pm/elixir/compatibility-and-deprecations.html#between-elixir-and-erlang-otp
-        elixir: [1.18.0, 1.17.3, 1.16.3, 1.15.8]
+        elixir: [1.18.1, 1.17.3, 1.16.3, 1.15.8]
         otp: [27.1.1, 26.2.5.3, 25.3.2.14]
         exclude:
         - elixir: 1.16.3
