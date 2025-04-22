@@ -102,9 +102,9 @@ defmodule Dx.Defd.Error do
     |> String.to_atom()
   end
 
-  @regex ~r/__(defd|final_args):([^\/]+)__(\/(\d+))?/
   defp replace_fun_names_and_arities(str) do
-    Regex.replace(@regex, str, fn
+    ~r/__(defd|final_args):([^\/]+)__(\/(\d+))?/
+    |> Regex.replace(str, fn
       _full, _defd_prefix, fun_name, _optional, "" ->
         fun_name
 
