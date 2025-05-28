@@ -31,7 +31,7 @@ defmodule Dx.Test.DefdCase do
       output = ExUnit.CaptureIO.capture_io(:stderr, fun)
 
       refute output =~ msg_part, """
-      Expected stderr not to contain "#{msg_part}", but got:
+      Expected stderr not to contain #{inspect(msg_part)}, but got:
 
       #{output}
       """
@@ -41,18 +41,18 @@ defmodule Dx.Test.DefdCase do
       output = ExUnit.CaptureIO.capture_io(:stderr, fun)
 
       assert output =~ msg_part, """
-      Expected stderr to contain "#{msg_part}", but got:
+      Expected stderr to contain #{inspect(msg_part)}, but got:
 
       #{output}
       """
     end
 
-    def assert_same_error(expected_type, location, fun1, fun2) do
+    def assert_same_error(expected_types, location, fun1, fun2) do
       {e1, e2} = {get_error_and_stacktrace(fun1), get_error_and_stacktrace(fun2)}
       assert e1 == e2
 
       assert {:error, _, type, _, stacktrace} = e1
-      assert type == expected_type
+      assert type in List.wrap(expected_types)
 
       assert Enum.any?(stacktrace, &String.starts_with?(&1, location)), """
       No stacktrace entry starts with #{location}

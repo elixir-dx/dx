@@ -228,17 +228,20 @@ defmodule Dx.DefdTest do
     end
 
     test "warns when default args are unused" do
-      assert_stderr("default values for the optional arguments in add/2 are never used", fn ->
-        defmodule UnusedDefaultArgsTest do
-          import Dx.Defd
+      assert_stderr(
+        ~r/default values for the optional arguments in( the private function)? add\/2 are never used/,
+        fn ->
+          defmodule UnusedDefaultArgsTest do
+            import Dx.Defd
 
-          defd main() do
-            add(1, 2)
+            defd main() do
+              add(1, 2)
+            end
+
+            defdp add(a, b \\ 1), do: a + b
           end
-
-          defdp add(a, b \\ 1), do: a + b
         end
-      end)
+      )
     end
 
     test "does not warn when default args are used" do

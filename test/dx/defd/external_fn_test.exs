@@ -376,7 +376,7 @@ defmodule Dx.Defd.ExternalFnTest do
       end
 
       assert_same_error(
-        KeyError,
+        [KeyError, BadMapError],
         location(-12),
         fn -> load!(FieldOnNilInExtFnTest.run(list)) end,
         fn -> FieldOnNilInExtFnTest.run(preloaded_list) end
