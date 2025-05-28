@@ -111,7 +111,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -129,21 +129,21 @@ Guides (old)
   </a>
   <span class="text">Example</span>
 </h3>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="7644933280-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="6278089928-1">do</span><span class="w">
   </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="7644933280-2">(</span><span class="n">user</span><span class="p" data-group-id="7644933280-2">)</span><span class="w"> </span><span class="k" data-group-id="7644933280-3">do</span><span class="w">
-    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="7644933280-4">(</span><span class="n">user</span><span class="p" data-group-id="7644933280-4">)</span><span class="w"> </span><span class="k" data-group-id="7644933280-5">do</span><span class="w">
-      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="7644933280-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="7644933280-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="7644933280-7">)</span><span class="p" data-group-id="7644933280-6">)</span><span class="w">
-    </span><span class="k" data-group-id="7644933280-5">else</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="6278089928-2">(</span><span class="n">user</span><span class="p" data-group-id="6278089928-2">)</span><span class="w"> </span><span class="k" data-group-id="6278089928-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="6278089928-4">(</span><span class="n">user</span><span class="p" data-group-id="6278089928-4">)</span><span class="w"> </span><span class="k" data-group-id="6278089928-5">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="6278089928-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="6278089928-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="6278089928-7">)</span><span class="p" data-group-id="6278089928-6">)</span><span class="w">
+    </span><span class="k" data-group-id="6278089928-5">else</span><span class="w">
       </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
-    </span><span class="k" data-group-id="7644933280-5">end</span><span class="w">
-  </span><span class="k" data-group-id="7644933280-3">end</span><span class="w">
+    </span><span class="k" data-group-id="6278089928-5">end</span><span class="w">
+  </span><span class="k" data-group-id="6278089928-3">end</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="7644933280-8">(</span><span class="n">user</span><span class="p" data-group-id="7644933280-8">)</span><span class="w"> </span><span class="k" data-group-id="7644933280-9">do</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="6278089928-8">(</span><span class="n">user</span><span class="p" data-group-id="6278089928-8">)</span><span class="w"> </span><span class="k" data-group-id="6278089928-9">do</span><span class="w">
     </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w">
-  </span><span class="k" data-group-id="7644933280-9">end</span><span class="w">
-</span><span class="k" data-group-id="7644933280-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="9174893044-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="9174893044-2">(</span><span class="n">user</span><span class="p" data-group-id="9174893044-2">)</span><span class="p" data-group-id="9174893044-1">)</span></code></pre><p><a href="#load!/2"><code class="inline">Dx.Defd.load!/2</code></a> loads all required data automatically: The association <code class="inline">role</code>, and either all
+  </span><span class="k" data-group-id="6278089928-9">end</span><span class="w">
+</span><span class="k" data-group-id="6278089928-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="3413641810-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="3413641810-2">(</span><span class="n">user</span><span class="p" data-group-id="3413641810-2">)</span><span class="p" data-group-id="3413641810-1">)</span></code></pre><p><a href="#load!/2"><code class="inline">Dx.Defd.load!/2</code></a> loads all required data automatically: The association <code class="inline">role</code>, and either all
 <code class="inline">Schema.List</code> matching the filter (translated to a single SQL query) or the user's associated lists,
 depending on whether it's an admin.</p><p>These function can just as well be called for many users, and Dx will load data efficiently (with batching and concurrently).</p><h2 id="module-background" class="section-heading">
   <a href="#module-background" class="hover-link">
@@ -386,7 +386,7 @@ Raises an error if unsuccessful.</p></div>
     </a>
     <h1 class="signature" translate="no">defd(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L227" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L227" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -406,21 +406,21 @@ when the function is called.</p><h2 id="defd/2-usage" class="section-heading">
   </a>
   <span class="text">Usage</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="6757956908-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="4255918409-1">do</span><span class="w">
   </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="6757956908-2">(</span><span class="n">user</span><span class="p" data-group-id="6757956908-2">)</span><span class="w"> </span><span class="k" data-group-id="6757956908-3">do</span><span class="w">
-    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="6757956908-4">(</span><span class="n">user</span><span class="p" data-group-id="6757956908-4">)</span><span class="w"> </span><span class="k" data-group-id="6757956908-5">do</span><span class="w">
-      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="6757956908-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="6757956908-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="6757956908-7">)</span><span class="p" data-group-id="6757956908-6">)</span><span class="w">
-    </span><span class="k" data-group-id="6757956908-5">else</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="4255918409-2">(</span><span class="n">user</span><span class="p" data-group-id="4255918409-2">)</span><span class="w"> </span><span class="k" data-group-id="4255918409-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="4255918409-4">(</span><span class="n">user</span><span class="p" data-group-id="4255918409-4">)</span><span class="w"> </span><span class="k" data-group-id="4255918409-5">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="4255918409-6">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="4255918409-7">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="4255918409-7">)</span><span class="p" data-group-id="4255918409-6">)</span><span class="w">
+    </span><span class="k" data-group-id="4255918409-5">else</span><span class="w">
       </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
-    </span><span class="k" data-group-id="6757956908-5">end</span><span class="w">
-  </span><span class="k" data-group-id="6757956908-3">end</span><span class="w">
+    </span><span class="k" data-group-id="4255918409-5">end</span><span class="w">
+  </span><span class="k" data-group-id="4255918409-3">end</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="6757956908-8">(</span><span class="n">user</span><span class="p" data-group-id="6757956908-8">)</span><span class="w"> </span><span class="k" data-group-id="6757956908-9">do</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">admin?</span><span class="p" data-group-id="4255918409-8">(</span><span class="n">user</span><span class="p" data-group-id="4255918409-8">)</span><span class="w"> </span><span class="k" data-group-id="4255918409-9">do</span><span class="w">
     </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w">
-  </span><span class="k" data-group-id="6757956908-9">end</span><span class="w">
-</span><span class="k" data-group-id="6757956908-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="6815877950-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="6815877950-2">(</span><span class="n">user</span><span class="p" data-group-id="6815877950-2">)</span><span class="p" data-group-id="6815877950-1">)</span></code></pre><h2 id="defd/2-important-notes" class="section-heading">
+  </span><span class="k" data-group-id="4255918409-9">end</span><span class="w">
+</span><span class="k" data-group-id="4255918409-1">end</span></code></pre><p>This can be called using</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="4476033667-1">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="4476033667-2">(</span><span class="n">user</span><span class="p" data-group-id="4476033667-2">)</span><span class="p" data-group-id="4476033667-1">)</span></code></pre><h2 id="defd/2-important-notes" class="section-heading">
   <a href="#defd/2-important-notes" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -433,9 +433,9 @@ when the function is called.</p><h2 id="defd/2-usage" class="section-heading">
   <span class="text">Options</span>
 </h2>
 <p>Additional options can be passed via a <code class="inline">@dx</code> attribute right before the <code class="inline">defd</code> definition:</p><pre><code class="makeup elixir" translate="no"><span class="na">@dx</span><span class="w"> </span><span class="ss">def</span><span class="p">:</span><span class="w"> </span><span class="ss">:original</span><span class="w">
-</span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="1278824544-1">(</span><span class="n">user</span><span class="p" data-group-id="1278824544-1">)</span><span class="w"> </span><span class="k" data-group-id="1278824544-2">do</span><span class="w">
+</span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="8277148414-1">(</span><span class="n">user</span><span class="p" data-group-id="8277148414-1">)</span><span class="w"> </span><span class="k" data-group-id="8277148414-2">do</span><span class="w">
   </span><span class="c1"># ...</span><span class="w">
-</span><span class="k" data-group-id="1278824544-2">end</span></code></pre><p>Available options:</p><ul><li><code class="inline">def:</code> - Determines what the generated non-defd function should do.<ul><li><code class="inline">:warn</code> (default) - Call the <code class="inline">defd</code> function wrapped in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> and emit a warning
+</span><span class="k" data-group-id="8277148414-2">end</span></code></pre><p>Available options:</p><ul><li><code class="inline">def:</code> - Determines what the generated non-defd function should do.<ul><li><code class="inline">:warn</code> (default) - Call the <code class="inline">defd</code> function wrapped in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> and emit a warning
 asking to make the wrapping explicit.</li><li><code class="inline">:no_warn</code> - Call the <code class="inline">defd</code> function wrapped in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a> without emitting a warning.</li><li><code class="inline">:original</code> - Keep the original function definition. This means, the original function can still
 be called directly without being changed by Dx. The <code class="inline">defd</code> version <em>must</em> be called from other
 <code class="inline">defd</code> functions or by wrapping the call in <a href="#load!/1"><code class="inline">Dx.Defd.load!/1</code></a>. This can be useful when migrating
@@ -456,7 +456,7 @@ It returns AST-like data structures with embedded <code class="inline">defd</cod
     </a>
     <h1 class="signature" translate="no">defdp(call, list)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L244" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L244" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -480,7 +480,7 @@ It returns AST-like data structures with embedded <code class="inline">defd</cod
     </a>
     <h1 class="signature" translate="no">get(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L75" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L75" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -504,7 +504,7 @@ It returns AST-like data structures with embedded <code class="inline">defd</cod
     </a>
     <h1 class="signature" translate="no">get!(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L91" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L91" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -528,7 +528,7 @@ It returns AST-like data structures with embedded <code class="inline">defd</cod
     </a>
     <h1 class="signature" translate="no">load(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L20" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L20" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -552,7 +552,7 @@ It returns AST-like data structures with embedded <code class="inline">defd</cod
     </a>
     <h1 class="signature" translate="no">load!(call, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L54" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L54" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -570,20 +570,20 @@ Raises an error if unsuccessful.</p><p>See <a href="#load/2"><code class="inline
   </a>
   <span class="text">Example</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="0951836841-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Authorization</span><span class="w"> </span><span class="k" data-group-id="8247967064-1">do</span><span class="w">
   </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="0951836841-2">(</span><span class="n">user</span><span class="p" data-group-id="0951836841-2">)</span><span class="w"> </span><span class="k" data-group-id="0951836841-3">do</span><span class="w">
-    </span><span class="k">if</span><span class="w"> </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w"> </span><span class="k" data-group-id="0951836841-4">do</span><span class="w">
-      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="0951836841-5">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="0951836841-6">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="0951836841-6">)</span><span class="p" data-group-id="0951836841-5">)</span><span class="w">
-    </span><span class="k" data-group-id="0951836841-4">else</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">visible_lists</span><span class="p" data-group-id="8247967064-2">(</span><span class="n">user</span><span class="p" data-group-id="8247967064-2">)</span><span class="w"> </span><span class="k" data-group-id="8247967064-3">do</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="n">user</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Admin&quot;</span><span class="w"> </span><span class="k" data-group-id="8247967064-4">do</span><span class="w">
+      </span><span class="nc">Enum</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="8247967064-5">(</span><span class="nc">Schema.List</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="8247967064-6">(</span><span class="ni">&amp;1</span><span class="o">.</span><span class="n">title</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Main list&quot;</span><span class="p" data-group-id="8247967064-6">)</span><span class="p" data-group-id="8247967064-5">)</span><span class="w">
+    </span><span class="k" data-group-id="8247967064-4">else</span><span class="w">
       </span><span class="n">user</span><span class="o">.</span><span class="n">lists</span><span class="w">
-    </span><span class="k" data-group-id="0951836841-4">end</span><span class="w">
-  </span><span class="k" data-group-id="0951836841-3">end</span><span class="w">
-</span><span class="k" data-group-id="0951836841-1">end</span><span class="w">
+    </span><span class="k" data-group-id="8247967064-4">end</span><span class="w">
+  </span><span class="k" data-group-id="8247967064-3">end</span><span class="w">
+</span><span class="k" data-group-id="8247967064-1">end</span><span class="w">
 
 </span><span class="c1"># Will raise if data loading fails</span><span class="w">
-</span><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="0951836841-7">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="0951836841-8">(</span><span class="n">user</span><span class="p" data-group-id="0951836841-8">)</span><span class="p" data-group-id="0951836841-7">)</span></code></pre>
+</span><span class="nc">Dx.Defd</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="8247967064-7">(</span><span class="nc">MyApp.Core.Authorization</span><span class="o">.</span><span class="n">visible_lists</span><span class="p" data-group-id="8247967064-8">(</span><span class="n">user</span><span class="p" data-group-id="8247967064-8">)</span><span class="p" data-group-id="8247967064-7">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="non_dx/1">
@@ -594,7 +594,7 @@ Raises an error if unsuccessful.</p><p>See <a href="#load/2"><code class="inline
     </a>
     <h1 class="signature" translate="no">non_dx(code)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/20d8f8e6b1c5c30d55867f1bddf00d37f5f20613/lib/dx/defd.ex#L280" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd.ex#L280" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -611,21 +611,21 @@ Dx compiler warnings.</p><h2 id="non_dx/1-example" class="section-heading">
   </a>
   <span class="text">Example</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Stats</span><span class="w"> </span><span class="k" data-group-id="5008225487-1">do</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Core.Stats</span><span class="w"> </span><span class="k" data-group-id="7086936282-1">do</span><span class="w">
   </span><span class="kn">import</span><span class="w"> </span><span class="nc">Dx.Defd</span><span class="w">
 
-  </span><span class="kd">def</span><span class="w"> </span><span class="nf">calculate_percentage</span><span class="p" data-group-id="5008225487-2">(</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="5008225487-2">)</span><span class="w"> </span><span class="k" data-group-id="5008225487-3">do</span><span class="w">
-    </span><span class="p" data-group-id="5008225487-4">(</span><span class="n">value</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="5008225487-4">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="w">
-  </span><span class="k" data-group-id="5008225487-3">end</span><span class="w">
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">calculate_percentage</span><span class="p" data-group-id="7086936282-2">(</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="7086936282-2">)</span><span class="w"> </span><span class="k" data-group-id="7086936282-3">do</span><span class="w">
+    </span><span class="p" data-group-id="7086936282-4">(</span><span class="n">value</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="7086936282-4">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="w">
+  </span><span class="k" data-group-id="7086936282-3">end</span><span class="w">
 
-  </span><span class="n">defd</span><span class="w"> </span><span class="n">user_completion_rate</span><span class="p" data-group-id="5008225487-5">(</span><span class="n">user</span><span class="p" data-group-id="5008225487-5">)</span><span class="w"> </span><span class="k" data-group-id="5008225487-6">do</span><span class="w">
-    </span><span class="n">completed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="5008225487-7">(</span><span class="n">user</span><span class="o">.</span><span class="n">completed_tasks</span><span class="p" data-group-id="5008225487-7">)</span><span class="w">
-    </span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="5008225487-8">(</span><span class="n">user</span><span class="o">.</span><span class="n">all_tasks</span><span class="p" data-group-id="5008225487-8">)</span><span class="w">
+  </span><span class="n">defd</span><span class="w"> </span><span class="n">user_completion_rate</span><span class="p" data-group-id="7086936282-5">(</span><span class="n">user</span><span class="p" data-group-id="7086936282-5">)</span><span class="w"> </span><span class="k" data-group-id="7086936282-6">do</span><span class="w">
+    </span><span class="n">completed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="7086936282-7">(</span><span class="n">user</span><span class="o">.</span><span class="n">completed_tasks</span><span class="p" data-group-id="7086936282-7">)</span><span class="w">
+    </span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="p" data-group-id="7086936282-8">(</span><span class="n">user</span><span class="o">.</span><span class="n">all_tasks</span><span class="p" data-group-id="7086936282-8">)</span><span class="w">
 
     </span><span class="c1"># Wrap the regular def function call with non_dx</span><span class="w">
-    </span><span class="n">non_dx</span><span class="p" data-group-id="5008225487-9">(</span><span class="n">calculate_percentage</span><span class="p" data-group-id="5008225487-10">(</span><span class="n">completed</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="5008225487-10">)</span><span class="p" data-group-id="5008225487-9">)</span><span class="w">
-  </span><span class="k" data-group-id="5008225487-6">end</span><span class="w">
-</span><span class="k" data-group-id="5008225487-1">end</span></code></pre>
+    </span><span class="n">non_dx</span><span class="p" data-group-id="7086936282-9">(</span><span class="n">calculate_percentage</span><span class="p" data-group-id="7086936282-10">(</span><span class="n">completed</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p" data-group-id="7086936282-10">)</span><span class="p" data-group-id="7086936282-9">)</span><span class="w">
+  </span><span class="k" data-group-id="7086936282-6">end</span><span class="w">
+</span><span class="k" data-group-id="7086936282-1">end</span></code></pre>
   </section>
 </section>
 
