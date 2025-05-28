@@ -294,7 +294,7 @@ defmodule Dx.Ecto.DataloaderSource do
     end
 
     defp validate_queryable(queryable) do
-      unless {:__schema__, 1} in queryable.__info__(:functions) do
+      if {:__schema__, 1} not in queryable.__info__(:functions) do
         raise "The given module - #{queryable} - is not an Ecto schema."
       end
     rescue
@@ -438,7 +438,7 @@ defmodule Dx.Ecto.DataloaderSource do
       {ids, records} = Enum.unzip(records)
       query = source.query.(queryable, opts) |> Ecto.Queryable.to_query()
       repo_opts = Keyword.put(source.repo_opts, :caller, pid)
-      empty = schema |> struct |> Map.fetch!(field)
+      empty = schema |> struct() |> Map.fetch!(field)
       records = records |> Enum.map(&Map.put(&1, field, empty))
 
       results =

@@ -131,7 +131,7 @@ defmodule Dx.Test.DataCase do
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Dx.Test.Repo)
 
-    unless tags[:async] do
+    if !tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Dx.Test.Repo, {:shared, self()})
     end
 
