@@ -111,7 +111,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -135,13 +135,13 @@ Guides (old)
   </a>
   <span class="text">Example using <code class="inline">all</code></span>
 </h3>
-<p>For example, using <a href="#all?/1"><code class="inline">all?/1</code></a> with 3 conditions A, B and C, where</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="0607700911-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0607700911-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="0607700911-2">}</span><span class="p">,</span><span class="w">   </span><span class="c1"># A</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0607700911-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0607700911-4">[</span><span class="mi">1</span><span class="p" data-group-id="0607700911-4">]</span><span class="p" data-group-id="0607700911-3">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># B</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0607700911-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0607700911-5">}</span><span class="p">,</span><span class="w">  </span><span class="c1"># C</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="0607700911-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="0607700911-6">(</span><span class="p" data-group-id="0607700911-6">)</span><span class="w">
-</span><span class="p" data-group-id="0607700911-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0607700911-7">}</span></code></pre><p>The overall result is <code class="inline">{:ok, false}</code>.
+<p>For example, using <a href="#all?/1"><code class="inline">all?/1</code></a> with 3 conditions A, B and C, where</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1377750374-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1377750374-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1377750374-2">}</span><span class="p">,</span><span class="w">   </span><span class="c1"># A</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1377750374-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1377750374-4">[</span><span class="mi">1</span><span class="p" data-group-id="1377750374-4">]</span><span class="p" data-group-id="1377750374-3">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># B</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1377750374-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="1377750374-5">}</span><span class="p">,</span><span class="w">  </span><span class="c1"># C</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1377750374-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="1377750374-6">(</span><span class="p" data-group-id="1377750374-6">)</span><span class="w">
+</span><span class="p" data-group-id="1377750374-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="1377750374-7">}</span></code></pre><p>The overall result is <code class="inline">{:ok, false}</code>.
 While B would need more data to be loaded, C can already determined and is <code class="inline">false</code>,
 so and any additional data loaded will not change that.</p><h3 id="module-example-using-find" class="section-heading">
   <a href="#module-example-using-find" class="hover-link">
@@ -149,15 +149,15 @@ so and any additional data loaded will not change that.</p><h3 id="module-exampl
   </a>
   <span class="text">Example using <code class="inline">find</code></span>
 </h3>
-<p>Another example, using <a href="#find/1"><code class="inline">find/1</code></a> with 5 conditions A, B, C, D and E, where</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2552264985-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2552264985-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2552264985-2">}</span><span class="p">,</span><span class="w">  </span><span class="c1"># A</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2552264985-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2552264985-4">[</span><span class="mi">1</span><span class="p" data-group-id="2552264985-4">]</span><span class="p" data-group-id="2552264985-3">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># B</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2552264985-5">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2552264985-6">[</span><span class="mi">2</span><span class="p" data-group-id="2552264985-6">]</span><span class="p" data-group-id="2552264985-5">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># C</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2552264985-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2552264985-7">}</span><span class="p">,</span><span class="w">   </span><span class="c1"># D</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2552264985-8">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2552264985-9">[</span><span class="mi">3</span><span class="p" data-group-id="2552264985-9">]</span><span class="p" data-group-id="2552264985-8">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># E</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="2552264985-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="2552264985-10">(</span><span class="p" data-group-id="2552264985-10">)</span><span class="w">
-</span><span class="p" data-group-id="2552264985-11">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2552264985-12">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="2552264985-12">]</span><span class="p" data-group-id="2552264985-11">}</span></code></pre><p>The overall result is <code class="inline">{:not_loaded, data_reqs1 + data_reqs2}</code>.
+<p>Another example, using <a href="#find/1"><code class="inline">find/1</code></a> with 5 conditions A, B, C, D and E, where</p><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="3592300788-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="3592300788-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="3592300788-2">}</span><span class="p">,</span><span class="w">  </span><span class="c1"># A</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="3592300788-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3592300788-4">[</span><span class="mi">1</span><span class="p" data-group-id="3592300788-4">]</span><span class="p" data-group-id="3592300788-3">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># B</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="3592300788-5">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3592300788-6">[</span><span class="mi">2</span><span class="p" data-group-id="3592300788-6">]</span><span class="p" data-group-id="3592300788-5">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># C</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="3592300788-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="3592300788-7">}</span><span class="p">,</span><span class="w">   </span><span class="c1"># D</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="3592300788-8">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3592300788-9">[</span><span class="mi">3</span><span class="p" data-group-id="3592300788-9">]</span><span class="p" data-group-id="3592300788-8">}</span><span class="p">,</span><span class="w"> </span><span class="c1"># E</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="3592300788-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="3592300788-10">(</span><span class="p" data-group-id="3592300788-10">)</span><span class="w">
+</span><span class="p" data-group-id="3592300788-11">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3592300788-12">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="3592300788-12">]</span><span class="p" data-group-id="3592300788-11">}</span></code></pre><p>The overall result is <code class="inline">{:not_loaded, data_reqs1 + data_reqs2}</code>.
 While D can already be determined and is <code class="inline">{:ok, true}</code>, B and C come first and need more data
 to be loaded, so they can be determined and returned if either is <code class="inline">{:ok, true}</code> first.
 All data requirements that might be needed are returned together in the result (those of B and C),
@@ -456,7 +456,7 @@ Otherwise, returns first argument as is.</p></div>
     </a>
     <h1 class="signature" translate="no">all?(enum, mapper \\ &amp;identity/1)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L302" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L302" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -473,28 +473,28 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="all?/2-e
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4399568897-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4399568897-4">[</span><span class="p" data-group-id="4399568897-4">]</span><span class="p" data-group-id="4399568897-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4399568897-5">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4399568897-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="4399568897-6">(</span><span class="p" data-group-id="4399568897-6">)</span><span class="w">
-</span><span class="p" data-group-id="4399568897-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4399568897-7">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1116382953-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1116382953-4">[</span><span class="p" data-group-id="1116382953-4">]</span><span class="p" data-group-id="1116382953-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="1116382953-5">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1116382953-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="1116382953-6">(</span><span class="p" data-group-id="1116382953-6">)</span><span class="w">
+</span><span class="p" data-group-id="1116382953-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="1116382953-7">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4399568897-8">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-9">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4399568897-11">[</span><span class="p" data-group-id="4399568897-11">]</span><span class="p" data-group-id="4399568897-10">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-12">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4399568897-8">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="4399568897-13">(</span><span class="p" data-group-id="4399568897-13">)</span><span class="w">
-</span><span class="p" data-group-id="4399568897-14">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4399568897-15">[</span><span class="p" data-group-id="4399568897-15">]</span><span class="p" data-group-id="4399568897-14">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1116382953-8">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-9">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1116382953-11">[</span><span class="p" data-group-id="1116382953-11">]</span><span class="p" data-group-id="1116382953-10">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-12">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1116382953-8">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="1116382953-13">(</span><span class="p" data-group-id="1116382953-13">)</span><span class="w">
+</span><span class="p" data-group-id="1116382953-14">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1116382953-15">[</span><span class="p" data-group-id="1116382953-15">]</span><span class="p" data-group-id="1116382953-14">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4399568897-16">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-17">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-17">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4399568897-18">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-18">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4399568897-16">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="4399568897-19">(</span><span class="p" data-group-id="4399568897-19">)</span><span class="w">
-</span><span class="p" data-group-id="4399568897-20">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4399568897-20">}</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1116382953-16">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-17">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-17">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1116382953-18">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-18">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1116382953-16">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">all?</span><span class="p" data-group-id="1116382953-19">(</span><span class="p" data-group-id="1116382953-19">)</span><span class="w">
+</span><span class="p" data-group-id="1116382953-20">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1116382953-20">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="any?/2">
@@ -507,7 +507,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="all?/2-e
     </a>
     <h1 class="signature" translate="no">any?(enum, mapper \\ &amp;identity/1)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L338" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L338" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -524,28 +524,28 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2680935398-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2680935398-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2680935398-4">[</span><span class="p" data-group-id="2680935398-4">]</span><span class="p" data-group-id="2680935398-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-5">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="2680935398-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="2680935398-6">(</span><span class="p" data-group-id="2680935398-6">)</span><span class="w">
-</span><span class="p" data-group-id="2680935398-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2680935398-7">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9723709780-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9723709780-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9723709780-4">[</span><span class="p" data-group-id="9723709780-4">]</span><span class="p" data-group-id="9723709780-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-5">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9723709780-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="9723709780-6">(</span><span class="p" data-group-id="9723709780-6">)</span><span class="w">
+</span><span class="p" data-group-id="9723709780-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="9723709780-7">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2680935398-8">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-9">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2680935398-11">[</span><span class="p" data-group-id="2680935398-11">]</span><span class="p" data-group-id="2680935398-10">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-12">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="2680935398-8">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="2680935398-13">(</span><span class="p" data-group-id="2680935398-13">)</span><span class="w">
-</span><span class="p" data-group-id="2680935398-14">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2680935398-15">[</span><span class="p" data-group-id="2680935398-15">]</span><span class="p" data-group-id="2680935398-14">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9723709780-8">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-9">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9723709780-11">[</span><span class="p" data-group-id="9723709780-11">]</span><span class="p" data-group-id="9723709780-10">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-12">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9723709780-8">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="9723709780-13">(</span><span class="p" data-group-id="9723709780-13">)</span><span class="w">
+</span><span class="p" data-group-id="9723709780-14">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9723709780-15">[</span><span class="p" data-group-id="9723709780-15">]</span><span class="p" data-group-id="9723709780-14">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="2680935398-16">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-17">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-17">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="2680935398-18">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-18">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="2680935398-16">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="2680935398-19">(</span><span class="p" data-group-id="2680935398-19">)</span><span class="w">
-</span><span class="p" data-group-id="2680935398-20">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2680935398-20">}</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9723709780-16">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-17">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-17">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9723709780-18">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-18">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9723709780-16">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">any?</span><span class="p" data-group-id="9723709780-19">(</span><span class="p" data-group-id="9723709780-19">)</span><span class="w">
+</span><span class="p" data-group-id="9723709780-20">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="9723709780-20">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="collect/1">
@@ -556,7 +556,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
     </a>
     <h1 class="signature" translate="no">collect(results)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L456" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L456" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -576,7 +576,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
     </a>
     <h1 class="signature" translate="no">collect_map_pairs(flat_pairs)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L461" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L461" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -596,7 +596,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
     </a>
     <h1 class="signature" translate="no">collect_ok(results)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L468" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L468" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -616,7 +616,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
     </a>
     <h1 class="signature" translate="no">collect_ok_reverse(list, acc)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L473" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L473" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -638,7 +638,7 @@ Otherwise, returns <code class="inline">{:ok, false}</code>.</p><h2 id="any?/2-e
     </a>
     <h1 class="signature" translate="no">collect_reverse(list, acc \\ {:ok, []})</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L428" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L428" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -654,31 +654,31 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9772376373-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9772376373-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="9772376373-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9772376373-4">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9772376373-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="9772376373-5">(</span><span class="p" data-group-id="9772376373-5">)</span><span class="w">
-</span><span class="p" data-group-id="9772376373-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9772376373-7">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9772376373-7">]</span><span class="p" data-group-id="9772376373-6">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4917324924-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="4917324924-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="4917324924-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="4917324924-4">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4917324924-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="4917324924-5">(</span><span class="p" data-group-id="4917324924-5">)</span><span class="w">
+</span><span class="p" data-group-id="4917324924-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4917324924-7">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="4917324924-7">]</span><span class="p" data-group-id="4917324924-6">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9772376373-8">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9772376373-9">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9772376373-11">[</span><span class="ss">:x</span><span class="p" data-group-id="9772376373-11">]</span><span class="p" data-group-id="9772376373-10">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9772376373-12">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9772376373-14">[</span><span class="ss">:y</span><span class="p" data-group-id="9772376373-14">]</span><span class="p" data-group-id="9772376373-13">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9772376373-8">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="9772376373-15">(</span><span class="p" data-group-id="9772376373-15">)</span><span class="w">
-</span><span class="p" data-group-id="9772376373-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9772376373-17">[</span><span class="ss">:y</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9772376373-17">]</span><span class="p" data-group-id="9772376373-16">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4917324924-8">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="4917324924-9">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4917324924-11">[</span><span class="ss">:x</span><span class="p" data-group-id="4917324924-11">]</span><span class="p" data-group-id="4917324924-10">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="4917324924-12">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4917324924-14">[</span><span class="ss">:y</span><span class="p" data-group-id="4917324924-14">]</span><span class="p" data-group-id="4917324924-13">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4917324924-8">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="4917324924-15">(</span><span class="p" data-group-id="4917324924-15">)</span><span class="w">
+</span><span class="p" data-group-id="4917324924-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4917324924-17">[</span><span class="ss">:y</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="4917324924-17">]</span><span class="p" data-group-id="4917324924-16">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9772376373-18">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-19">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9772376373-19">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-20">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9772376373-20">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-21">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9772376373-21">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9772376373-22">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9772376373-23">[</span><span class="ss">:y</span><span class="p" data-group-id="9772376373-23">]</span><span class="p" data-group-id="9772376373-22">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9772376373-18">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="9772376373-24">(</span><span class="p" data-group-id="9772376373-24">)</span><span class="w">
-</span><span class="p" data-group-id="9772376373-25">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9772376373-25">}</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4917324924-18">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-19">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="4917324924-19">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-20">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="4917324924-20">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-21">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="4917324924-21">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4917324924-22">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4917324924-23">[</span><span class="ss">:y</span><span class="p" data-group-id="4917324924-23">]</span><span class="p" data-group-id="4917324924-22">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4917324924-18">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">collect_reverse</span><span class="p" data-group-id="4917324924-24">(</span><span class="p" data-group-id="4917324924-24">)</span><span class="w">
+</span><span class="p" data-group-id="4917324924-25">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="4917324924-25">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="combine/2">
@@ -689,7 +689,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">combine(elem, acc)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L497" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L497" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -709,7 +709,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">filter(enum, fun, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L148" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L148" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -735,7 +735,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">find(enum, fun \\ &amp;identity/1, result_mapper \\ &amp;ok/1, default \\ ok(nil))</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L383" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L383" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -752,37 +752,37 @@ Otherwise, returns <code class="inline">{:ok, default}</code>.</p><h2 id="find/4
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4206520762-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4206520762-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-4">[</span><span class="p" data-group-id="4206520762-4">]</span><span class="p" data-group-id="4206520762-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4206520762-5">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4206520762-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="4206520762-6">(</span><span class="p" data-group-id="4206520762-6">)</span><span class="w">
-</span><span class="p" data-group-id="4206520762-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4206520762-8">}</span><span class="p" data-group-id="4206520762-7">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="8691705522-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8691705522-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-3">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-4">[</span><span class="p" data-group-id="8691705522-4">]</span><span class="p" data-group-id="8691705522-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="8691705522-5">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="8691705522-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="8691705522-6">(</span><span class="p" data-group-id="8691705522-6">)</span><span class="w">
+</span><span class="p" data-group-id="8691705522-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8691705522-8">}</span><span class="p" data-group-id="8691705522-7">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4206520762-9">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-10">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4206520762-10">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-11">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-12">[</span><span class="mi">1</span><span class="p" data-group-id="4206520762-12">]</span><span class="p" data-group-id="4206520762-11">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-14">[</span><span class="mi">2</span><span class="p" data-group-id="4206520762-14">]</span><span class="p" data-group-id="4206520762-13">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-15">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="4206520762-15">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-17">[</span><span class="mi">3</span><span class="p" data-group-id="4206520762-17">]</span><span class="p" data-group-id="4206520762-16">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4206520762-9">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="4206520762-18">(</span><span class="p" data-group-id="4206520762-18">)</span><span class="w">
-</span><span class="p" data-group-id="4206520762-19">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4206520762-20">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="4206520762-20">]</span><span class="p" data-group-id="4206520762-19">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="8691705522-9">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-10">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="8691705522-10">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-11">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-12">[</span><span class="mi">1</span><span class="p" data-group-id="8691705522-12">]</span><span class="p" data-group-id="8691705522-11">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-14">[</span><span class="mi">2</span><span class="p" data-group-id="8691705522-14">]</span><span class="p" data-group-id="8691705522-13">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-15">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="8691705522-15">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-17">[</span><span class="mi">3</span><span class="p" data-group-id="8691705522-17">]</span><span class="p" data-group-id="8691705522-16">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="8691705522-9">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="8691705522-18">(</span><span class="p" data-group-id="8691705522-18">)</span><span class="w">
+</span><span class="p" data-group-id="8691705522-19">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8691705522-20">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="8691705522-20">]</span><span class="p" data-group-id="8691705522-19">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4206520762-21">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-22">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4206520762-22">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="4206520762-23">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4206520762-23">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4206520762-21">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="4206520762-24">(</span><span class="p" data-group-id="4206520762-24">)</span><span class="w">
-</span><span class="p" data-group-id="4206520762-25">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="4206520762-25">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="8691705522-21">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-22">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="8691705522-22">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="8691705522-23">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="8691705522-23">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="8691705522-21">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="8691705522-24">(</span><span class="p" data-group-id="8691705522-24">)</span><span class="w">
+</span><span class="p" data-group-id="8691705522-25">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="8691705522-25">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="4206520762-26">[</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="8691705522-26">[</span><span class="w">
 </span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="no">false</span><span class="p">,</span><span class="w">
 </span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="no">false</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="4206520762-26">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="4206520762-27">(</span><span class="o">&amp;</span><span class="p" data-group-id="4206520762-28">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p" data-group-id="4206520762-28">}</span><span class="p" data-group-id="4206520762-27">)</span><span class="w">
-</span><span class="p" data-group-id="4206520762-29">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="4206520762-29">}</span></code></pre>
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="8691705522-26">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">find</span><span class="p" data-group-id="8691705522-27">(</span><span class="o">&amp;</span><span class="p" data-group-id="8691705522-28">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p" data-group-id="8691705522-28">}</span><span class="p" data-group-id="8691705522-27">)</span><span class="w">
+</span><span class="p" data-group-id="8691705522-29">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="8691705522-29">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="find_value/3">
@@ -795,7 +795,7 @@ Otherwise, returns <code class="inline">{:ok, default}</code>.</p><h2 id="find/4
     </a>
     <h1 class="signature" translate="no">find_value(enum, fun, default \\ ok(nil))</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L389" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L389" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -817,7 +817,7 @@ Otherwise, returns <code class="inline">{:ok, default}</code>.</p><h2 id="find/4
     </a>
     <h1 class="signature" translate="no">map(enum, mapper \\ &amp;identity/1)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L134" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L134" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -833,31 +833,31 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1414787795-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1414787795-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="1414787795-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="1414787795-4">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1414787795-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="1414787795-5">(</span><span class="p" data-group-id="1414787795-5">)</span><span class="w">
-</span><span class="p" data-group-id="1414787795-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1414787795-7">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="1414787795-7">]</span><span class="p" data-group-id="1414787795-6">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9622984856-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9622984856-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="9622984856-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9622984856-4">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9622984856-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="9622984856-5">(</span><span class="p" data-group-id="9622984856-5">)</span><span class="w">
+</span><span class="p" data-group-id="9622984856-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9622984856-7">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9622984856-7">]</span><span class="p" data-group-id="9622984856-6">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1414787795-8">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1414787795-9">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1414787795-11">[</span><span class="ss">:x</span><span class="p" data-group-id="1414787795-11">]</span><span class="p" data-group-id="1414787795-10">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="1414787795-12">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1414787795-14">[</span><span class="ss">:y</span><span class="p" data-group-id="1414787795-14">]</span><span class="p" data-group-id="1414787795-13">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1414787795-8">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="1414787795-15">(</span><span class="p" data-group-id="1414787795-15">)</span><span class="w">
-</span><span class="p" data-group-id="1414787795-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1414787795-17">[</span><span class="ss">:x</span><span class="p">,</span><span class="w"> </span><span class="ss">:y</span><span class="p" data-group-id="1414787795-17">]</span><span class="p" data-group-id="1414787795-16">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9622984856-8">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9622984856-9">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-10">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9622984856-11">[</span><span class="ss">:x</span><span class="p" data-group-id="9622984856-11">]</span><span class="p" data-group-id="9622984856-10">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9622984856-12">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-13">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9622984856-14">[</span><span class="ss">:y</span><span class="p" data-group-id="9622984856-14">]</span><span class="p" data-group-id="9622984856-13">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9622984856-8">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="9622984856-15">(</span><span class="p" data-group-id="9622984856-15">)</span><span class="w">
+</span><span class="p" data-group-id="9622984856-16">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9622984856-17">[</span><span class="ss">:x</span><span class="p">,</span><span class="w"> </span><span class="ss">:y</span><span class="p" data-group-id="9622984856-17">]</span><span class="p" data-group-id="9622984856-16">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="1414787795-18">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-19">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1414787795-19">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-20">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="1414787795-20">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-21">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="1414787795-21">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="1414787795-22">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1414787795-23">[</span><span class="ss">:y</span><span class="p" data-group-id="1414787795-23">]</span><span class="p" data-group-id="1414787795-22">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="1414787795-18">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="1414787795-24">(</span><span class="p" data-group-id="1414787795-24">)</span><span class="w">
-</span><span class="p" data-group-id="1414787795-25">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="1414787795-25">}</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9622984856-18">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-19">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9622984856-19">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-20">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9622984856-20">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-21">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9622984856-21">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9622984856-22">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9622984856-23">[</span><span class="ss">:y</span><span class="p" data-group-id="9622984856-23">]</span><span class="p" data-group-id="9622984856-22">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9622984856-18">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="9622984856-24">(</span><span class="p" data-group-id="9622984856-24">)</span><span class="w">
+</span><span class="p" data-group-id="9622984856-25">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9622984856-25">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="map/3">
@@ -868,7 +868,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">map(enum, mapper, result_mapper)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L141" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L141" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -888,7 +888,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">map_then_reduce(enum, mapper, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L208" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L208" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -908,7 +908,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">map_then_reduce(enum, mapper, first_fun, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L215" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L215" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -928,7 +928,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">map_then_reduce_ok(enum, mapper, acc, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L196" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L196" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -946,31 +946,31 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
   </a>
   <span class="text">Examples</span>
 </h2>
-<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9707819560-1">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9707819560-2">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="9707819560-3">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9707819560-4">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9707819560-1">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="9707819560-5">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-6">[</span><span class="p" data-group-id="9707819560-6">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="9707819560-7">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="9707819560-7">]</span><span class="p" data-group-id="9707819560-5">)</span><span class="w">
-</span><span class="p" data-group-id="9707819560-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-9">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9707819560-9">]</span><span class="p" data-group-id="9707819560-8">}</span><span class="w">
+<pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="0835356931-1">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="0835356931-2">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="0835356931-3">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="0835356931-4">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="0835356931-1">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="0835356931-5">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-6">[</span><span class="p" data-group-id="0835356931-6">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="0835356931-7">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="0835356931-7">]</span><span class="p" data-group-id="0835356931-5">)</span><span class="w">
+</span><span class="p" data-group-id="0835356931-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-9">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="0835356931-9">]</span><span class="p" data-group-id="0835356931-8">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9707819560-10">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9707819560-11">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-12">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-13">[</span><span class="ss">:x</span><span class="p" data-group-id="9707819560-13">]</span><span class="p" data-group-id="9707819560-12">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-14">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9707819560-14">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-15">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-16">[</span><span class="ss">:y</span><span class="p" data-group-id="9707819560-16">]</span><span class="p" data-group-id="9707819560-15">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9707819560-10">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="9707819560-17">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-18">[</span><span class="p" data-group-id="9707819560-18">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="9707819560-19">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="9707819560-19">]</span><span class="p" data-group-id="9707819560-17">)</span><span class="w">
-</span><span class="p" data-group-id="9707819560-20">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-21">[</span><span class="ss">:x</span><span class="p">,</span><span class="w"> </span><span class="ss">:y</span><span class="p" data-group-id="9707819560-21">]</span><span class="p" data-group-id="9707819560-20">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="0835356931-10">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="0835356931-11">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-12">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-13">[</span><span class="ss">:x</span><span class="p" data-group-id="0835356931-13">]</span><span class="p" data-group-id="0835356931-12">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-14">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="0835356931-14">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-15">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-16">[</span><span class="ss">:y</span><span class="p" data-group-id="0835356931-16">]</span><span class="p" data-group-id="0835356931-15">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="0835356931-10">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="0835356931-17">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-18">[</span><span class="p" data-group-id="0835356931-18">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="0835356931-19">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="0835356931-19">]</span><span class="p" data-group-id="0835356931-17">)</span><span class="w">
+</span><span class="p" data-group-id="0835356931-20">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-21">[</span><span class="ss">:x</span><span class="p">,</span><span class="w"> </span><span class="ss">:y</span><span class="p" data-group-id="0835356931-21">]</span><span class="p" data-group-id="0835356931-20">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="9707819560-22">[</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-23">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="9707819560-23">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-24">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9707819560-24">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-25">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="9707819560-25">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="9707819560-26">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-27">[</span><span class="ss">:y</span><span class="p" data-group-id="9707819560-27">]</span><span class="p" data-group-id="9707819560-26">}</span><span class="p">,</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="9707819560-22">]</span><span class="w">
-</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="9707819560-28">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9707819560-29">[</span><span class="p" data-group-id="9707819560-29">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="9707819560-30">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="9707819560-30">]</span><span class="p" data-group-id="9707819560-28">)</span><span class="w">
-</span><span class="p" data-group-id="9707819560-31">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="9707819560-31">}</span></code></pre>
+</span><span class="gp unselectable">iex&gt; </span><span class="p" data-group-id="0835356931-22">[</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-23">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="0835356931-23">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-24">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="0835356931-24">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-25">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="0835356931-25">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="w">  </span><span class="p" data-group-id="0835356931-26">{</span><span class="ss">:not_loaded</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-27">[</span><span class="ss">:y</span><span class="p" data-group-id="0835356931-27">]</span><span class="p" data-group-id="0835356931-26">}</span><span class="p">,</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="p" data-group-id="0835356931-22">]</span><span class="w">
+</span><span class="gp unselectable">...&gt; </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Dx.Defd.Result</span><span class="o">.</span><span class="n">map_then_reduce_ok</span><span class="p" data-group-id="0835356931-28">(</span><span class="o">&amp;</span><span class="w"> </span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0835356931-29">[</span><span class="p" data-group-id="0835356931-29">]</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p" data-group-id="0835356931-30">[</span><span class="ni">&amp;1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ni">&amp;2</span><span class="p" data-group-id="0835356931-30">]</span><span class="p" data-group-id="0835356931-28">)</span><span class="w">
+</span><span class="p" data-group-id="0835356931-31">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:x</span><span class="p" data-group-id="0835356931-31">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="map_then_reduce_ok_while/4">
@@ -981,7 +981,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">map_then_reduce_ok_while(enum, mapper, acc, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L235" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L235" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1001,7 +1001,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">merge(arg1, arg2)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L485" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L485" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1021,7 +1021,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">ok(value)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L59" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L59" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1041,7 +1041,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">reduce(enum, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L247" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L247" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1061,7 +1061,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">reduce(enum, acc, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L260" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L260" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1081,7 +1081,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">reduce_while(enum, acc, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L266" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L266" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1101,7 +1101,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">reject(enum, fun, eval)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L155" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L155" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1121,7 +1121,7 @@ Otherwise, returns <code class="inline">{:error, e}</code> on error, or <code cl
     </a>
     <h1 class="signature" translate="no">then(other, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L65" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L65" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1142,7 +1142,7 @@ Otherwise, returns first argument as is.</p>
     </a>
     <h1 class="signature" translate="no">transform(other)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L74" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L74" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1163,7 +1163,7 @@ Otherwise, returns first argument as is.</p>
     </a>
     <h1 class="signature" translate="no">transform(other, empty_fallback)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L78" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L78" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1183,7 +1183,7 @@ Otherwise, returns first argument as is.</p>
     </a>
     <h1 class="signature" translate="no">transform(other, empty_fallback, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L94" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L94" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -1203,7 +1203,7 @@ Otherwise, returns first argument as is.</p>
     </a>
     <h1 class="signature" translate="no">transform_while(other, fun)</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx/defd/result.ex#L90" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx/defd/result.ex#L90" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 

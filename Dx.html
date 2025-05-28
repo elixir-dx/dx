@@ -111,7 +111,7 @@ Guides (old)
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
@@ -130,7 +130,7 @@ directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><code cla
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><code class="inline">predicates</code> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a>
 of the predicates and their resulting values.</li><li><code class="inline">options</code> (optional) See below.</li></ul><p>Options:</p><ul><li><code class="inline">args</code> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="9438473375-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9438473375-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9438473375-2">]</span><span class="p" data-group-id="9438473375-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="2593180590-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2593180590-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="2593180590-2">]</span><span class="p" data-group-id="2593180590-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
 and use them only where needed.</li><li><code class="inline">debug</code> (boolean) makes Dx print additional information to the console as rules are evaluated.
 Should only be used while debugging.</li><li><code class="inline">return_cache</code> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
@@ -275,7 +275,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L152" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L152" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -297,7 +297,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L52" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L52" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -319,7 +319,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L79" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L79" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -341,7 +341,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L87" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L87" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -363,7 +363,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L103" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L103" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -385,7 +385,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L116" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L116" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -414,7 +414,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L132" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L132" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -436,7 +436,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     </a>
     <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L191" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L191" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -469,7 +469,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L207" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L207" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
@@ -497,7 +497,7 @@ and evaluating the rules on them.</p>
     </a>
     <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/e9ff9628ff912d94147170f31ca8f7d602e95e66/lib/dx.ex#L175" class="icon-action" rel="help" aria-label="View Source">
+      <a href="https://github.com/elixir-dx/dx/blob/8f3e086dabceea0096d3f3f8e7d56d49bf427290/lib/dx.ex#L175" class="icon-action" rel="help" aria-label="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
      </a>
 
