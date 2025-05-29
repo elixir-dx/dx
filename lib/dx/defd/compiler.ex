@@ -4,6 +4,7 @@ defmodule Dx.Defd.Compiler do
   alias Dx.Defd.Ast
   alias Dx.Defd.Ast.Loader
   alias Dx.Defd.Ast.State
+  alias Dx.Defd.NonDx
   alias Dx.Defd.Util
 
   import Ast.Guards
@@ -23,24 +24,24 @@ defmodule Dx.Defd.Compiler do
     defds = compile_prepare_arities(exports)
     all_arities = all_arities(exports)
 
-    state = %{
-      module: module,
-      file: file,
-      line: line,
-      function: nil,
-      defds: defds,
-      all_arities: all_arities,
-      used_defds: MapSet.new(),
-      args: MapSet.new(),
-      var_index: 1,
-      scope_args: [],
-      eval_var: eval_var,
-      warn_non_dx?: true,
-      called_non_dx?: false,
-      loaders: [],
-      finalized_vars: MapSet.new(),
-      rewrite_underscore?: false
-    }
+    state =
+      %{
+        module: module,
+        file: file,
+        line: line,
+        function: nil,
+        defds: defds,
+        all_arities: all_arities,
+        used_defds: MapSet.new(),
+        args: MapSet.new(),
+        var_index: 1,
+        scope_args: [],
+        eval_var: eval_var,
+        loaders: [],
+        finalized_vars: MapSet.new(),
+        rewrite_underscore?: false
+      }
+      |> NonDx.init()
 
     {quoted, state} =
       Enum.flat_map_reduce(exports, state, fn def, state ->
@@ -307,15 +308,17 @@ defmodule Dx.Defd.Compiler do
         case_ast = {:case, [line: line], [case_subject, [do: case_clauses]]}
 
         {final_args_ast, final_args_state} =
-          State.pass_in(
-            state,
-            [warn_non_dx?: false, finalized_vars: &Ast.collect_vars(state.all_args, &1)],
-            fn state ->
-              Ast.with_root_args(state.all_args, state, fn state ->
-                Dx.Defd.Case.normalize(case_ast, state)
-              end)
-            end
-          )
+          NonDx.suppress_warnings(state, fn state ->
+            State.pass_in(
+              state,
+              [finalized_vars: &Ast.collect_vars(state.all_args, &1)],
+              fn state ->
+                Ast.with_root_args(state.all_args, state, fn state ->
+                  Dx.Defd.Case.normalize(case_ast, state)
+                end)
+              end
+            )
+          end)
 
         {{final_args_args, final_args_ast}, final_args_state} =
           maybe_unwrap_case(final_args_ast, final_args_state)
@@ -483,20 +486,8 @@ defmodule Dx.Defd.Compiler do
     |> with_state(state)
   end
 
-  def normalize({{:., meta, [Dx.Defd, :non_dx]}, _meta2, [ast]}, orig_state) do
-    State.pass_in(orig_state, [warn_non_dx?: false, called_non_dx?: false], fn state ->
-      {ast, state} = normalize(ast, state)
-
-      if orig_state.warn_non_dx? and not state.called_non_dx? do
-        warn(meta, state, """
-        No function was called that is not defined with defd.
-
-        Please remove the call to non_dx/1.
-        """)
-      end
-
-      {ast, state}
-    end)
+  def normalize({{:., _meta, [Dx.Defd, :non_dx]}, _meta2, [_ast]} = ast, orig_state) do
+    NonDx.normalize(ast, orig_state)
   end
 
   def normalize({:fn, _meta, clauses} = fun, state) when is_list(clauses) do
@@ -577,7 +568,7 @@ defmodule Dx.Defd.Compiler do
   end
 
   # &local_fun/2
-  def normalize({:&, meta, [{:/, [], [{fun_name, meta2, nil}, arity]}]}, state) do
+  def normalize({:&, meta, [{:/, [], [{fun_name, meta2, nil}, arity]}]} = fun, state) do
     args = Macro.generate_arguments(arity, __MODULE__)
     line = meta[:line] || state.line
 
@@ -605,23 +596,7 @@ defmodule Dx.Defd.Compiler do
         ]}}
       |> with_state(state)
     else
-      if state.warn_non_dx? do
-        warn(meta, state, """
-        #{fun_name}/#{arity} is not defined with defd.
-
-        Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-            non_dx(...(&#{fun_name}/#{arity}))
-        """)
-      end
-
-      quote line: line do
-        {:ok,
-         fn unquote_splicing(args) ->
-           {:ok, unquote(fun_name)(unquote_splicing(args))}
-         end}
-      end
-      |> with_state(%{state | called_non_dx?: true})
+      NonDx.normalize(fun, state)
     end
   end
 
@@ -672,23 +647,7 @@ defmodule Dx.Defd.Compiler do
         |> with_state(state)
 
       true ->
-        if state.warn_non_dx? do
-          warn(meta, state, """
-          #{fun_name}/#{arity} is not defined with defd.
-
-          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-              non_dx(...(&#{module}.#{fun_name}/#{arity}))
-          """)
-        end
-
-        quote line: line do
-          {:ok,
-           fn unquote_splicing(args) ->
-             {:ok, unquote(module).unquote(fun_name)(unquote_splicing(args))}
-           end}
-        end
-        |> with_state(%{state | called_non_dx?: true})
+        NonDx.normalize(fun, state)
     end
   end
 
@@ -697,37 +656,17 @@ defmodule Dx.Defd.Compiler do
       when is_atom(fun_name) and is_list(args) do
     arity = length(args)
 
-    cond do
-      {fun_name, arity} in state.defds ->
-        defd_name = Util.defd_name(fun_name)
+    if {fun_name, arity} in state.defds do
+      defd_name = Util.defd_name(fun_name)
 
-        state = Map.update!(state, :used_defds, &MapSet.put(&1, {fun_name, arity}))
+      state = Map.update!(state, :used_defds, &MapSet.put(&1, {fun_name, arity}))
 
-        normalize_call_args(args, state, fn args ->
-          {defd_name, meta, args ++ [state.eval_var]}
-        end)
-        |> Loader.add()
-
-      Util.has_function?(state.module, fun_name, arity) ->
-        if state.warn_non_dx? do
-          warn(meta, state, """
-          #{fun_name}/#{arity} is not defined with defd.
-
-          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-              non_dx(#{fun_name}(...))
-          """)
-        end
-
-        {ast, state} =
-          normalize_external_call_args(args, state, fn args ->
-            {fun_name, meta, args}
-          end)
-
-        {{:ok, ast}, %{state | called_non_dx?: true}}
-
-      true ->
-        {{:ok, fun}, state}
+      normalize_call_args(args, state, fn args ->
+        {defd_name, meta, args ++ [state.eval_var]}
+      end)
+      |> Loader.add()
+    else
+      NonDx.normalize(fun, state)
     end
   end
 
@@ -774,38 +713,8 @@ defmodule Dx.Defd.Compiler do
         end)
         |> Loader.add()
 
-      # avoid non_dx warning for `Dx.Scope.all/1`
-      {module, fun_name, arity} == {Dx.Scope, :all, 1} ->
-        normalize_external_call_args(args, state, fn args ->
-          {{:., meta, [module, fun_name]}, meta2, args}
-        end)
-        |> Ast.ok()
-
-      Util.has_function?(module, fun_name, arity) ->
-        if state.warn_non_dx? do
-          warn(meta2, state, """
-          #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
-
-          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-              non_dx(#{inspect(module)}.#{fun_name}(...))
-          """)
-        end
-
-        {ast, state} =
-          normalize_external_call_args(args, state, fn args ->
-            {{:., meta, [module, fun_name]}, meta2, args}
-          end)
-
-        {{:ok, ast}, %{state | called_non_dx?: true}}
-
       true ->
-        {ast, state} =
-          normalize_external_call_args(args, state, fn args ->
-            {{:., meta, [module, fun_name]}, meta2, args}
-          end)
-
-        {{:ok, ast}, state}
+        NonDx.normalize(fun, state)
     end
   end
 
@@ -902,115 +811,12 @@ defmodule Dx.Defd.Compiler do
     :error
   end
 
-  # extracts only loaders based on variables bound outside of the external anonymous function
-  defp normalize_external_fn(ast, state) do
-    Macro.prewalk(ast, state, fn
-      {{:., _meta, [_module, fun_name]}, meta2, args} = fun, state
-      when is_atom(fun_name) and is_list(args) ->
-        # Access.get/2
-        if meta2[:no_parens] do
-          case maybe_capture_loader(fun, state) do
-            {:ok, _loader_ast, state} ->
-              subject = root_var_from_access_chain(fun)
-              data_req = data_req_from_access_chain(fun, %{})
-
-              {{:ok, var}, state} =
-                quote do
-                  Dx.Defd.Runtime.fetch(
-                    unquote(subject),
-                    unquote(Macro.escape(data_req)),
-                    unquote(state.eval_var)
-                  )
-                end
-                |> Loader.add(state)
-
-              replace_root_var(fun, var)
-              |> with_state(state)
-
-            :error ->
-              {fun, state}
-          end
-        else
-          {fun, state}
-        end
-
-      ast, state ->
-        {ast, state}
-    end)
-  end
-
-  def root_var_from_access_chain({{:., _meta, [ast, _fun_name]}, _meta2, []}) do
-    root_var_from_access_chain(ast)
-  end
-
-  def root_var_from_access_chain(var) when is_var(var) do
-    var
-  end
-
-  def replace_root_var({{:., meta, [ast, fun_name]}, meta2, []}, new_var) do
-    {{:., meta, [replace_root_var(ast, new_var), fun_name]}, meta2, []}
-  end
-
-  def replace_root_var(var, new_var) when is_var(var) do
-    new_var
-  end
-
-  def data_req_from_access_chain({{:., _meta, [ast, fun_name]}, _meta2, []}, acc) do
-    acc = %{fun_name => acc}
-    data_req_from_access_chain(ast, acc)
-  end
-
-  def data_req_from_access_chain(var, acc) when is_var(var) do
-    acc
-  end
-
-  def normalize_external_call_args(args, state, fun) do
-    {args, new_state} =
-      Enum.map_reduce(args, state, fn
-        {:fn, meta, [{:->, meta2, [args, body]}]}, state ->
-          {body, new_state} = normalize_external_fn(body, state)
-
-          {:ok, {:fn, meta, [{:->, meta2, [args, body]}]}}
-          |> with_state(new_state)
-
-        {:&, _meta, [{:/, [], [{{:., _meta2, [_mod, _fun_name]}, _meta3, []}, _arity]}]} = fun,
-        state ->
-          {{:ok, fun}, state}
-
-        {:&, _meta, [{:/, [], [{_fun_name, _meta2, nil}, _arity]}]} = fun, state ->
-          {{:ok, fun}, state}
-
-        arg, state ->
-          normalize(arg, state)
-      end)
-
-    {args, new_state} = args |> Enum.map(&Ast.unwrap/1) |> finalize_args(new_state)
-
-    do_normalize_call_args(args, new_state, fun)
-  end
-
-  def finalize_args(args, state) do
-    Enum.map_reduce(args, state, fn arg, state ->
-      vars = Ast.collect_vars(arg)
-
-      if MapSet.subset?(vars, state.finalized_vars) do
-        {:ok, arg}
-        |> with_state(state)
-      else
-        quote do
-          Dx.Defd.Runtime.finalize(unquote(arg), unquote(state.eval_var))
-        end
-        |> Loader.add(state)
-      end
-    end)
-  end
-
   def normalize_call_args(args, state, fun) do
     {args, state} = Enum.map_reduce(args, state, &normalize/2)
     do_normalize_call_args(args, state, fun)
   end
 
-  defp do_normalize_call_args(args, state, fun) do
+  def do_normalize_call_args(args, state, fun) do
     args
     |> Enum.map(&Ast.unwrap/1)
     |> fun.()
