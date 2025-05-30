@@ -30,7 +30,7 @@ defmodule Dx.Defd.NonDx do
       {ast, state} = Compiler.normalize(ast, state)
 
       if orig_state.warn_non_dx? and not state.called_non_dx? do
-        warn(meta, state, """
+        Compiler.warn(meta, state, """
         No function was called that is not defined with defd.
 
         Please remove the call to non_dx/1.
@@ -42,19 +42,11 @@ defmodule Dx.Defd.NonDx do
   end
 
   # &local_fun/2
-  def normalize({:&, meta, [{:/, [], [{fun_name, _meta2, nil}, arity]}]}, state) do
+  def normalize({:&, meta, [{:/, [], [{fun_name, _meta2, nil}, arity]}]} = ast, state) do
     args = Macro.generate_arguments(arity, __MODULE__)
     line = meta[:line] || state.line
 
-    if state.warn_non_dx? do
-      warn(meta, state, """
-      #{fun_name}/#{arity} is not defined with defd.
-
-      Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-          non_dx(...(&#{fun_name}/#{arity}))
-      """)
-    end
+    maybe_warn_non_dx(meta, state, "#{fun_name}/#{arity}", Macro.to_string(ast))
 
     quote line: line do
       {:ok,
@@ -67,21 +59,18 @@ defmodule Dx.Defd.NonDx do
 
   # &Mod.fun/3
   def normalize(
-        {:&, meta, [{:/, [], [{{:., _meta2, [module, fun_name]}, _meta3, []}, arity]}]},
+        {:&, meta, [{:/, [], [{{:., _meta2, [module, fun_name]}, _meta3, []}, arity]}]} = ast,
         state
       ) do
     args = Macro.generate_arguments(arity, __MODULE__)
     line = meta[:line] || state.line
 
-    if state.warn_non_dx? do
-      warn(meta, state, """
-      #{fun_name}/#{arity} is not defined with defd.
-
-      Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-          non_dx(...(&#{module}.#{fun_name}/#{arity}))
-      """)
-    end
+    maybe_warn_non_dx(
+      meta,
+      state,
+      "#{inspect(module)}.#{fun_name}/#{arity}",
+      Macro.to_string(ast)
+    )
 
     quote line: line do
       {:ok,
@@ -99,15 +88,7 @@ defmodule Dx.Defd.NonDx do
 
     cond do
       Util.has_function?(state.module, fun_name, arity) ->
-        if state.warn_non_dx? do
-          warn(meta, state, """
-          #{fun_name}/#{arity} is not defined with defd.
-
-          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-              non_dx(#{fun_name}(...))
-          """)
-        end
+        maybe_warn_non_dx(meta, state, "#{fun_name}/#{arity}", "#{fun_name}(...)")
 
         {ast, state} =
           normalize_external_call_args(args, state, fn args ->
@@ -135,15 +116,12 @@ defmodule Dx.Defd.NonDx do
         |> Ast.ok()
 
       Util.has_function?(module, fun_name, arity) ->
-        if state.warn_non_dx? do
-          warn(meta2, state, """
-          #{inspect(module)}.#{fun_name}/#{arity} is not defined with defd.
-
-          Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
-
-              non_dx(#{inspect(module)}.#{fun_name}(...))
-          """)
-        end
+        maybe_warn_non_dx(
+          meta2,
+          state,
+          "#{inspect(module)}.#{fun_name}/#{arity}",
+          "#{inspect(module)}.#{fun_name}/#{arity}(...)"
+        )
 
         {ast, state} =
           normalize_external_call_args(args, state, fn args ->
@@ -270,10 +248,16 @@ defmodule Dx.Defd.NonDx do
   @compile {:inline, with_state: 2}
   defp with_state(ast, state), do: {ast, state}
 
-  def warn(meta, state, message) do
-    line = meta[:line] || state.line
-    {name, arity} = state.function
-    entry = {state.module, name, arity, [file: String.to_charlist(state.file), line: line]}
-    IO.warn(message, [entry])
+  # Helper to emit a warning for non-defd functions
+  defp maybe_warn_non_dx(meta, state, mod_str, wrap_str) do
+    if state.warn_non_dx? do
+      Compiler.warn(meta, state, """
+      #{mod_str} is not defined with defd.
+
+      Either define it using defd (preferred) or wrap the call in the non_dx/1 function:
+
+          non_dx(#{wrap_str})
+      """)
+    end
   end
 end
