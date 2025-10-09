@@ -4,34 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.36.1">
+    <meta name="generator" content="ExDoc v0.38.4">
     <meta name="project" content="dx main">
 
 
     <title>Thinking in Dx — dx main</title>
-    <link rel="stylesheet" href="dist/html-elixir-QYVRUQZX.css" />
 
-    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-27D94DB3.js"></script>
-    <script src="docs_config.js"></script>
-    <script async src="dist/html-HJ5ACJPS.js"></script>
+    <link rel="stylesheet" href="dist/html-elixir-RLZO5U2C.css" />
+
+    <script defer src="dist/sidebar_items-4DF57F23.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y223O6DN.js"></script>
 
   </head>
-  <body class="sidebar-closed">
-    <script>
-
-      try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
-        }
-      } catch (error) { }
-    </script>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
 
 <div class="body-wrapper">
 
@@ -53,32 +41,8 @@ dx
         </div>
       </div>
     </div>
-    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist">
-      <li>
-        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
-Guides (old)
-        </button>
-      </li>
-
-        <li>
-          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
-            Modules
-          </button>
-        </li>
-
-
-    </ul>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Guides (old)"></ul>
   </div>
-
-  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
-    <ul id="extras-full-list" class="full-list"></ul>
-  </div>
-
-    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
-      <ul id="modules-full-list" class="full-list"></ul>
-    </div>
-
-
 </nav>
 
 <output role="status" id="toast"></output>
@@ -109,67 +73,62 @@ Guides (old)
     </div>
 
 <div id="top-content">
-  <h1>
+  <div class="heading-with-actions top-heading">
+    <h1>Thinking in Dx</h1>
 
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/docs/basics/06_thinking_in_dx.md#L1" title="View Source" class="icon-action" rel="help">
+
+      <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/docs/basics/06_thinking_in_dx.md#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
+  </div>
 
-    <span>Thinking in Dx</span>
-  </h1>
 
 <p>When working with Dx, we have to think top-down, as opposed to bottom-up.
 We always start from the end result, which we want to achieve.
-Any logic and inputs needed to get to the end result are defined within Dx.</p><h3 id="example" class="section-heading">
-  <a href="#example" class="hover-link">
-    <i class="ri-link-m" aria-hidden="true"></i>
-  </a>
-  <span class="text">Example</span>
-</h3>
-<p>Say we have a complex requirement to implement:</p><blockquote><p>A user can archive a Todo list, but only if they created it, or if they have an &quot;admin&quot; role,
-and only if all tasks in the list are completed.</p></blockquote><p>Let's assume we only have the schema, and no other functions, helpers, or rules defined.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w"> </span><span class="k" data-group-id="7860607951-1">do</span><span class="w">
+Any logic and inputs needed to get to the end result are defined within Dx.</p><h3 id="example" class="section-heading"><a href="#example" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Example</span></h3><p>Say we have a complex requirement to implement:</p><blockquote><p>A user can archive a Todo list, but only if they created it, or if they have an &quot;admin&quot; role,
+and only if all tasks in the list are completed.</p></blockquote><p>Let's assume we only have the schema, and no other functions, helpers, or rules defined.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w"> </span><span class="k" data-group-id="6177895017-1">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;users&quot;</span><span class="w"> </span><span class="k" data-group-id="7860607951-2">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;users&quot;</span><span class="w"> </span><span class="k" data-group-id="6177895017-2">do</span><span class="w">
     </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:roles</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.UserRole</span><span class="w">
-  </span><span class="k" data-group-id="7860607951-2">end</span><span class="w">
-</span><span class="k" data-group-id="7860607951-1">end</span><span class="w">
+  </span><span class="k" data-group-id="6177895017-2">end</span><span class="w">
+</span><span class="k" data-group-id="6177895017-1">end</span><span class="w">
 
-</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.UserRole</span><span class="w"> </span><span class="k" data-group-id="7860607951-3">do</span><span class="w">
+</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.UserRole</span><span class="w"> </span><span class="k" data-group-id="6177895017-3">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;user_roles&quot;</span><span class="w"> </span><span class="k" data-group-id="7860607951-4">do</span><span class="w">
-    </span><span class="n">field</span><span class="w"> </span><span class="ss">:name</span><span class="p">,</span><span class="w"> </span><span class="nc">Ecto.Enum</span><span class="p">,</span><span class="w"> </span><span class="ss">values</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7860607951-5">[</span><span class="ss">:moderator</span><span class="p">,</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">:super_admin</span><span class="p" data-group-id="7860607951-5">]</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;user_roles&quot;</span><span class="w"> </span><span class="k" data-group-id="6177895017-4">do</span><span class="w">
+    </span><span class="n">field</span><span class="w"> </span><span class="ss">:name</span><span class="p">,</span><span class="w"> </span><span class="nc">Ecto.Enum</span><span class="p">,</span><span class="w"> </span><span class="ss">values</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6177895017-5">[</span><span class="ss">:moderator</span><span class="p">,</span><span class="w"> </span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">:super_admin</span><span class="p" data-group-id="6177895017-5">]</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:user</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="7860607951-4">end</span><span class="w">
-</span><span class="k" data-group-id="7860607951-3">end</span><span class="w">
+  </span><span class="k" data-group-id="6177895017-4">end</span><span class="w">
+</span><span class="k" data-group-id="6177895017-3">end</span><span class="w">
 
-</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="7860607951-6">do</span><span class="w">
+</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w"> </span><span class="k" data-group-id="6177895017-6">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="7860607951-7">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;lists&quot;</span><span class="w"> </span><span class="k" data-group-id="6177895017-7">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:archived_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:created_by</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.User</span><span class="w">
-  </span><span class="k" data-group-id="7860607951-7">end</span><span class="w">
-</span><span class="k" data-group-id="7860607951-6">end</span><span class="w">
+  </span><span class="k" data-group-id="6177895017-7">end</span><span class="w">
+</span><span class="k" data-group-id="6177895017-6">end</span><span class="w">
 
-</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="7860607951-8">do</span><span class="w">
+</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Todo.Task</span><span class="w"> </span><span class="k" data-group-id="6177895017-8">do</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Ecto.Schema</span><span class="w">
   </span><span class="kn">use</span><span class="w"> </span><span class="nc">Dx.Ecto.Schema</span><span class="p">,</span><span class="w"> </span><span class="ss">repo</span><span class="p">:</span><span class="w"> </span><span class="nc">Todo.Repo</span><span class="w">
 
-  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="7860607951-9">do</span><span class="w">
+  </span><span class="n">schema</span><span class="w"> </span><span class="s">&quot;tasks&quot;</span><span class="w"> </span><span class="k" data-group-id="6177895017-9">do</span><span class="w">
     </span><span class="n">field</span><span class="w"> </span><span class="ss">:completed_at</span><span class="p">,</span><span class="w"> </span><span class="ss">:utc_datetime</span><span class="w">
 
     </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:list</span><span class="p">,</span><span class="w"> </span><span class="nc">Todo.List</span><span class="w">
-  </span><span class="k" data-group-id="7860607951-9">end</span><span class="w">
-</span><span class="k" data-group-id="7860607951-8">end</span></code></pre><p>The inputs are the <code class="inline">list</code> to be archived and the <code class="inline">current_user</code> who tries to archive it.
+  </span><span class="k" data-group-id="6177895017-9">end</span><span class="w">
+</span><span class="k" data-group-id="6177895017-8">end</span></code></pre><p>The inputs are the <code class="inline">list</code> to be archived and the <code class="inline">current_user</code> who tries to archive it.
 The end result is either the now archived list, or an error.</p><p>Without Dx, we'd write a function that takes the <code class="inline">list</code> and the <code class="inline">user</code> who tries to archive it.
 We'd then have to think about <strong>how</strong> to load the data needed to compute the result, and implement it.</p><p>With Dx, we don't have to think about <strong>how</strong> to load the data or compute the result.
 Instead, we focus entirely on <strong>what</strong> is relevant and write the rules to represent this logic.
@@ -183,49 +142,44 @@ what data type feels most intuitive to return the end results conceived in step 
 In the code where the outcome is used, f.ex. a web request, call <a href="Dx.html"><code class="inline">Dx</code></a> with the main data point
 and this predicate. We also add additional data needed as <code class="inline">args</code>.</p><p>In our example:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># in Todo.List</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6020901538-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="6020901538-1">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6020901538-2">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="6020901538-2">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9680820762-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="9680820762-1">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9680820762-2">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="9680820762-2">}</span><span class="w">
 
 </span><span class="c1"># in the List controller</span><span class="w">
-</span><span class="k">with</span><span class="w"> </span><span class="ss">:ok</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="6020901538-3">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="ss">:archivable?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6020901538-4">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="6020901538-4">]</span><span class="p" data-group-id="6020901538-3">)</span><span class="p">,</span><span class="w">
-     </span><span class="p" data-group-id="6020901538-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">archived_list</span><span class="p" data-group-id="6020901538-5">}</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nc">List</span><span class="o">.</span><span class="n">archive</span><span class="p" data-group-id="6020901538-6">(</span><span class="n">list</span><span class="p" data-group-id="6020901538-6">)</span><span class="w"> </span><span class="k" data-group-id="6020901538-7">do</span><span class="w">
-  </span><span class="n">render</span><span class="p" data-group-id="6020901538-8">(</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;show.html&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="n">archived_list</span><span class="p" data-group-id="6020901538-8">)</span><span class="w">
-</span><span class="k" data-group-id="6020901538-7">end</span></code></pre></li><li><p> Flesh out the conditions for the various cases. For each condition, think about what's needed
+</span><span class="k">with</span><span class="w"> </span><span class="ss">:ok</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nc">Dx</span><span class="o">.</span><span class="n">load!</span><span class="p" data-group-id="9680820762-3">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="ss">:archivable?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9680820762-4">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="9680820762-4">]</span><span class="p" data-group-id="9680820762-3">)</span><span class="p">,</span><span class="w">
+     </span><span class="p" data-group-id="9680820762-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">archived_list</span><span class="p" data-group-id="9680820762-5">}</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nc">List</span><span class="o">.</span><span class="n">archive</span><span class="p" data-group-id="9680820762-6">(</span><span class="n">list</span><span class="p" data-group-id="9680820762-6">)</span><span class="w"> </span><span class="k" data-group-id="9680820762-7">do</span><span class="w">
+  </span><span class="n">render</span><span class="p" data-group-id="9680820762-8">(</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;show.html&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">list</span><span class="p">:</span><span class="w"> </span><span class="n">archived_list</span><span class="p" data-group-id="9680820762-8">)</span><span class="w">
+</span><span class="k" data-group-id="9680820762-7">end</span></code></pre></li><li><p> Flesh out the conditions for the various cases. For each condition, think about what's needed
 and how it could be called. If there's a good answer, use the term in the condition as if it
 already existed. This way, it's easier to stay on the requirements level, using terms that make
 sense in the app's domain.</p><p>In our example, we also reverse the order, checking all error cases first,
 and returning <code class="inline">:ok</code> otherwise:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># in Todo.List</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6288569525-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="6288569525-1">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6288569525-2">%{</span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="6288569525-2">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6288569525-3">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="6288569525-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6288569525-4">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6288569525-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="6288569525-5">}</span><span class="p" data-group-id="6288569525-4">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2168040553-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="2168040553-1">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2168040553-2">%{</span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2168040553-2">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2168040553-3">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="2168040553-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2168040553-4">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="2168040553-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="2168040553-5">}</span><span class="p" data-group-id="2168040553-4">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span></code></pre></li><li><p> Define the predicates you used on the correct schema types, and continue the process until the
 requirements are fully defined using rules.</p><p>In our example, the final set of rules might look like this:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># in Todo.List</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="0133901617-1">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-2">%{</span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0133901617-2">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-3">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="0133901617-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-4">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="0133901617-5">}</span><span class="p" data-group-id="0133901617-4">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-1">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:unauthorized</span><span class="p" data-group-id="6340998948-1">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-2">%{</span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="6340998948-2">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-3">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="ss">:pending_tasks</span><span class="p" data-group-id="6340998948-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-4">%{</span><span class="ss">tasks</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-5">%{</span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p" data-group-id="6340998948-5">}</span><span class="p" data-group-id="6340998948-4">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-6">%{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-7">%{</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-8">%{</span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="0133901617-8">}</span><span class="p" data-group-id="0133901617-7">}</span><span class="p" data-group-id="0133901617-6">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-9">%{</span><span class="ss">is_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="0133901617-9">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-6">%{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-7">%{</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-8">%{</span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6340998948-8">}</span><span class="p" data-group-id="6340998948-7">}</span><span class="p" data-group-id="6340998948-6">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-9">%{</span><span class="ss">is_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="6340998948-9">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">can_archive?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
 
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">is_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-10">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-11">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0133901617-12">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="0133901617-12">]</span><span class="p" data-group-id="0133901617-11">}</span><span class="p" data-group-id="0133901617-10">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">is_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-10">%{</span><span class="ss">created_by_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-11">{</span><span class="ss">:ref</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="6340998948-12">[</span><span class="ss">:args</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p">,</span><span class="w"> </span><span class="ss">:id</span><span class="p" data-group-id="6340998948-12">]</span><span class="p" data-group-id="6340998948-11">}</span><span class="p" data-group-id="6340998948-10">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">is_owner?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
 
 </span><span class="c1"># in Todo.User</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-13">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-14">%{</span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-15">[</span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">:super_admin</span><span class="p" data-group-id="0133901617-15">]</span><span class="p" data-group-id="0133901617-14">}</span><span class="p" data-group-id="0133901617-13">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-13">%{</span><span class="ss">roles</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-14">%{</span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-15">[</span><span class="ss">:admin</span><span class="p">,</span><span class="w"> </span><span class="ss">:super_admin</span><span class="p" data-group-id="6340998948-15">]</span><span class="p" data-group-id="6340998948-14">}</span><span class="p" data-group-id="6340998948-13">}</span><span class="w">
 </span><span class="n">infer</span><span class="w"> </span><span class="ss">is_admin?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="w">
 
 </span><span class="c1"># in Todo.Task</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-16">%{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0133901617-17">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="0133901617-17">}</span><span class="p" data-group-id="0133901617-16">}</span><span class="w">
-</span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span></code></pre></li></ol><h3 id="other-use-cases-covered" class="section-heading">
-  <a href="#other-use-cases-covered" class="hover-link">
-    <i class="ri-link-m" aria-hidden="true"></i>
-  </a>
-  <span class="text">Other use cases covered</span>
-</h3>
-<p>We could use the rules we defined to cover other use cases as well:</p><h4>Filtering archivable lists</h4><p>Say we have a list of <code class="inline">Todo.List</code> structs, and want to keep only the ones that can be archived,
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w"> </span><span class="ss">when</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-16">%{</span><span class="ss">completed_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6340998948-17">{</span><span class="ss">:not</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6340998948-17">}</span><span class="p" data-group-id="6340998948-16">}</span><span class="w">
+</span><span class="n">infer</span><span class="w"> </span><span class="ss">completed?</span><span class="p">:</span><span class="w"> </span><span class="no">false</span></code></pre></li></ol><h3 id="other-use-cases-covered" class="section-heading"><a href="#other-use-cases-covered" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Other use cases covered</span></h3><p>We could use the rules we defined to cover other use cases as well:</p><h4>Filtering archivable lists</h4><p>Say we have a list of <code class="inline">Todo.List</code> structs, and want to keep only the ones that can be archived,
 for example to implement a web request to archive multiple lists. We use <a href="Dx.html#filter/3"><code class="inline">Dx.filter/3</code></a> for it,
-which takes a list of data as well as a condition, just like the ones we use when defining rules:</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="1271514483-1">(</span><span class="n">lists</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1271514483-2">%{</span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="p" data-group-id="1271514483-2">}</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1271514483-3">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="1271514483-3">]</span><span class="p" data-group-id="1271514483-1">)</span></code></pre><h4>Querying all archivable lists</h4><p>Say we want to query all lists that a given user can archive. We use <a href="Dx.html#query_all/3"><code class="inline">Dx.query_all/3</code></a> for it,
-which takes a type as well as a condition, just like the ones we use when defining rules:</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">query_all</span><span class="p" data-group-id="3253814063-1">(</span><span class="nc">Todo.List</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3253814063-2">%{</span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="p" data-group-id="3253814063-2">}</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3253814063-3">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="3253814063-3">]</span><span class="p" data-group-id="3253814063-1">)</span></code></pre>
+which takes a list of data as well as a condition, just like the ones we use when defining rules:</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">filter</span><span class="p" data-group-id="7462429647-1">(</span><span class="n">lists</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7462429647-2">%{</span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="p" data-group-id="7462429647-2">}</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7462429647-3">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="7462429647-3">]</span><span class="p" data-group-id="7462429647-1">)</span></code></pre><h4>Querying all archivable lists</h4><p>Say we want to query all lists that a given user can archive. We use <a href="Dx.html#query_all/3"><code class="inline">Dx.query_all/3</code></a> for it,
+which takes a type as well as a condition, just like the ones we use when defining rules:</p><pre><code class="makeup elixir" translate="no"><span class="nc">Dx</span><span class="o">.</span><span class="n">query_all</span><span class="p" data-group-id="4703631502-1">(</span><span class="nc">Todo.List</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4703631502-2">%{</span><span class="ss">archivable?</span><span class="p">:</span><span class="w"> </span><span class="ss">:ok</span><span class="p" data-group-id="4703631502-2">}</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4703631502-3">[</span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="4703631502-3">]</span><span class="p" data-group-id="4703631502-1">)</span></code></pre>
+
 </div>
 
 <div class="bottom-actions" id="bottom-actions">
@@ -280,7 +234,7 @@ Done 🎉
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.36.1) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.4) for the
 
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
 

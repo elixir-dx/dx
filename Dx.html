@@ -4,34 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.36.1">
+    <meta name="generator" content="ExDoc v0.38.4">
     <meta name="project" content="dx main">
 
 
     <title>Dx — dx main</title>
-    <link rel="stylesheet" href="dist/html-elixir-QYVRUQZX.css" />
 
-    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-27D94DB3.js"></script>
-    <script src="docs_config.js"></script>
-    <script async src="dist/html-HJ5ACJPS.js"></script>
+    <link rel="stylesheet" href="dist/html-elixir-RLZO5U2C.css" />
+
+    <script defer src="dist/sidebar_items-4DF57F23.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y223O6DN.js"></script>
 
   </head>
-  <body class="sidebar-closed">
-    <script>
-
-      try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
-        }
-      } catch (error) { }
-    </script>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
 
 <div class="body-wrapper">
 
@@ -53,32 +41,8 @@ dx
         </div>
       </div>
     </div>
-    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist">
-      <li>
-        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
-Guides (old)
-        </button>
-      </li>
-
-        <li>
-          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
-            Modules
-          </button>
-        </li>
-
-
-    </ul>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Guides (old)"></ul>
   </div>
-
-  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
-    <ul id="extras-full-list" class="full-list"></ul>
-  </div>
-
-    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
-      <ul id="modules-full-list" class="full-list"></ul>
-    </div>
-
-
 </nav>
 
 <output role="status" id="toast"></output>
@@ -109,17 +73,19 @@ Guides (old)
     </div>
 
 <div id="top-content">
-  <h1>
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">Dx</span> 
+      <small class="app-vsn" translate="no">(dx main)</small>
 
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
+    </h1>
+
+      <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L1" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">Dx</span> 
-    <small class="app-vsn" translate="no">(dx main)</small>
-
-  </h1>
+  </div>
 
 
     <section id="moduledoc">
@@ -130,11 +96,11 @@ directly, or otherwise raise an exception.</p><p>Arguments:</p><ul><li><code cla
 Passing an individual subject will return the predicates for the subject, passing a list will return a list of them.</li><li><code class="inline">predicates</code> can either be a single predicate, or a list of predicates.
 Passing a single predicate will return the resulting value, passing a list will return a <a href="https://hexdocs.pm/elixir/Map.html"><code class="inline">Map</code></a>
 of the predicates and their resulting values.</li><li><code class="inline">options</code> (optional) See below.</li></ul><p>Options:</p><ul><li><code class="inline">args</code> (list or map) can be used to pass in data from the caller's context that can be used in
-rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="8302428680-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8302428680-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="8302428680-2">]</span><span class="p" data-group-id="8302428680-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
+rules (see <em>Arguments</em> below). A classic example is the <code class="inline">current_user</code>, e.g.<pre><code class="makeup elixir" translate="no"><span class="n">put!</span><span class="p" data-group-id="1606901829-1">(</span><span class="n">project</span><span class="p">,</span><span class="w"> </span><span class="ss">:can_edit?</span><span class="p">,</span><span class="w"> </span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1606901829-2">[</span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span><span class="p" data-group-id="1606901829-2">]</span><span class="p" data-group-id="1606901829-1">)</span></code></pre></li><li><code class="inline">extra_rules</code> (module or list of modules) can be used to add context-specific rules that are
 not defined directly on the subject. This can be used to structure rules into their own modules
 and use them only where needed.</li><li><code class="inline">debug</code> (boolean) makes Dx print additional information to the console as rules are evaluated.
 Should only be used while debugging.</li><li><code class="inline">return_cache</code> (boolean) makes non-bang functions return <code class="inline">{:ok, result, cache}</code> instead of
-<code class="inline">{:ok, result}</code> on success. This <code class="inline">cache</code> can be passed to other Dx functions (see <code class="inline">cache</code> option)</li><li><code class="inline">cache</code> (<a href="https://hexdocs.pm/dataloader/2.0.0/Dataloader.html"><code class="inline">Dataloader</code></a> struct) can be used to pass in an existing cache, so data already loaded
+<code class="inline">{:ok, result}</code> on success. This <code class="inline">cache</code> can be passed to other Dx functions (see <code class="inline">cache</code> option)</li><li><code class="inline">cache</code> (<a href="https://hexdocs.pm/dataloader/2.0.2/Dataloader.html"><code class="inline">Dataloader</code></a> struct) can be used to pass in an existing cache, so data already loaded
 doesn't need to be loaded again. Can be initialized using <code class="inline">Dx.Loaders.Dataloader.init/1</code>.</li><li><code class="inline">loader</code> allows choosing a loader module. Defaults to <code class="inline">Dx.Loaders.Dataloader</code>.</li><li><code class="inline">loader_options</code> are passed to <code class="inline">loader.init/1</code> function. See <code class="inline">Dx.Loaders.Dataloader</code> for options
 supported by the default loader.</li></ul>
     </section>
@@ -155,7 +121,7 @@ supported by the default loader.</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#filter/3" data-no-tooltip translate="no">filter(records, condition, opts \\ [])</a>
+        <a href="#filter/3" data-no-tooltip="" translate="no">filter(records, condition, opts \\ [])</a>
 
       </div>
 
@@ -165,7 +131,7 @@ supported by the default loader.</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#get/3" data-no-tooltip translate="no">get(records, predicates, opts \\ [])</a>
+        <a href="#get/3" data-no-tooltip="" translate="no">get(records, predicates, opts \\ [])</a>
 
       </div>
 
@@ -175,37 +141,37 @@ supported by the default loader.</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#get!/3" data-no-tooltip translate="no">get!(records, predicates, opts \\ [])</a>
+        <a href="#get!/3" data-no-tooltip="" translate="no">get!(records, predicates, opts \\ [])</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p></div>
+        <div class="summary-synopsis"><p>Like <a><code class="inline">get/3</code></a> but returns the result value, or raises an error.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#load/3" data-no-tooltip translate="no">load(records, predicates, opts \\ [])</a>
+        <a href="#load/3" data-no-tooltip="" translate="no">load(records, predicates, opts \\ [])</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Like <a href="#get/3"><code class="inline">get/3</code></a>, but loads additional data if needed.</p></div>
+        <div class="summary-synopsis"><p>Like <a><code class="inline">get/3</code></a>, but loads additional data if needed.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#load!/3" data-no-tooltip translate="no">load!(records, predicates, opts \\ [])</a>
+        <a href="#load!/3" data-no-tooltip="" translate="no">load!(records, predicates, opts \\ [])</a>
 
       </div>
 
-        <div class="summary-synopsis"><p>Like <a href="#get!/3"><code class="inline">get!/3</code></a>, but loads additional data if needed.</p></div>
+        <div class="summary-synopsis"><p>Like <a><code class="inline">get!/3</code></a>, but loads additional data if needed.</p></div>
 
     </div>
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#put/3" data-no-tooltip translate="no">put(records, predicates, opts \\ [])</a>
+        <a href="#put/3" data-no-tooltip="" translate="no">put(records, predicates, opts \\ [])</a>
 
       </div>
 
@@ -216,7 +182,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#put!/3" data-no-tooltip translate="no">put!(records, predicates, opts \\ [])</a>
+        <a href="#put!/3" data-no-tooltip="" translate="no">put!(records, predicates, opts \\ [])</a>
 
       </div>
 
@@ -224,7 +190,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#query_all/3" data-no-tooltip translate="no">query_all(queryable, condition, opts \\ [])</a>
+        <a href="#query_all/3" data-no-tooltip="" translate="no">query_all(queryable, condition, opts \\ [])</a>
 
       </div>
 
@@ -234,7 +200,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#query_one/3" data-no-tooltip translate="no">query_one(queryable, condition, opts \\ [])</a>
+        <a href="#query_one/3" data-no-tooltip="" translate="no">query_one(queryable, condition, opts \\ [])</a>
 
       </div>
 
@@ -244,7 +210,7 @@ results into the <code class="inline">inferred</code> map field of the record(s)
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#reject/3" data-no-tooltip translate="no">reject(records, condition, opts \\ [])</a>
+        <a href="#reject/3" data-no-tooltip="" translate="no">reject(records, condition, opts \\ [])</a>
 
       </div>
 
@@ -264,22 +230,25 @@ results into the <code class="inline">inferred</code> map field of the record(s)
       </a>
       <span class="text">Functions</span>
     </h1>
+
     <div class="functions-list">
 <section class="detail" id="filter/3">
 
     <span id="filter/2"></span>
 
   <div class="detail-header">
-    <a href="#filter/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#filter/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L152" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">filter(records, condition, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L152" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -292,16 +261,18 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="get/2"></span>
 
   <div class="detail-header">
-    <a href="#get/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#get/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L52" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L52" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -314,16 +285,18 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="get!/2"></span>
 
   <div class="detail-header">
-    <a href="#get!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#get!/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L79" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get!(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L79" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -336,16 +309,18 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="load/2"></span>
 
   <div class="detail-header">
-    <a href="#load/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#load/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L87" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">load(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L87" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -358,16 +333,18 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="load!/2"></span>
 
   <div class="detail-header">
-    <a href="#load!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#load!/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L103" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">load!(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L103" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -380,28 +357,24 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="put/2"></span>
 
   <div class="detail-header">
-    <a href="#put/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#put/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L116" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">put(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L116" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
 
 <p>Loads the given predicate(s) for the given record(s) and merges the
-results into the <code class="inline">inferred</code> map field of the record(s), returning them.</p><h2 id="put/3-options" class="section-heading">
-  <a href="#put/3-options" class="hover-link">
-    <i class="ri-link-m" aria-hidden="true"></i>
-  </a>
-  <span class="text">Options</span>
-</h2>
-<p>Same as for <a href="#get/3"><code class="inline">get/3</code></a>.</p>
+results into the <code class="inline">inferred</code> map field of the record(s), returning them.</p><h2 id="put/3-options" class="section-heading"><a href="#put/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Options</span></h2><p>Same as for <a href="#get/3"><code class="inline">get/3</code></a>.</p>
   </section>
 </section>
 <section class="detail" id="put!/3">
@@ -409,16 +382,18 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="put!/2"></span>
 
   <div class="detail-header">
-    <a href="#put!/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#put!/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L132" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">put!(records, predicates, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L132" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -431,30 +406,26 @@ results into the <code class="inline">inferred</code> map field of the record(s)
     <span id="query_all/2"></span>
 
   <div class="detail-header">
-    <a href="#query_all/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#query_all/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L191" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">query_all(queryable, condition, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L191" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
 
-<p>Returns all records matching the given condition.</p><h2 id="query_all/3-caveat" class="section-heading">
-  <a href="#query_all/3-caveat" class="hover-link">
-    <i class="ri-link-m" aria-hidden="true"></i>
-  </a>
-  <span class="text">Caveat</span>
-</h2>
-<p>In general, as much work as possible is done in the database.
-If possible, the condition is completely translated to an <a href="https://hexdocs.pm/ecto/3.11.2/Ecto.Query.html"><code class="inline">Ecto.Query</code></a>
+<p>Returns all records matching the given condition.</p><h2 id="query_all/3-caveat" class="section-heading"><a href="#query_all/3-caveat" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Caveat</span></h2><p>In general, as much work as possible is done in the database.
+If possible, the condition is completely translated to an <a href="https://hexdocs.pm/ecto/3.13.3/Ecto.Query.html"><code class="inline">Ecto.Query</code></a>
 so the database only returns matching records.
-All condition parts that can not be translated to an <a href="https://hexdocs.pm/ecto/3.11.2/Ecto.Query.html"><code class="inline">Ecto.Query</code></a>, will be
+All condition parts that can not be translated to an <a href="https://hexdocs.pm/ecto/3.13.3/Ecto.Query.html"><code class="inline">Ecto.Query</code></a>, will be
 evaluated by <code class="inline">loading all remaining records</code>, and associations as needed,
 and evaluating the rules on them.</p>
   </section>
@@ -464,27 +435,23 @@ and evaluating the rules on them.</p>
     <span id="query_one/2"></span>
 
   <div class="detail-header">
-    <a href="#query_one/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#query_one/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L207" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">query_one(queryable, condition, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L207" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
 
-<p>Returns the first record matching the given condition.</p><h2 id="query_one/3-options" class="section-heading">
-  <a href="#query_one/3-options" class="hover-link">
-    <i class="ri-link-m" aria-hidden="true"></i>
-  </a>
-  <span class="text">Options</span>
-</h2>
-<p>Same as for <a href="#query_all/3"><code class="inline">query_all/3</code></a>.</p>
+<p>Returns the first record matching the given condition.</p><h2 id="query_one/3-options" class="section-heading"><a href="#query_one/3-options" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Options</span></h2><p>Same as for <a href="#query_all/3"><code class="inline">query_all/3</code></a>.</p>
   </section>
 </section>
 <section class="detail" id="reject/3">
@@ -492,16 +459,18 @@ and evaluating the rules on them.</p>
     <span id="reject/2"></span>
 
   <div class="detail-header">
-    <a href="#reject/3" class="detail-link" data-no-tooltip aria-label="Link to this function">
+    <a href="#reject/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
-    <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
-
-      <a href="https://github.com/elixir-dx/dx/blob/135be69ad100bd0ca805e73a1f5232487963dfc7/lib/dx.ex#L175" class="icon-action" rel="help" aria-label="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">reject(records, condition, opts \\ [])</h1>
 
 
+        <a href="https://github.com/elixir-dx/dx/blob/6917245389901104228787b4fee8ad9d2db6a5c5/lib/dx.ex#L175" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -537,7 +506,7 @@ and evaluating the rules on them.</p>
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.36.1) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.4) for the
 
           <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
 
