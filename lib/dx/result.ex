@@ -278,7 +278,7 @@ defmodule Dx.Result do
       ...> |> Dx.Result.find(&{:ok, not &1, %{}})
       {:ok, false, %{}}
   """
-  @spec find(Enum.t(), (any() -> b()), (any() -> any()), any()) :: v()
+  @spec find(Enum.t(), (any() -> b()), (any(), binds() -> v()), any()) :: v()
   def find(enum, fun \\ &identity/1, result_mapper \\ &ok/2, default \\ ok(nil)) do
     Enum.reduce_while(enum, default, fn elem, acc ->
       combine(:find, acc, fun.(elem), &result_mapper.(elem, &1))
@@ -516,10 +516,14 @@ defmodule Dx.Result do
   #   - `:all?` (logical `AND`)
   #   - `:find` to return `{:ok, result}` on first match
   #   - `:all` to return all `{:ok, result}` combined as `{:ok, [result1, result2, ...]}`
+  #   - `:count` to count elements matching a condition
+  #   - `:count_while` to count elements while a condition is true
 
   @spec combine(:any? | :all?, b(), b()) :: {:cont | :halt, b()}
   @spec combine(:find, b(), b()) :: {:cont | :halt, v()}
   @spec combine(:all, v(), v()) :: {:cont | :halt, v()}
+  @spec combine(:count, v(), b()) :: {:cont | :halt, v()}
+  @spec combine(:count_while, v(), b()) :: {:cont | :halt, v()}
 
   defp combine(mode, acc, elem, extra \\ nil)
 

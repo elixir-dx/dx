@@ -117,10 +117,6 @@ defmodule Dx.Defd.Ast.Loader do
     ast |> cleanup() |> do_ensure_loaded(loaders)
   end
 
-  defp do_ensure_loaded(ast, []) do
-    ast
-  end
-
   defp do_ensure_loaded({:ok, var}, [%{data_var: var} = loader]) do
     loader.ast
   end

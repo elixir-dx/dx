@@ -248,21 +248,7 @@ defmodule Dx.Defd.Compiler do
     {definitions, state}
   end
 
-  defp append_arg({:when, meta, [args | guards]}, arg),
-    do: {:when, meta, [args ++ [arg] | guards]}
-
   defp append_arg(args, arg), do: args ++ [arg]
-
-  defp define_function(kind, name, line, {:when, _, [args | guards]}, ast) do
-    quote line: line do
-      unquote(kind)(
-        unquote(name)(unquote_splicing(args))
-        when unquote_splicing(guards)
-      ) do
-        unquote(ast)
-      end
-    end
-  end
 
   defp define_function(kind, name, line, args, ast) do
     quote line: line do

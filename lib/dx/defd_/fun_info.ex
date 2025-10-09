@@ -115,7 +115,7 @@ defmodule Dx.Defd_.FunInfo do
   """
 
   @spec new!(
-          input(),
+          input() | keyword() | %{atom() => term()},
           keyword() | %{atom() => term()},
           keyword() | %{atom() => term()},
           keyword() | %{atom() => term()}

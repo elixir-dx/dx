@@ -56,8 +56,8 @@ defmodule Dx.Ecto.Scope do
 
         {:ok, scope}
 
-      {other, _state} ->
-        other
+      :error ->
+        :error
     end
   end
 
