@@ -14,17 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dx.load`, `Dx.load!`, `Dx.get` and `Dx.get!` are now macros and
   must be required or imported when used.
 
-## [0.3.5] - Unreleased
+## [0.3.5] - 2025-10-09
 
 ### Features
 
-- Support `defdp`: Private `defd` functions with proper 'unused' warnings
+- Support `defdp`: Private `defd` functions
 - `case`: Support carets, assigns and data loading in map keys
 - `fn`: Support multiple clauses
 - Consolidate and document extension API (`Dx.Defd_`)
 
 ### Other changes
+
 - Removed dependency `typed_struct`
+- Now tested against Elixir 1.18 and 1.19
 
 ## [0.3.4] - 2024-10-12
 
