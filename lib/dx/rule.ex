@@ -10,12 +10,12 @@ defmodule Dx.Rule do
 
   @moduledoc false
 
-  use TypedStruct
+  defstruct [:type, :key, :val, when: %{}]
 
-  typedstruct do
-    field(:type, module() | nil)
-    field(:when, map(), default: %{})
-    field(:key, atom())
-    field(:val, term())
-  end
+  @type t() :: %__MODULE__{
+          type: module() | nil,
+          when: map(),
+          key: atom(),
+          val: term()
+        }
 end

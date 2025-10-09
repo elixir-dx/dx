@@ -7,25 +7,37 @@ defmodule Dx.Evaluation do
   This is also used in the now deprecated `infer` approach of Dx.
   """
 
-  use TypedStruct
-
-  typedstruct do
-    field(:root_subject, map())
-    field(:cache, any())
-    field(:return_cache?, boolean(), default: false)
-    field(:finalize?, boolean(), default: true)
-    field(:binds, map())
-    field(:negate?, boolean(), default: false)
-    field(:resolve_predicates?, boolean(), default: true)
+  defstruct [
+    :root_subject,
+    :cache,
+    :binds,
+    return_cache?: false,
+    finalize?: true,
+    negate?: false,
+    resolve_predicates?: true,
 
     # Options
-    field(:loader, module(), default: Dx.Loaders.Dataloader)
-    field(:loader_options, Keyword.t(), default: [])
-    field(:args, map(), default: %{})
-    field(:debug?, boolean(), default: false)
-    field(:extra_rules, list(module()), default: [])
-    field(:select, any())
-  end
+    loader: Dx.Loaders.Dataloader,
+    loader_options: [],
+    args: %{},
+    debug?: false,
+    extra_rules: []
+  ]
+
+  @type t() :: %__MODULE__{
+          root_subject: map(),
+          cache: any(),
+          return_cache?: boolean(),
+          finalize?: boolean(),
+          binds: map(),
+          negate?: boolean(),
+          resolve_predicates?: boolean(),
+          loader: module(),
+          loader_options: Keyword.t(),
+          args: map(),
+          debug?: boolean(),
+          extra_rules: list(module())
+        }
 
   def from_options(opts) do
     %__MODULE__{}

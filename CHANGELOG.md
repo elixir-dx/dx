@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `fn`: Support multiple clauses
 - Consolidate and document extension API (`Dx.Defd_`)
 
+### Other changes
+- Removed dependency `typed_struct`
+
 ## [0.3.4] - 2024-10-12
 
 ### Features

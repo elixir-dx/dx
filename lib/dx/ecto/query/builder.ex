@@ -23,21 +23,31 @@ defmodule Dx.Ecto.Query.Builder do
 
   @moduledoc false
 
-  use TypedStruct
-
   @type mapped_alias() :: {atom(), module(), %{atom() => mapped_alias()}}
 
-  typedstruct do
-    field(:query, Ecto.Query.t(), required: true)
-    field(:root_query, Ecto.Query.t())
-    field(:aliases, mapped_alias())
-    field(:path, list(atom()), default: [])
-    field(:types, list(atom()), default: [])
-    field(:next_alias_index, non_neg_integer(), default: 0)
-    field(:negate?, boolean(), default: false)
-    field(:in_subquery?, boolean(), default: false)
-    field(:eval, Dx.Evaluation.t())
-  end
+  defstruct [
+    :query,
+    :root_query,
+    :aliases,
+    :eval,
+    path: [],
+    types: [],
+    next_alias_index: 0,
+    negate?: false,
+    in_subquery?: false
+  ]
+
+  @type t() :: %__MODULE__{
+          query: Ecto.Query.t(),
+          root_query: Ecto.Query.t(),
+          aliases: mapped_alias(),
+          path: list(atom()),
+          types: list(atom()),
+          next_alias_index: non_neg_integer(),
+          negate?: boolean(),
+          in_subquery?: boolean(),
+          eval: Dx.Evaluation.t()
+        }
 
   alias __MODULE__, as: Builder
 

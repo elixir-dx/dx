@@ -9,13 +9,13 @@ defmodule Dx.Parser do
 
     @moduledoc false
 
-    use TypedStruct
+    defstruct [:type, aliases: %{}, opts: %{}]
 
-    typedstruct do
-      field(:type, module())
-      field(:aliases, %{atom() => any()}, default: %{})
-      field(:opts, map(), default: %{})
-    end
+    @type t() :: %__MODULE__{
+            type: module(),
+            aliases: %{atom() => any()},
+            opts: map()
+          }
 
     def with_opts(token, opts), do: %{token | opts: Map.new(opts)}
 

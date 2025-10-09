@@ -49,7 +49,6 @@ defmodule Dx.MixProject do
   defp deps do
     [
       # util
-      {:typed_struct, ">= 0.0.0"},
       {:dataloader, "~> 2.0"},
 
       # adapters
