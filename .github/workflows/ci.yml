@@ -11,16 +11,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # should always contain the 4 most recent stable Elixir minor versions and
+        # the 3 most recent stable Erlang/OTP major versions, excluding incompatible combinations.
+        # run `mise ls-remote` or `asdf list all` to get all versions and compatibilities or
         # see https://hexdocs.pm/elixir/compatibility-and-deprecations.html#between-elixir-and-erlang-otp
-        elixir: [1.19.0-rc.2, 1.18.4, 1.17.3, 1.16.3]
-        otp: [28.1, 27.3.4.3, 26.2.5.15]
+        elixir: [1.19.5, 1.18.4, 1.17.3, 1.16.3]
+        otp: [28.3, 27.3.4.6, 26.2.5.16]
         exclude:
-        - elixir: 1.17.3
-          otp: 28.1
-        - elixir: 1.16.3
-          otp: 28.1
-        - elixir: 1.16.3
-          otp: 27.3.4.3
+          - elixir: 1.17.3
+            otp: 28.3
+          - elixir: 1.16.3
+            otp: 28.3
+          - elixir: 1.16.3
+            otp: 27.3.4.6
 
     services:
       postgres:
@@ -37,47 +40,47 @@ jobs:
       MIX_ENV: test
 
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Setup Erlang & Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-        version-type: strict
+      - name: Setup Erlang & Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+          version-type: strict
 
-    # Caching
-    - name: Dependencies cache
-      uses: actions/cache@v4
-      with:
-        path: deps
-        key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+      # Caching
+      - name: Dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-${{ hashFiles('mix.lock') }}
 
-    - name: Build cache
-      uses: actions/cache@v4
-      with:
-        path: _build
-        key: ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-
+      - name: Build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-test-${{matrix.elixir}}-${{matrix.otp}}-
 
-    # Setup
-    - name: Install dependencies
-      run: mix deps.get
+      # Setup
+      - name: Install dependencies
+        run: mix deps.get
 
-    # Checks
-    - name: Compiler warnings (test)
-      run: mix compile --warnings-as-errors --force
+      # Checks
+      - name: Compiler warnings (test)
+        run: mix compile --warnings-as-errors --force
 
-    - name: Test suite
-      run: mix test || mix test --failed || mix test --failed || mix test --failed || mix test --failed
-      env:
-        WARNINGS_AS_ERRORS: "true"
+      - name: Test suite
+        run: mix test || mix test --failed || mix test --failed || mix test --failed || mix test --failed
+        env:
+          WARNINGS_AS_ERRORS: "true"
 
-    - name: Code format
-      run: mix format --check-formatted --dry-run
+      - name: Code format
+        run: mix format --check-formatted --dry-run
 
   docs:
     name: Docs
@@ -86,8 +89,8 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets: inherit
     with:
-      elixir_version: 1.18.4
-      otp_version: 27.3.4.3
+      elixir_version: 1.19.5
+      otp_version: 28.3
 
   release:
     name: Release
@@ -96,5 +99,5 @@ jobs:
     uses: ./.github/workflows/publish-release.yml
     secrets: inherit
     with:
-      elixir_version: 1.18.4
-      otp_version: 27.3.4.3
+      elixir_version: 1.19.5
+      otp_version: 28.3
