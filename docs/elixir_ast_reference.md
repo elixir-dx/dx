@@ -909,7 +909,7 @@ a < b and c >= d
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 360, optimize_boolean: true, type_check: :expr],
+{:case, [line: 360, optimize_boolean: true, type_check: {:case, :and}],
  [
    {{:., [line: 360, column: 7], [:erlang, :<]}, [line: 360, column: 7],
     [
@@ -949,7 +949,7 @@ a and b
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 366, optimize_boolean: true, type_check: :expr],
+{:case, [line: 366, optimize_boolean: true, type_check: {:case, :and}],
  [
    {:a, [version: 0, line: 366, column: 5], nil},
    [
@@ -957,19 +957,21 @@ a and b
        {:->, [line: 366], [[false], false]},
        {:->, [line: 366],
         [[true], {:b, [version: 1, line: 366, column: 11], nil}]},
-       {:->, [line: 366],
+       {:->, [line: 366, generated: true],
         [
           [
             {:other,
              [
                version: 2,
                line: 366,
-               counter: {Dx.Dev.ElixirSyntaxReference, 557}
+               counter: {Dx.Dev.ElixirSyntaxReference, 557},
+               generated: true
              ], Kernel}
           ],
-          {{:., [line: 366], [:erlang, :error]}, [line: 366],
+          {{:., [line: 366, generated: true], [:erlang, :error]},
+           [line: 366, generated: true],
            [
-             {:{}, [line: 366],
+             {:{}, [line: 366, generated: true],
               [
                 :badbool,
                 :and,
@@ -977,7 +979,8 @@ a and b
                  [
                    version: 2,
                    line: 366,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 557}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 557},
+                   generated: true
                  ], Kernel}
               ]}
            ]}
@@ -1002,7 +1005,7 @@ a or b
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 372, optimize_boolean: true, type_check: :expr],
+{:case, [line: 372, optimize_boolean: true, type_check: {:case, :or}],
  [
    {:a, [version: 0, line: 372, column: 5], nil},
    [
@@ -1010,19 +1013,21 @@ a or b
        {:->, [line: 372],
         [[false], {:b, [version: 1, line: 372, column: 10], nil}]},
        {:->, [line: 372], [[true], true]},
-       {:->, [line: 372],
+       {:->, [line: 372, generated: true],
         [
           [
             {:other,
              [
                version: 2,
                line: 372,
-               counter: {Dx.Dev.ElixirSyntaxReference, 558}
+               counter: {Dx.Dev.ElixirSyntaxReference, 558},
+               generated: true
              ], Kernel}
           ],
-          {{:., [line: 372], [:erlang, :error]}, [line: 372],
+          {{:., [line: 372, generated: true], [:erlang, :error]},
+           [line: 372, generated: true],
            [
-             {:{}, [line: 372],
+             {:{}, [line: 372, generated: true],
               [
                 :badbool,
                 :or,
@@ -1030,7 +1035,8 @@ a or b
                  [
                    version: 2,
                    line: 372,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 558}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 558},
+                   generated: true
                  ], Kernel}
               ]}
            ]}
@@ -1074,7 +1080,7 @@ a && b
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 384, type_check: :expr],
+{:case, [line: 384, type_check: {:case, :&&}],
  [
    {:a, [version: 0, line: 384, column: 5], nil},
    [
@@ -1149,7 +1155,7 @@ a || b
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 390, type_check: :expr],
+{:case, [line: 390, type_check: {:case, :||}],
  [
    {:a, [version: 0, line: 390, column: 5], nil},
    [
@@ -1231,7 +1237,7 @@ Truthy/falsy negation
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 396, optimize_boolean: true, type_check: :expr],
+{:case, [line: 396, optimize_boolean: true, type_check: {:case, :!}],
  [
    {:a, [version: 0, line: 396, column: 6], nil},
    [
@@ -1300,9 +1306,9 @@ a and b or not c
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 402, optimize_boolean: true, type_check: :expr],
+{:case, [line: 402, optimize_boolean: true, type_check: {:case, :or}],
  [
-   {:case, [line: 402, optimize_boolean: true, type_check: :expr],
+   {:case, [line: 402, optimize_boolean: true, type_check: {:case, :and}],
     [
       {:a, [version: 0, line: 402, column: 6], nil},
       [
@@ -1310,19 +1316,21 @@ a and b or not c
           {:->, [line: 402], [[false], false]},
           {:->, [line: 402],
            [[true], {:b, [version: 1, line: 402, column: 12], nil}]},
-          {:->, [line: 402],
+          {:->, [line: 402, generated: true],
            [
              [
                {:other,
                 [
                   version: 3,
                   line: 402,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 563}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 563},
+                  generated: true
                 ], Kernel}
              ],
-             {{:., [line: 402], [:erlang, :error]}, [line: 402],
+             {{:., [line: 402, generated: true], [:erlang, :error]},
+              [line: 402, generated: true],
               [
-                {:{}, [line: 402],
+                {:{}, [line: 402, generated: true],
                  [
                    :badbool,
                    :and,
@@ -1330,7 +1338,8 @@ a and b or not c
                     [
                       version: 3,
                       line: 402,
-                      counter: {Dx.Dev.ElixirSyntaxReference, 563}
+                      counter: {Dx.Dev.ElixirSyntaxReference, 563},
+                      generated: true
                     ], Kernel}
                  ]}
               ]}
@@ -1348,19 +1357,21 @@ a and b or not c
            [{:c, [version: 2, line: 402, column: 22], nil}]}
         ]},
        {:->, [line: 402], [[true], true]},
-       {:->, [line: 402],
+       {:->, [line: 402, generated: true],
         [
           [
             {:other,
              [
                version: 4,
                line: 402,
-               counter: {Dx.Dev.ElixirSyntaxReference, 562}
+               counter: {Dx.Dev.ElixirSyntaxReference, 562},
+               generated: true
              ], Kernel}
           ],
-          {{:., [line: 402], [:erlang, :error]}, [line: 402],
+          {{:., [line: 402, generated: true], [:erlang, :error]},
+           [line: 402, generated: true],
            [
-             {:{}, [line: 402],
+             {:{}, [line: 402, generated: true],
               [
                 :badbool,
                 :or,
@@ -1368,7 +1379,8 @@ a and b or not c
                  [
                    version: 4,
                    line: 402,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 562}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 562},
+                   generated: true
                  ], Kernel}
               ]}
            ]}
@@ -1393,9 +1405,9 @@ a && b || !c
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 408, type_check: :expr],
+{:case, [line: 408, type_check: {:case, :||}],
  [
-   {:case, [line: 408, type_check: :expr],
+   {:case, [line: 408, type_check: {:case, :&&}],
     [
       {:a, [version: 0, line: 408, column: 6], nil},
       [
@@ -1499,7 +1511,7 @@ a && b || !c
                 ]}
              ]}
           ],
-          {:case, [line: 408, optimize_boolean: true, type_check: :expr],
+          {:case, [line: 408, optimize_boolean: true, type_check: {:case, :!}],
            [
              {:c, [version: 2, line: 408, column: 18], nil},
              [
@@ -1792,36 +1804,8 @@ x in [1, 2, 3]
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 460, optimize_boolean: true, type_check: :expr],
- [
-   {:case, [line: 460, optimize_boolean: true, type_check: :expr],
-    [
-      {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
-       [{:x, [version: 0, line: 460, column: 5], nil}, 1]},
-      [
-        do: [
-          {:->, [line: 460],
-           [
-             [false],
-             {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
-              [{:x, [version: 0, line: 460, column: 5], nil}, 2]}
-           ]},
-          {:->, [line: 460], [[true], true]}
-        ]
-      ]
-    ]},
-   [
-     do: [
-       {:->, [line: 460],
-        [
-          [false],
-          {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
-           [{:x, [version: 0, line: 460, column: 5], nil}, 3]}
-        ]},
-       {:->, [line: 460], [[true], true]}
-     ]
-   ]
- ]}
+{{:., [line: 460], [:lists, :member]}, [line: 460],
+ [{:x, [version: 0, line: 460, column: 5], nil}, [1, 2, 3]]}
 ```
 
 ---
@@ -1839,7 +1823,7 @@ if(condition, do: a, else: b)
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 466, optimize_boolean: true, type_check: :expr],
+{:case, [line: 466, optimize_boolean: true, type_check: {:case, :if}],
  [
    {:condition, [version: 0, line: 466, column: 8], nil},
    [
@@ -1853,7 +1837,7 @@ if(condition, do: a, else: b)
                 [
                   version: 3,
                   line: 466,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 572}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 570}
                 ], Kernel},
                {{:., [line: 466, generated: true], [:erlang, :orelse]},
                 [line: 466, generated: true],
@@ -1865,7 +1849,7 @@ if(condition, do: a, else: b)
                       [
                         version: 3,
                         line: 466,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 570},
                         generated: true
                       ], Kernel},
                      false
@@ -1877,7 +1861,7 @@ if(condition, do: a, else: b)
                       [
                         version: 3,
                         line: 466,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 570},
                         generated: true
                       ], Kernel},
                      nil
@@ -2332,7 +2316,7 @@ end
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 585, optimize_boolean: true, type_check: :expr],
+{:case, [line: 585, optimize_boolean: true, type_check: {:case, :if}],
  [
    {:condition, [version: 0, line: 585, column: 8], nil},
    [
@@ -2346,7 +2330,7 @@ end
                 [
                   version: 1,
                   line: 585,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 573}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 571}
                 ], Kernel},
                {{:., [line: 585, generated: true], [:erlang, :orelse]},
                 [line: 585, generated: true],
@@ -2358,7 +2342,7 @@ end
                       [
                         version: 1,
                         line: 585,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 571},
                         generated: true
                       ], Kernel},
                      false
@@ -2370,7 +2354,7 @@ end
                       [
                         version: 1,
                         line: 585,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 571},
                         generated: true
                       ], Kernel},
                      nil
@@ -2401,7 +2385,7 @@ if condition, do: :yes, else: :no
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 595, optimize_boolean: true, type_check: :expr],
+{:case, [line: 595, optimize_boolean: true, type_check: {:case, :if}],
  [
    {:condition, [version: 0, line: 595, column: 8], nil},
    [
@@ -2415,7 +2399,7 @@ if condition, do: :yes, else: :no
                 [
                   version: 1,
                   line: 595,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 574}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 572}
                 ], Kernel},
                {{:., [line: 595, generated: true], [:erlang, :orelse]},
                 [line: 595, generated: true],
@@ -2427,7 +2411,7 @@ if condition, do: :yes, else: :no
                       [
                         version: 1,
                         line: 595,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 574},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
                         generated: true
                       ], Kernel},
                      false
@@ -2439,7 +2423,7 @@ if condition, do: :yes, else: :no
                       [
                         version: 1,
                         line: 595,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 574},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
                         generated: true
                       ], Kernel},
                      nil
@@ -2472,7 +2456,7 @@ end
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 605, optimize_boolean: true, type_check: :expr],
+{:case, [line: 605, optimize_boolean: true, type_check: {:case, :unless}],
  [
    {:condition, [version: 0, line: 605, column: 12], nil},
    [
@@ -2486,7 +2470,7 @@ end
                 [
                   version: 1,
                   line: 605,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 576}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 573}
                 ], Kernel},
                {{:., [line: 605, generated: true], [:erlang, :orelse]},
                 [line: 605, generated: true],
@@ -2498,7 +2482,7 @@ end
                       [
                         version: 1,
                         line: 605,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 576},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
                         generated: true
                       ], Kernel},
                      false
@@ -2510,7 +2494,7 @@ end
                       [
                         version: 1,
                         line: 605,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 576},
+                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
                         generated: true
                       ], Kernel},
                      nil
@@ -2940,7 +2924,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 0,
-           counter: {Dx.Dev.ElixirSyntaxReference, 580},
+           counter: {Dx.Dev.ElixirSyntaxReference, 577},
            capture: 1,
            line: 741,
            column: 7
@@ -2948,7 +2932,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 1,
-           counter: {Dx.Dev.ElixirSyntaxReference, 581},
+           counter: {Dx.Dev.ElixirSyntaxReference, 578},
            capture: 2,
            line: 741,
            column: 12
@@ -2956,7 +2940,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 2,
-           counter: {Dx.Dev.ElixirSyntaxReference, 582},
+           counter: {Dx.Dev.ElixirSyntaxReference, 579},
            capture: 3,
            line: 741,
            column: 17
@@ -2967,7 +2951,7 @@ Partial anonymous capture
          {:capture,
           [
             version: 0,
-            counter: {Dx.Dev.ElixirSyntaxReference, 580},
+            counter: {Dx.Dev.ElixirSyntaxReference, 577},
             capture: 1,
             line: 741,
             column: 7
@@ -2977,7 +2961,7 @@ Partial anonymous capture
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 581},
+               counter: {Dx.Dev.ElixirSyntaxReference, 578},
                capture: 2,
                line: 741,
                column: 12
@@ -2985,7 +2969,7 @@ Partial anonymous capture
             {:capture,
              [
                version: 2,
-               counter: {Dx.Dev.ElixirSyntaxReference, 582},
+               counter: {Dx.Dev.ElixirSyntaxReference, 579},
                capture: 3,
                line: 741,
                column: 17
@@ -3983,7 +3967,7 @@ update_in(data, [:a, :b], &(&1 + 1))
            {:capture,
             [
               version: 1,
-              counter: {Dx.Dev.ElixirSyntaxReference, 594},
+              counter: {Dx.Dev.ElixirSyntaxReference, 591},
               capture: 1,
               line: 974,
               column: 33
@@ -3994,7 +3978,7 @@ update_in(data, [:a, :b], &(&1 + 1))
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 594},
+               counter: {Dx.Dev.ElixirSyntaxReference, 591},
                capture: 1,
                line: 974,
                column: 33
@@ -4034,7 +4018,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
            {:capture,
             [
               version: 1,
-              counter: {Dx.Dev.ElixirSyntaxReference, 595},
+              counter: {Dx.Dev.ElixirSyntaxReference, 592},
               capture: 1,
               line: 980,
               column: 37
@@ -4045,7 +4029,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 595},
+               counter: {Dx.Dev.ElixirSyntaxReference, 592},
                capture: 1,
                line: 980,
                column: 37
@@ -4056,7 +4040,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
                {:capture,
                 [
                   version: 1,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 595},
+                  counter: {Dx.Dev.ElixirSyntaxReference, 592},
                   capture: 1,
                   line: 980,
                   column: 37
@@ -4110,7 +4094,7 @@ value |> tap(&IO.inspect/1) |> process()
       {:=, [line: 992],
        [
          {:fun,
-          [version: 1, counter: {Dx.Dev.ElixirSyntaxReference, 598}, line: 1404],
+          [version: 1, counter: {Dx.Dev.ElixirSyntaxReference, 595}, line: 1404],
           Kernel},
          {:&, [line: 992, column: 18],
           [
@@ -4125,7 +4109,7 @@ value |> tap(&IO.inspect/1) |> process()
       {:=, [line: 992],
        [
          {:value,
-          [version: 2, counter: {Dx.Dev.ElixirSyntaxReference, 598}, line: 1404],
+          [version: 2, counter: {Dx.Dev.ElixirSyntaxReference, 595}, line: 1404],
           Kernel},
          {:value, [version: 0, line: 992, column: 5], nil}
        ]},
@@ -4140,7 +4124,7 @@ value |> tap(&IO.inspect/1) |> process()
                  [
                    version: 1,
                    line: 992,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 598}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 595}
                  ], Kernel}
               ]}, [line: 992],
              [
@@ -4148,12 +4132,12 @@ value |> tap(&IO.inspect/1) |> process()
                 [
                   version: 2,
                   line: 992,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 598}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 595}
                 ], Kernel}
              ]}
           ]},
          {:value,
-          [version: 2, line: 992, counter: {Dx.Dev.ElixirSyntaxReference, 598}],
+          [version: 2, line: 992, counter: {Dx.Dev.ElixirSyntaxReference, 595}],
           Kernel}
        ]}
     ]}
@@ -4185,7 +4169,7 @@ value |> then(&{:ok, &1})
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 601},
+               counter: {Dx.Dev.ElixirSyntaxReference, 598},
                capture: 1,
                line: 998,
                column: 26
@@ -4197,7 +4181,7 @@ value |> then(&{:ok, &1})
              {:capture,
               [
                 version: 1,
-                counter: {Dx.Dev.ElixirSyntaxReference, 601},
+                counter: {Dx.Dev.ElixirSyntaxReference, 598},
                 capture: 1,
                 line: 998,
                 column: 26
@@ -4238,7 +4222,7 @@ map([1, 2], &(&1 * 2))
               {:capture,
                [
                  version: 0,
-                 counter: {Dx.Dev.ElixirSyntaxReference, 602},
+                 counter: {Dx.Dev.ElixirSyntaxReference, 599},
                  capture: 1,
                  line: 1007,
                  column: 19
@@ -4250,7 +4234,7 @@ map([1, 2], &(&1 * 2))
                {:capture,
                 [
                   version: 0,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 602},
+                  counter: {Dx.Dev.ElixirSyntaxReference, 599},
                   capture: 1,
                   line: 1007,
                   column: 19
@@ -4313,7 +4297,7 @@ Integer.is_even(2)
          {:{}, [line: 1025, generated: true],
           [
             {:arg1,
-             [version: 0, line: 1025, generated: true, counter: {Integer, 78}],
+             [version: 0, line: 1025, generated: true, counter: {Integer, 86}],
              Integer}
           ]},
          {:{}, [line: 1025, generated: true], [2]}
@@ -4325,7 +4309,7 @@ Integer.is_even(2)
           [line: 1025, generated: true],
           [
             {:arg1,
-             [version: 0, line: 1025, generated: true, counter: {Integer, 78}],
+             [version: 0, line: 1025, generated: true, counter: {Integer, 86}],
              Integer}
           ]},
          {{:., [line: 1025, generated: true], [:erlang, :==]},
@@ -4339,7 +4323,7 @@ Integer.is_even(2)
                   version: 0,
                   line: 1025,
                   generated: true,
-                  counter: {Integer, 78}
+                  counter: {Integer, 86}
                 ], Integer},
                1
              ]},
@@ -4383,7 +4367,7 @@ if(true, do: :ok, else: :error)
 
 **Expanded AST:**
 ```elixir
-{:case, [line: 1035, optimize_boolean: true, type_check: :expr],
+{:case, [line: 1035, optimize_boolean: true, type_check: {:case, :if}],
  [
    true,
    [
