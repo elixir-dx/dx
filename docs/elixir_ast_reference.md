@@ -1090,25 +1090,30 @@ a && b
                   line: 384,
                   counter: {Dx.Dev.ElixirSyntaxReference, 559}
                 ], Kernel},
-               {{:., [line: 384], [:erlang, :orelse]}, [line: 384],
+               {{:., [line: 384, generated: true], [:erlang, :orelse]},
+                [line: 384, generated: true],
                 [
-                  {{:., [line: 384], [:erlang, :"=:="]}, [line: 384],
+                  {{:., [line: 384, generated: true], [:erlang, :"=:="]},
+                   [line: 384, generated: true],
                    [
                      {:x,
                       [
                         version: 2,
                         line: 384,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 559}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 559},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 384], [:erlang, :"=:="]}, [line: 384],
+                  {{:., [line: 384, generated: true], [:erlang, :"=:="]},
+                   [line: 384, generated: true],
                    [
                      {:x,
                       [
                         version: 2,
                         line: 384,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 559}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 559},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -1158,27 +1163,32 @@ a || b
                 [
                   version: 2,
                   line: 390,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 561}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 560}
                 ], Kernel},
-               {{:., [line: 390], [:erlang, :orelse]}, [line: 390],
+               {{:., [line: 390, generated: true], [:erlang, :orelse]},
+                [line: 390, generated: true],
                 [
-                  {{:., [line: 390], [:erlang, :"=:="]}, [line: 390],
+                  {{:., [line: 390, generated: true], [:erlang, :"=:="]},
+                   [line: 390, generated: true],
                    [
                      {:x,
                       [
                         version: 2,
                         line: 390,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 561}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 560},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 390], [:erlang, :"=:="]}, [line: 390],
+                  {{:., [line: 390, generated: true], [:erlang, :"=:="]},
+                   [line: 390, generated: true],
                    [
                      {:x,
                       [
                         version: 2,
                         line: 390,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 561}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 560},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -1194,11 +1204,11 @@ a || b
              [
                version: 3,
                line: 390,
-               counter: {Dx.Dev.ElixirSyntaxReference, 561}
+               counter: {Dx.Dev.ElixirSyntaxReference, 560}
              ], Kernel}
           ],
           {:x,
-           [version: 3, line: 390, counter: {Dx.Dev.ElixirSyntaxReference, 561}],
+           [version: 3, line: 390, counter: {Dx.Dev.ElixirSyntaxReference, 560}],
            Kernel}
         ]}
      ]
@@ -1235,27 +1245,32 @@ Truthy/falsy negation
                 [
                   version: 1,
                   line: 396,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 563}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 561}
                 ], Kernel},
-               {{:., [line: 396], [:erlang, :orelse]}, [line: 396],
+               {{:., [line: 396, generated: true], [:erlang, :orelse]},
+                [line: 396, generated: true],
                 [
-                  {{:., [line: 396], [:erlang, :"=:="]}, [line: 396],
+                  {{:., [line: 396, generated: true], [:erlang, :"=:="]},
+                   [line: 396, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 396,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 563}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 561},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 396], [:erlang, :"=:="]}, [line: 396],
+                  {{:., [line: 396, generated: true], [:erlang, :"=:="]},
+                   [line: 396, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 396,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 563}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 561},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -1302,7 +1317,7 @@ a and b or not c
                 [
                   version: 3,
                   line: 402,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 566}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 563}
                 ], Kernel}
              ],
              {{:., [line: 402], [:erlang, :error]}, [line: 402],
@@ -1315,7 +1330,7 @@ a and b or not c
                     [
                       version: 3,
                       line: 402,
-                      counter: {Dx.Dev.ElixirSyntaxReference, 566}
+                      counter: {Dx.Dev.ElixirSyntaxReference, 563}
                     ], Kernel}
                  ]}
               ]}
@@ -1340,7 +1355,7 @@ a and b or not c
              [
                version: 4,
                line: 402,
-               counter: {Dx.Dev.ElixirSyntaxReference, 565}
+               counter: {Dx.Dev.ElixirSyntaxReference, 562}
              ], Kernel}
           ],
           {{:., [line: 402], [:erlang, :error]}, [line: 402],
@@ -1353,7 +1368,7 @@ a and b or not c
                  [
                    version: 4,
                    line: 402,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 565}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 562}
                  ], Kernel}
               ]}
            ]}
@@ -1394,27 +1409,32 @@ a && b || !c
                    [
                      version: 3,
                      line: 408,
-                     counter: {Dx.Dev.ElixirSyntaxReference, 568}
+                     counter: {Dx.Dev.ElixirSyntaxReference, 565}
                    ], Kernel},
-                  {{:., [line: 408], [:erlang, :orelse]}, [line: 408],
+                  {{:., [line: 408, generated: true], [:erlang, :orelse]},
+                   [line: 408, generated: true],
                    [
-                     {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                     {{:., [line: 408, generated: true], [:erlang, :"=:="]},
+                      [line: 408, generated: true],
                       [
                         {:x,
                          [
                            version: 3,
                            line: 408,
-                           counter: {Dx.Dev.ElixirSyntaxReference, 568}
+                           counter: {Dx.Dev.ElixirSyntaxReference, 565},
+                           generated: true
                          ], Kernel},
                         false
                       ]},
-                     {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                     {{:., [line: 408, generated: true], [:erlang, :"=:="]},
+                      [line: 408, generated: true],
                       [
                         {:x,
                          [
                            version: 3,
                            line: 408,
-                           counter: {Dx.Dev.ElixirSyntaxReference, 568}
+                           counter: {Dx.Dev.ElixirSyntaxReference, 565},
+                           generated: true
                          ], Kernel},
                         nil
                       ]}
@@ -1425,7 +1445,7 @@ a && b || !c
               [
                 version: 3,
                 line: 408,
-                counter: {Dx.Dev.ElixirSyntaxReference, 568}
+                counter: {Dx.Dev.ElixirSyntaxReference, 565}
               ], Kernel}
            ]},
           {:->, [line: 408],
@@ -1447,27 +1467,32 @@ a && b || !c
                 [
                   version: 4,
                   line: 408,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 567}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 564}
                 ], Kernel},
-               {{:., [line: 408], [:erlang, :orelse]}, [line: 408],
+               {{:., [line: 408, generated: true], [:erlang, :orelse]},
+                [line: 408, generated: true],
                 [
-                  {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                  {{:., [line: 408, generated: true], [:erlang, :"=:="]},
+                   [line: 408, generated: true],
                    [
                      {:x,
                       [
                         version: 4,
                         line: 408,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 567}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 564},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                  {{:., [line: 408, generated: true], [:erlang, :"=:="]},
+                   [line: 408, generated: true],
                    [
                      {:x,
                       [
                         version: 4,
                         line: 408,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 567}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 564},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -1488,27 +1513,32 @@ a && b || !c
                           [
                             version: 5,
                             line: 408,
-                            counter: {Dx.Dev.ElixirSyntaxReference, 571}
+                            counter: {Dx.Dev.ElixirSyntaxReference, 566}
                           ], Kernel},
-                         {{:., [line: 408], [:erlang, :orelse]}, [line: 408],
+                         {{:., [line: 408, generated: true], [:erlang, :orelse]},
+                          [line: 408, generated: true],
                           [
-                            {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                            {{:., [line: 408, generated: true],
+                              [:erlang, :"=:="]}, [line: 408, generated: true],
                              [
                                {:x,
                                 [
                                   version: 5,
                                   line: 408,
-                                  counter: {Dx.Dev.ElixirSyntaxReference, 571}
+                                  counter: {Dx.Dev.ElixirSyntaxReference, 566},
+                                  generated: true
                                 ], Kernel},
                                false
                              ]},
-                            {{:., [line: 408], [:erlang, :"=:="]}, [line: 408],
+                            {{:., [line: 408, generated: true],
+                              [:erlang, :"=:="]}, [line: 408, generated: true],
                              [
                                {:x,
                                 [
                                   version: 5,
                                   line: 408,
-                                  counter: {Dx.Dev.ElixirSyntaxReference, 571}
+                                  counter: {Dx.Dev.ElixirSyntaxReference, 566},
+                                  generated: true
                                 ], Kernel},
                                nil
                              ]}
@@ -1529,11 +1559,11 @@ a && b || !c
              [
                version: 6,
                line: 408,
-               counter: {Dx.Dev.ElixirSyntaxReference, 567}
+               counter: {Dx.Dev.ElixirSyntaxReference, 564}
              ], Kernel}
           ],
           {:x,
-           [version: 6, line: 408, counter: {Dx.Dev.ElixirSyntaxReference, 567}],
+           [version: 6, line: 408, counter: {Dx.Dev.ElixirSyntaxReference, 564}],
            Kernel}
         ]}
      ]
@@ -1620,7 +1650,7 @@ Pattern match
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 424],
+{:__block__, [line: 426, column: 19],
  [
    {:=, [line: 427, column: 12],
     [
@@ -1762,17 +1792,35 @@ x in [1, 2, 3]
 
 **Expanded AST:**
 ```elixir
-{{:., [line: 460], [:erlang, :orelse]}, [line: 460],
+{:case, [line: 460, optimize_boolean: true, type_check: :expr],
  [
-   {{:., [line: 460], [:erlang, :orelse]}, [line: 460],
+   {:case, [line: 460, optimize_boolean: true, type_check: :expr],
     [
       {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
        [{:x, [version: 0, line: 460, column: 5], nil}, 1]},
-      {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
-       [{:x, [version: 0, line: 460, column: 5], nil}, 2]}
+      [
+        do: [
+          {:->, [line: 460],
+           [
+             [false],
+             {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
+              [{:x, [version: 0, line: 460, column: 5], nil}, 2]}
+           ]},
+          {:->, [line: 460], [[true], true]}
+        ]
+      ]
     ]},
-   {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
-    [{:x, [version: 0, line: 460, column: 5], nil}, 3]}
+   [
+     do: [
+       {:->, [line: 460],
+        [
+          [false],
+          {{:., [line: 460], [:erlang, :"=:="]}, [line: 460],
+           [{:x, [version: 0, line: 460, column: 5], nil}, 3]}
+        ]},
+       {:->, [line: 460], [[true], true]}
+     ]
+   ]
  ]}
 ```
 
@@ -1805,27 +1853,32 @@ if(condition, do: a, else: b)
                 [
                   version: 3,
                   line: 466,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 576}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 572}
                 ], Kernel},
-               {{:., [line: 466], [:erlang, :orelse]}, [line: 466],
+               {{:., [line: 466, generated: true], [:erlang, :orelse]},
+                [line: 466, generated: true],
                 [
-                  {{:., [line: 466], [:erlang, :"=:="]}, [line: 466],
+                  {{:., [line: 466, generated: true], [:erlang, :"=:="]},
+                   [line: 466, generated: true],
                    [
                      {:x,
                       [
                         version: 3,
                         line: 466,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 576}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 466], [:erlang, :"=:="]}, [line: 466],
+                  {{:., [line: 466, generated: true], [:erlang, :"=:="]},
+                   [line: 466, generated: true],
                    [
                      {:x,
                       [
                         version: 3,
                         line: 466,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 576}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 572},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -1859,7 +1912,7 @@ x = 42
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 469],
+{:__block__, [line: 469, column: 85],
  [
    {:=, [line: 470, column: 7],
     [{:x, [version: 0, line: 470, column: 5], nil}, 42]},
@@ -1882,7 +1935,7 @@ Tuple destructuring
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 474],
+{:__block__, [line: 476, column: 19],
  [
    {:=, [line: 477, column: 15],
     [
@@ -1918,7 +1971,7 @@ List destructuring
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 481],
+{:__block__, [line: 483, column: 18],
  [
    {:=, [line: 484, column: 28],
     [
@@ -1956,7 +2009,7 @@ Map destructuring
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 488],
+{:__block__, [line: 490, column: 17],
  [
    {:=, [line: 491, column: 19],
     [
@@ -1983,7 +2036,7 @@ Struct destructuring
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 495],
+{:__block__, [line: 497, column: 18],
  [
    {:=, [line: 498, column: 52],
     [
@@ -2014,7 +2067,7 @@ Pinned value inside pattern
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 502],
+{:__block__, [line: 504, column: 24],
  [
    {:=, [line: 505, column: 19],
     [
@@ -2042,7 +2095,7 @@ Binary pattern match
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 509],
+{:__block__, [line: 511, column: 18],
  [
    {:=, [line: 512, column: 46],
     [
@@ -2082,7 +2135,7 @@ Discarded pattern value
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 516],
+{:__block__, [line: 518, column: 19],
  [
    {:=, [line: 519, column: 16],
     [
@@ -2109,7 +2162,7 @@ Named ignored pattern value
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 523],
+{:__block__, [line: 525, column: 19],
  [
    {:=, [line: 526, column: 23],
     [
@@ -2293,27 +2346,32 @@ end
                 [
                   version: 1,
                   line: 585,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 578}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 573}
                 ], Kernel},
-               {{:., [line: 585], [:erlang, :orelse]}, [line: 585],
+               {{:., [line: 585, generated: true], [:erlang, :orelse]},
+                [line: 585, generated: true],
                 [
-                  {{:., [line: 585], [:erlang, :"=:="]}, [line: 585],
+                  {{:., [line: 585, generated: true], [:erlang, :"=:="]},
+                   [line: 585, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 585,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 578}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 585], [:erlang, :"=:="]}, [line: 585],
+                  {{:., [line: 585, generated: true], [:erlang, :"=:="]},
+                   [line: 585, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 585,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 578}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 573},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -2357,27 +2415,32 @@ if condition, do: :yes, else: :no
                 [
                   version: 1,
                   line: 595,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 580}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 574}
                 ], Kernel},
-               {{:., [line: 595], [:erlang, :orelse]}, [line: 595],
+               {{:., [line: 595, generated: true], [:erlang, :orelse]},
+                [line: 595, generated: true],
                 [
-                  {{:., [line: 595], [:erlang, :"=:="]}, [line: 595],
+                  {{:., [line: 595, generated: true], [:erlang, :"=:="]},
+                   [line: 595, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 595,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 580}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 574},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 595], [:erlang, :"=:="]}, [line: 595],
+                  {{:., [line: 595, generated: true], [:erlang, :"=:="]},
+                   [line: 595, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 595,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 580}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 574},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -2423,27 +2486,32 @@ end
                 [
                   version: 1,
                   line: 605,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 583}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 576}
                 ], Kernel},
-               {{:., [line: 605], [:erlang, :orelse]}, [line: 605],
+               {{:., [line: 605, generated: true], [:erlang, :orelse]},
+                [line: 605, generated: true],
                 [
-                  {{:., [line: 605], [:erlang, :"=:="]}, [line: 605],
+                  {{:., [line: 605, generated: true], [:erlang, :"=:="]},
+                   [line: 605, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 605,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 583}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 576},
+                        generated: true
                       ], Kernel},
                      false
                    ]},
-                  {{:., [line: 605], [:erlang, :"=:="]}, [line: 605],
+                  {{:., [line: 605, generated: true], [:erlang, :"=:="]},
+                   [line: 605, generated: true],
                    [
                      {:x,
                       [
                         version: 1,
                         line: 605,
-                        counter: {Dx.Dev.ElixirSyntaxReference, 583}
+                        counter: {Dx.Dev.ElixirSyntaxReference, 576},
+                        generated: true
                       ], Kernel},
                      nil
                    ]}
@@ -2872,7 +2940,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 0,
-           counter: {Dx.Dev.ElixirSyntaxReference, 588},
+           counter: {Dx.Dev.ElixirSyntaxReference, 580},
            capture: 1,
            line: 741,
            column: 7
@@ -2880,7 +2948,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 1,
-           counter: {Dx.Dev.ElixirSyntaxReference, 589},
+           counter: {Dx.Dev.ElixirSyntaxReference, 581},
            capture: 2,
            line: 741,
            column: 12
@@ -2888,7 +2956,7 @@ Partial anonymous capture
         {:capture,
          [
            version: 2,
-           counter: {Dx.Dev.ElixirSyntaxReference, 590},
+           counter: {Dx.Dev.ElixirSyntaxReference, 582},
            capture: 3,
            line: 741,
            column: 17
@@ -2899,7 +2967,7 @@ Partial anonymous capture
          {:capture,
           [
             version: 0,
-            counter: {Dx.Dev.ElixirSyntaxReference, 588},
+            counter: {Dx.Dev.ElixirSyntaxReference, 580},
             capture: 1,
             line: 741,
             column: 7
@@ -2909,7 +2977,7 @@ Partial anonymous capture
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 589},
+               counter: {Dx.Dev.ElixirSyntaxReference, 581},
                capture: 2,
                line: 741,
                column: 12
@@ -2917,7 +2985,7 @@ Partial anonymous capture
             {:capture,
              [
                version: 2,
-               counter: {Dx.Dev.ElixirSyntaxReference, 590},
+               counter: {Dx.Dev.ElixirSyntaxReference, 582},
                capture: 3,
                line: 741,
                column: 17
@@ -3915,7 +3983,7 @@ update_in(data, [:a, :b], &(&1 + 1))
            {:capture,
             [
               version: 1,
-              counter: {Dx.Dev.ElixirSyntaxReference, 602},
+              counter: {Dx.Dev.ElixirSyntaxReference, 594},
               capture: 1,
               line: 974,
               column: 33
@@ -3926,7 +3994,7 @@ update_in(data, [:a, :b], &(&1 + 1))
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 602},
+               counter: {Dx.Dev.ElixirSyntaxReference, 594},
                capture: 1,
                line: 974,
                column: 33
@@ -3966,7 +4034,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
            {:capture,
             [
               version: 1,
-              counter: {Dx.Dev.ElixirSyntaxReference, 603},
+              counter: {Dx.Dev.ElixirSyntaxReference, 595},
               capture: 1,
               line: 980,
               column: 37
@@ -3977,7 +4045,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 603},
+               counter: {Dx.Dev.ElixirSyntaxReference, 595},
                capture: 1,
                line: 980,
                column: 37
@@ -3988,7 +4056,7 @@ get_and_update_in(data, [:a], &{&1, &1 + 1})
                {:capture,
                 [
                   version: 1,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 603},
+                  counter: {Dx.Dev.ElixirSyntaxReference, 595},
                   capture: 1,
                   line: 980,
                   column: 37
@@ -4042,7 +4110,7 @@ value |> tap(&IO.inspect/1) |> process()
       {:=, [line: 992],
        [
          {:fun,
-          [version: 1, counter: {Dx.Dev.ElixirSyntaxReference, 606}, line: 1404],
+          [version: 1, counter: {Dx.Dev.ElixirSyntaxReference, 598}, line: 1404],
           Kernel},
          {:&, [line: 992, column: 18],
           [
@@ -4057,7 +4125,7 @@ value |> tap(&IO.inspect/1) |> process()
       {:=, [line: 992],
        [
          {:value,
-          [version: 2, counter: {Dx.Dev.ElixirSyntaxReference, 606}, line: 1404],
+          [version: 2, counter: {Dx.Dev.ElixirSyntaxReference, 598}, line: 1404],
           Kernel},
          {:value, [version: 0, line: 992, column: 5], nil}
        ]},
@@ -4072,7 +4140,7 @@ value |> tap(&IO.inspect/1) |> process()
                  [
                    version: 1,
                    line: 992,
-                   counter: {Dx.Dev.ElixirSyntaxReference, 606}
+                   counter: {Dx.Dev.ElixirSyntaxReference, 598}
                  ], Kernel}
               ]}, [line: 992],
              [
@@ -4080,12 +4148,12 @@ value |> tap(&IO.inspect/1) |> process()
                 [
                   version: 2,
                   line: 992,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 606}
+                  counter: {Dx.Dev.ElixirSyntaxReference, 598}
                 ], Kernel}
              ]}
           ]},
          {:value,
-          [version: 2, line: 992, counter: {Dx.Dev.ElixirSyntaxReference, 606}],
+          [version: 2, line: 992, counter: {Dx.Dev.ElixirSyntaxReference, 598}],
           Kernel}
        ]}
     ]}
@@ -4117,7 +4185,7 @@ value |> then(&{:ok, &1})
             {:capture,
              [
                version: 1,
-               counter: {Dx.Dev.ElixirSyntaxReference, 609},
+               counter: {Dx.Dev.ElixirSyntaxReference, 601},
                capture: 1,
                line: 998,
                column: 26
@@ -4129,7 +4197,7 @@ value |> then(&{:ok, &1})
              {:capture,
               [
                 version: 1,
-                counter: {Dx.Dev.ElixirSyntaxReference, 609},
+                counter: {Dx.Dev.ElixirSyntaxReference, 601},
                 capture: 1,
                 line: 998,
                 column: 26
@@ -4156,7 +4224,7 @@ map([1, 2], &(&1 * 2))
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 1001],
+{:__block__, [line: 1005, column: 9],
  [
    Enum,
    {{:., [line: 1007, column: 5], [Enum, :map]}, [line: 1007, column: 5],
@@ -4170,7 +4238,7 @@ map([1, 2], &(&1 * 2))
               {:capture,
                [
                  version: 0,
-                 counter: {Dx.Dev.ElixirSyntaxReference, 610},
+                 counter: {Dx.Dev.ElixirSyntaxReference, 602},
                  capture: 1,
                  line: 1007,
                  column: 19
@@ -4182,7 +4250,7 @@ map([1, 2], &(&1 * 2))
                {:capture,
                 [
                   version: 0,
-                  counter: {Dx.Dev.ElixirSyntaxReference, 610},
+                  counter: {Dx.Dev.ElixirSyntaxReference, 602},
                   capture: 1,
                   line: 1007,
                   column: 19
@@ -4211,7 +4279,7 @@ S.upcase("hello")
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 1010],
+{:__block__, [line: 1014, column: 9],
  [
    String,
    {{:., [line: 1016, column: 6], [String, :upcase]}, [line: 1016, column: 7],
@@ -4235,7 +4303,7 @@ Integer.is_even(2)
 
 **Expanded AST:**
 ```elixir
-{:__block__, [line: 1019],
+{:__block__, [line: 1023, column: 9],
  [
    Integer,
    {:__block__, [line: 1025, generated: true],
@@ -4245,7 +4313,7 @@ Integer.is_even(2)
          {:{}, [line: 1025, generated: true],
           [
             {:arg1,
-             [version: 0, line: 1025, generated: true, counter: {Integer, 74}],
+             [version: 0, line: 1025, generated: true, counter: {Integer, 78}],
              Integer}
           ]},
          {:{}, [line: 1025, generated: true], [2]}
@@ -4257,7 +4325,7 @@ Integer.is_even(2)
           [line: 1025, generated: true],
           [
             {:arg1,
-             [version: 0, line: 1025, generated: true, counter: {Integer, 74}],
+             [version: 0, line: 1025, generated: true, counter: {Integer, 78}],
              Integer}
           ]},
          {{:., [line: 1025, generated: true], [:erlang, :==]},
@@ -4271,7 +4339,7 @@ Integer.is_even(2)
                   version: 0,
                   line: 1025,
                   generated: true,
-                  counter: {Integer, 74}
+                  counter: {Integer, 78}
                 ], Integer},
                1
              ]},
