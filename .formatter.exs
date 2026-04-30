@@ -16,6 +16,7 @@ locals_without_parens = [
 [
   inputs: [
     "*.{ex,exs}",
+    "dev/**/*.{ex,exs}",
     "lib/**/*.{ex,exs}",
     "test/{dx,support}/**/*.{ex,exs}",
     "test/*.{ex,exs}"
